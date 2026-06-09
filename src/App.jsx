@@ -1235,6 +1235,81 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
                       ) : (
                         <button onClick={() => setShowDayAdd(true)} style={{ ...S.addBtn, marginTop: 8, fontSize: 12, padding: "9px" }}>+ Añadir día</button>
                       )}
+
+                      {/* POSICIONES */}
+                      {(() => {
+                        const stHasFoh = totalForStage(st) > 0;
+                        const stHasEscenario = ((st.escenario?.inputs?.length || 0) > 0 || (st.escenario?.power?.length || 0) > 0);
+                        const stHasMon = (st.monPositions || []).length > 0;
+                        if (!stHasFoh && !stHasMon && !stHasEscenario) return null;
+                        return (
+                          <div style={{ marginTop: 16 }}>
+                            <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 8 }}>POSICIONES</div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                              {stHasFoh && (
+                                <div style={{ background: T.card2, borderRadius: 10, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ fontSize: 16, flexShrink: 0 }}>🎛️</div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>FOH</div>
+                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{totalForStage(st)} artistas</div>
+                                  </div>
+                                  <button onClick={() => {
+                                    if (!window.confirm(`¿Eliminar todos los artistas de FOH en ${st.name}?`)) return;
+                                    const newStages = (fest.stages || []).map(s => s.id === st.id
+                                      ? { ...s, days: s.days.map(d => ({ ...d, artists: [] })) }
+                                      : s
+                                    );
+                                    onEditFest({ ...fest, stages: newStages });
+                                  }} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                </div>
+                              )}
+                              {(st.monPositions || []).map(mp => (
+                                <div key={mp.id} style={{ background: T.card2, borderRadius: 10, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ fontSize: 16, flexShrink: 0 }}>🎧</div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <input
+                                      defaultValue={mp.name}
+                                      onBlur={e => {
+                                        if (!e.target.value.trim()) return;
+                                        const newStages = (fest.stages || []).map(s => s.id === st.id
+                                          ? { ...s, monPositions: (s.monPositions || []).map(p => p.id === mp.id ? { ...p, name: e.target.value.trim().toUpperCase() } : p) }
+                                          : s
+                                        );
+                                        onEditFest({ ...fest, stages: newStages });
+                                      }}
+                                      style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 12, fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", color: T.text }}
+                                    />
+                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{(mp.inputs || []).length} inputs · {(mp.rfEntries || []).length} RF</div>
+                                  </div>
+                                  <button onClick={() => {
+                                    const newStages = (fest.stages || []).map(s => s.id === st.id
+                                      ? { ...s, monPositions: (s.monPositions || []).filter(p => p.id !== mp.id) }
+                                      : s
+                                    );
+                                    onEditFest({ ...fest, stages: newStages });
+                                  }} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                </div>
+                              ))}
+                              {stHasEscenario && (
+                                <div style={{ background: T.card2, borderRadius: 10, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ fontSize: 16, flexShrink: 0 }}>🎪</div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>ESCENARIO</div>
+                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{(st.escenario?.inputs || []).length} inputs · {(st.escenario?.power || []).length} grupos corriente</div>
+                                  </div>
+                                  <button onClick={() => {
+                                    const newStages = (fest.stages || []).map(s => s.id === st.id
+                                      ? { ...s, escenario: undefined }
+                                      : s
+                                    );
+                                    onEditFest({ ...fest, stages: newStages });
+                                  }} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 }
