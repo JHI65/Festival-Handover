@@ -190,9 +190,56 @@ export default function App() {
 }
 
 /* ---------- login ---------- */
+const INSTALL_STEPS = {
+  ios: [
+    <>"Compartir" <span style={{ color: "#D4A843" }}>⎙</span> en la barra inferior</>,
+    <>"<span style={{ color: "#D4A843" }}>Añadir a pantalla de inicio</span>"</>,
+    <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
+  ],
+  android: [
+    <>Menú <span style={{ color: "#D4A843" }}>⋮</span> arriba a la derecha</>,
+    <>"<span style={{ color: "#D4A843" }}>Añadir a pantalla de inicio</span>"</>,
+    <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
+  ],
+};
+
+function InstallSteps({ icon, title, steps }) {
+  return (
+    <div style={{ background: "rgba(245,239,224,0.05)", borderRadius: 16, padding: "16px 18px", border: "1px solid rgba(245,239,224,0.08)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 18 }}>{icon}</span>
+        <span style={{ fontSize: 13, color: "#F5EFE0", fontFamily: "'DM Sans',sans-serif", fontWeight: 700 }}>{title}</span>
+      </div>
+      {steps.map((step, t) => (
+        <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: t < 2 ? 8 : 0 }}>
+          <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(212,168,67,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#D4A843", fontFamily: "'DM Mono',monospace", flexShrink: 0, marginTop: 1 }}>{t + 1}</div>
+          <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.45 }}>{step}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showInstall, setShowInstall] = useState(
+    () => !(window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches)
+  );
+
+  useEffect(() => {
+    const el = document.documentElement;
+    el.style.backgroundImage = "url('./bg-login.jpg')";
+    el.style.backgroundSize = "cover";
+    el.style.backgroundPosition = "center 30%";
+    el.style.backgroundRepeat = "no-repeat";
+    return () => {
+      el.style.backgroundImage = "";
+      el.style.backgroundSize = "";
+      el.style.backgroundPosition = "";
+      el.style.backgroundRepeat = "";
+    };
+  }, []);
 
   async function loginWithGoogle() {
     setLoading(true);
@@ -208,28 +255,58 @@ function LoginScreen() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#1A1410", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'DM Sans',sans-serif", borderTop: "4px solid #C94A2A" }}>
+    <div style={{ minHeight: "100vh", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'DM Sans',sans-serif" }}>
       <Style />
-      <div style={{ marginBottom: 8, fontSize: 11, color: "#B0A090", letterSpacing: "0.2em", fontFamily: "'DM Mono',monospace" }}>FOH HANDOVER</div>
-      <div style={{ fontSize: 42, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.05em", marginBottom: 4 }}>
-        TUS <span style={{ color: "#D4A843" }}>FESTIVALES</span>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "url('./bg-login.jpg')", backgroundSize: "cover", backgroundPosition: "center 30%", zIndex: 0 }} />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(10,7,5,0.45) 0%, rgba(15,10,7,0.55) 100%)", zIndex: 0 }} />
+
+      <div className="lg-card" style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 380, background: "rgba(28,22,17,0.10)", border: "1px solid rgba(245,239,224,0.15)", borderRadius: 20, padding: "44px 34px 30px", boxShadow: "0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(245,239,224,0.05)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", textAlign: "center" }}>
+        <div style={{ width: 72, height: 72, margin: "0 auto 22px", borderRadius: 18, background: "linear-gradient(145deg, #221A14, #14100B)", border: "1px solid rgba(245,239,224,0.10)", boxShadow: "0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,239,224,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="lg-mark" style={{ display: "flex", alignItems: "center", gap: 4, height: 32 }}>
+            <span /><span /><span /><span /><span />
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: "#B0A090", letterSpacing: "0.32em", fontFamily: "'DM Mono',monospace", marginBottom: 10 }}>FESTIVAL HANDOVER</div>
+        <div style={{ fontSize: 46, lineHeight: 1, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 12 }}>
+          TUS <span style={{ color: "#D4A843" }}>FESTIVALES</span>
+        </div>
+        <div style={{ fontSize: 13, color: "#9A8772", marginBottom: 30, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.5 }}>
+          Gestiona y sincroniza tus handovers de sonido en tiempo real con todo tu equipo.
+        </div>
+        <button onClick={loginWithGoogle} disabled={loading} className="lg-btn" style={{
+          display: "flex", alignItems: "center", gap: 12,
+          background: "#F5EFE0", border: "none", borderRadius: 12,
+          padding: "15px 24px", fontSize: 14, fontWeight: 700,
+          fontFamily: "'DM Mono',monospace", cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading ? 0.6 : 1, color: "#1A1410",
+          boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
+          width: "100%", justifyContent: "center",
+        }}>
+          <GoogleIcon />
+          {loading ? "Conectando…" : "Continuar con Google"}
+        </button>
+        {error && (
+          <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "rgba(201,74,42,0.12)", border: "1px solid rgba(201,74,42,0.3)", color: "#E58A6E", fontSize: 12, textAlign: "center", fontFamily: "'DM Mono',monospace" }}>{error}</div>
+        )}
       </div>
-      <div style={{ fontSize: 12, color: "#7A6652", marginBottom: 48, textAlign: "center", fontFamily: "'DM Mono',monospace" }}>
-        Inicia sesión para guardar y sincronizar tus festivales
-      </div>
-      <button onClick={loginWithGoogle} disabled={loading} style={{
-        display: "flex", alignItems: "center", gap: 12,
-        background: "#F5EFE0", border: "none", borderRadius: 4,
-        padding: "14px 24px", fontSize: 14, fontWeight: 700,
-        fontFamily: "'DM Mono',monospace", cursor: loading ? "not-allowed" : "pointer",
-        opacity: loading ? 0.6 : 1, color: "#1A1410",
-        boxShadow: "0 2px 16px rgba(0,0,0,0.4)",
-        width: "100%", maxWidth: 320, justifyContent: "center",
-      }}>
-        <GoogleIcon />
-        {loading ? "Conectando…" : "Continuar con Google"}
-      </button>
-      {error && <div style={{ marginTop: 16, color: "#C94A2A", fontSize: 12, textAlign: "center" }}>{error}</div>}
+
+      {showInstall && (
+        <div onClick={() => setShowInstall(false)} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(10,7,5,0.30)", backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px", animation: "lg-fade .3s cubic-bezier(.2,.7,.3,1) both" }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: "linear-gradient(160deg, #2E2318, #1E1610)", border: "1px solid rgba(245,239,224,0.14)", borderRadius: 28, padding: "30px 26px 26px", boxShadow: "0 24px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,239,224,0.08)", textAlign: "center" }}>
+            <div style={{ fontSize: 44, marginBottom: 14, lineHeight: 1 }}>📲</div>
+            <div style={{ fontSize: 11, color: "#C94A2A", letterSpacing: "0.25em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>INSTALAR APP</div>
+            <div style={{ fontSize: 26, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 8 }}>Úsala como app nativa</div>
+            <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
+              Añádela a tu pantalla de inicio para abrirla en pantalla completa, sin barras del navegador.
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", marginBottom: 24 }}>
+              <InstallSteps icon="🍎" title="iPhone / iPad — Safari" steps={INSTALL_STEPS.ios} />
+              <InstallSteps icon="🤖" title="Android — Chrome" steps={INSTALL_STEPS.android} />
+            </div>
+            <button onClick={() => setShowInstall(false)} className="lg-btn" style={{ width: "100%", padding: "15px", borderRadius: 14, background: "#D4A843", border: "none", color: "#1A1410", fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.12em", boxShadow: "0 4px 18px rgba(212,168,67,0.3)" }}>¡ENTENDIDO!</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4240,5 +4317,21 @@ function Style({ dark }) {
     input::placeholder, textarea::placeholder { color:#B0A090; }
     input, textarea, select { font-size:16px !important; }
     button { font-family:'DM Mono',monospace; }
+
+    /* ---------- login screen ---------- */
+    @keyframes lg-fade { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes lg-glow { 0%,100% { opacity:0.45; } 50% { opacity:0.75; } }
+    @keyframes lg-eq { 0%,100% { transform:scaleY(0.35); } 50% { transform:scaleY(1); } }
+    .lg-card { animation:lg-fade .6s cubic-bezier(.2,.7,.3,1) both; }
+    .lg-glow { animation:lg-glow 6s ease-in-out infinite; }
+    .lg-mark span { display:block; width:4px; border-radius:2px; transform-origin:center; animation:lg-eq 1.2s ease-in-out infinite; }
+    .lg-mark span:nth-child(1){ height:14px; background:#C94A2A; animation-delay:0s; }
+    .lg-mark span:nth-child(2){ height:22px; background:#D4A843; animation-delay:.15s; }
+    .lg-mark span:nth-child(3){ height:30px; background:#F5EFE0; animation-delay:.3s; }
+    .lg-mark span:nth-child(4){ height:22px; background:#D4A843; animation-delay:.45s; }
+    .lg-mark span:nth-child(5){ height:14px; background:#C94A2A; animation-delay:.6s; }
+    .lg-btn { transition:transform .15s ease, box-shadow .15s ease, background .15s ease; }
+    .lg-btn:not(:disabled):hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.5); }
+    .lg-btn:not(:disabled):active { transform:translateY(0); box-shadow:0 4px 14px rgba(0,0,0,.4); }
   `}</style>;
 }
