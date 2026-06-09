@@ -41,8 +41,8 @@ function normalizeFest(f) {
 /* ---------- theme ---------- */
 const ThemeCtx = createContext({ dark: false, toggle: () => {} });
 const useTheme = () => useContext(ThemeCtx);
-const LT = { bg: "#f8fafc", card: "#fff", card2: "#f1f5f9", border: "#e2e8f0", border2: "#f1f5f9", text: "#0f172a", text2: "#334155", text3: "#64748b", text4: "#94a3b8" };
-const DK = { bg: "#0f172a", card: "#1e293b", card2: "#0f172a", border: "#334155", border2: "#1e293b", text: "#f1f5f9", text2: "#cbd5e1", text3: "#94a3b8", text4: "#64748b" };
+const LT = { bg: "#F5EFE0", card: "#fff", card2: "#FAF6EE", border: "#D8CEB8", border2: "#EDE6D4", text: "#1A1410", text2: "#3D2B1F", text3: "#7A6652", text4: "#B0A090" };
+const DK = { bg: "#1A1410", card: "#261E18", card2: "#1A1410", border: "#3D2B1F", border2: "#261E18", text: "#F5EFE0", text2: "#D8CEB8", text3: "#B0A090", text4: "#7A6652" };
 
 /* ---------- helpers ---------- */
 function sigColor(s) {
@@ -55,6 +55,7 @@ function sigColor(s) {
   return "#64748b";
 }
 const uid = () => Math.random().toString(36).slice(2, 9);
+const PALETTE = ["#C94A2A", "#2A6B6B", "#D4A843", "#7B5EA7", "#1E6B8C", "#B85C38", "#3D7A5C", "#8C4A6B"];
 // Festival 24h sort: hours 00-05 are treated as "next day" (after midnight)
 function festTimeToMin(t) {
   if (!t) return Infinity;
@@ -207,28 +208,28 @@ function LoginScreen() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0f172a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'JetBrains Mono',monospace" }}>
+    <div style={{ minHeight: "100vh", background: "#1A1410", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'DM Sans',sans-serif", borderTop: "4px solid #C94A2A" }}>
       <Style />
-      <div style={{ marginBottom: 8, fontSize: 11, color: "#475569", letterSpacing: "0.2em" }}>FOH HANDOVER</div>
-      <div style={{ fontSize: 42, fontFamily: "'Bebas Neue',sans-serif", color: "#fff", letterSpacing: "0.05em", marginBottom: 4 }}>
-        TUS <span style={{ color: "#f59e0b" }}>FESTIVALES</span>
+      <div style={{ marginBottom: 8, fontSize: 11, color: "#B0A090", letterSpacing: "0.2em", fontFamily: "'DM Mono',monospace" }}>FOH HANDOVER</div>
+      <div style={{ fontSize: 42, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.05em", marginBottom: 4 }}>
+        TUS <span style={{ color: "#D4A843" }}>FESTIVALES</span>
       </div>
-      <div style={{ fontSize: 12, color: "#64748b", marginBottom: 48, textAlign: "center" }}>
+      <div style={{ fontSize: 12, color: "#7A6652", marginBottom: 48, textAlign: "center", fontFamily: "'DM Mono',monospace" }}>
         Inicia sesión para guardar y sincronizar tus festivales
       </div>
       <button onClick={loginWithGoogle} disabled={loading} style={{
         display: "flex", alignItems: "center", gap: 12,
-        background: "#fff", border: "none", borderRadius: 14,
+        background: "#F5EFE0", border: "none", borderRadius: 4,
         padding: "14px 24px", fontSize: 14, fontWeight: 700,
-        fontFamily: "'JetBrains Mono',monospace", cursor: loading ? "not-allowed" : "pointer",
-        opacity: loading ? 0.6 : 1, color: "#0f172a",
+        fontFamily: "'DM Mono',monospace", cursor: loading ? "not-allowed" : "pointer",
+        opacity: loading ? 0.6 : 1, color: "#1A1410",
         boxShadow: "0 2px 16px rgba(0,0,0,0.4)",
         width: "100%", maxWidth: 320, justifyContent: "center",
       }}>
         <GoogleIcon />
         {loading ? "Conectando…" : "Continuar con Google"}
       </button>
-      {error && <div style={{ marginTop: 16, color: "#f87171", fontSize: 12, textAlign: "center" }}>{error}</div>}
+      {error && <div style={{ marginTop: 16, color: "#C94A2A", fontSize: 12, textAlign: "center" }}>{error}</div>}
     </div>
   );
 }
@@ -395,17 +396,17 @@ function Main({ session }) {
   }
 
   if (loadError) return (
-    <div style={{ minHeight: "100vh", background: "#0f172a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "monospace", gap: 16 }}>
+    <div style={{ minHeight: "100vh", background: "#1A1410", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'DM Mono',monospace", gap: 16 }}>
       <Style />
       <div style={{ fontSize: 32 }}>⚠️</div>
-      <div style={{ color: "#f87171", fontSize: 13, textAlign: "center", maxWidth: 340 }}>
+      <div style={{ color: "#C94A2A", fontSize: 13, textAlign: "center", maxWidth: 340 }}>
         <strong>Error al conectar con la base de datos</strong><br /><br />
         {loadError}<br /><br />
-        <span style={{ color: "#94a3b8", fontSize: 11 }}>
+        <span style={{ color: "#B0A090", fontSize: 11 }}>
           Asegúrate de haber ejecutado el SQL en Supabase y de tener las tablas <code>festivals</code> y <code>user_data</code> creadas.
         </span>
       </div>
-      <button onClick={() => supabase.auth.signOut()} style={{ marginTop: 8, background: "#fff", border: "none", borderRadius: 10, padding: "10px 20px", cursor: "pointer", fontSize: 13 }}>
+      <button onClick={() => supabase.auth.signOut()} style={{ marginTop: 8, background: "#F5EFE0", border: "none", borderRadius: 4, padding: "10px 20px", cursor: "pointer", fontSize: 13 }}>
         Cerrar sesión
       </button>
     </div>
@@ -438,6 +439,7 @@ function Main({ session }) {
             onEditFest={updateFest}
             onOpenStage={(sid) => { setStageId(sid); setDayIdx(0); setScreen("view"); }}
             onOpenMon={(sid, mid) => { setStageId(sid); setMonId(mid); setDayIdx(0); setScreen("mon"); }}
+            onOpenEscenario={(sid) => { setStageId(sid); setScreen("escenario"); }}
           />
         )}
         {screen === "builder" && (
@@ -475,6 +477,14 @@ function Main({ session }) {
             />
           ) : null;
         })()}
+        {screen === "escenario" && fest && stage && (
+          <EscenarioView
+            fest={fest}
+            stage={stage}
+            onEditFest={updateFest}
+            onBack={() => setScreen("stages")}
+          />
+        )}
       </div>
     </ThemeCtx.Provider>
   );
@@ -483,7 +493,7 @@ function Main({ session }) {
 /* ---------- splash ---------- */
 function Splash() {
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontFamily: "monospace" }}>
+    <div style={{ minHeight: "100vh", background: "#F5EFE0", display: "flex", alignItems: "center", justifyContent: "center", color: "#B0A090", fontFamily: "'DM Mono',monospace" }}>
       <Style />
       cargando…
     </div>
@@ -540,7 +550,7 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
               <button onClick={toggle} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
                 borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
-                textAlign: "left", fontFamily: "'JetBrains Mono',monospace",
+                textAlign: "left", fontFamily: "'DM Mono',monospace",
                 display: "flex", alignItems: "center", justifyContent: "space-between",
               }}>
                 <span>{dark ? "☀️ Modo claro" : "🌙 Modo oscuro"}</span>
@@ -554,7 +564,7 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
               <button onClick={onLogout} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
                 borderRadius: 8, color: "#ef4444", fontSize: 13, cursor: "pointer",
-                textAlign: "left", fontFamily: "'JetBrains Mono',monospace",
+                textAlign: "left", fontFamily: "'DM Mono',monospace",
               }}>Cerrar sesión</button>
             </div>
           )}
@@ -562,7 +572,7 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 11, color: T.text4, letterSpacing: "0.2em", marginBottom: 2 }}>FOH HANDOVER</div>
           <div style={{ fontSize: 32, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.05em", lineHeight: 1 }}>
-            TUS <span style={{ color: "#f59e0b" }}>FESTIVALES</span>
+            TUS <span style={{ color: "#D4A843" }}>FESTIVALES</span>
           </div>
         </div>
       </div>
@@ -601,7 +611,7 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
                     onClick={e => { e.stopPropagation(); setEditFestId(f.id); }}
                     style={{
                       width: 28, height: 28, borderRadius: "50%", border: "none",
-                      background: "#f59e0b", color: "#fff", fontSize: 14, lineHeight: 1,
+                      background: "#D4A843", color: "#fff", fontSize: 14, lineHeight: 1,
                       cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                       boxShadow: "0 2px 8px rgba(245,158,11,0.4)",
                       flexShrink: 0,
@@ -634,10 +644,10 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
                 Vas a borrar <strong style={{ color: T.text }}>{fest?.name}</strong>. Esta acción no se puede deshacer.
               </div>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", color: T.text2 }}>
+                <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
                   Cancelar
                 </button>
-                <button onClick={() => { onDelete(confirmId); setConfirmId(null); setEditMode(false); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", color: "#fff" }}>
+                <button onClick={() => { onDelete(confirmId); setConfirmId(null); setEditMode(false); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>
                   Sí, borrar
                 </button>
               </div>
@@ -754,7 +764,7 @@ function Builder({ onCancel, onSave }) {
               {d.artists.map((a, ai) => (
                 <div key={a.id} style={S.artForm}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <span style={{ fontSize: 10, color: "#f59e0b", letterSpacing: "0.1em", fontWeight: 700 }}>ARTISTA {ai + 1}</span>
+                    <span style={{ fontSize: 10, color: "#D4A843", letterSpacing: "0.1em", fontWeight: 700 }}>ARTISTA {ai + 1}</span>
                     <button onClick={() => delArtist(di, ai)} style={S.iconBtn}>×</button>
                   </div>
                   <input value={a.artist} onChange={e => setAF(di, ai, "artist", e.target.value)} placeholder="Nombre artista" style={{ ...S.input, marginBottom: 6 }} />
@@ -810,7 +820,7 @@ function Builder({ onCancel, onSave }) {
 }
 
 /* ---------- stage view ---------- */
-function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon }) {
+function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon, onOpenEscenario }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [selectedStage, setSelectedStage] = useState(null);
@@ -824,6 +834,7 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
   const [newDayDate, setNewDayDate] = useState("");
   const [showAddPos, setShowAddPos] = useState(false);
   const [newPosName, setNewPosName] = useState("MON WORLD");
+  const dayLabelRefs = useRef([]);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
   function addMonPosition() {
@@ -887,6 +898,8 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
 
   const totalForStage = (st) => st.days.reduce((a, d) => a + d.artists.length, 0);
   const activeStage = selectedStage ? (fest.stages || []).find(s => s.id === selectedStage) : null;
+  const hasFoh = activeStage ? totalForStage(activeStage) > 0 : false;
+  const hasEscenario = activeStage ? ((activeStage.escenario?.inputs?.length || 0) > 0 || (activeStage.escenario?.power?.length || 0) > 0) : false;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
@@ -907,39 +920,55 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
           <div>
             <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 14 }}>POSICIONES</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {/* FOH position */}
-              <button
-                onClick={() => onOpenStage(activeStage.id)}
-                style={{ display: "flex", alignItems: "center", gap: 14, background: dark ? "#334155" : "#0f172a", border: "none", borderRadius: 16, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎛️</div>
-                <div>
-                  <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#fff", letterSpacing: "0.08em" }}>FOH</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 1 }}>{totalForStage(activeStage)} artistas · {activeStage.days.length} días</div>
-                </div>
-              </button>
-              {/* MON positions */}
+              {/* FOH — solo si tiene artistas */}
+              {hasFoh && (
+                <button
+                  onClick={() => onOpenStage(activeStage.id)}
+                  style={{ display: "flex", alignItems: "center", gap: 14, background: "#1A1410", border: "none", borderLeft: "4px solid #C94A2A", borderRadius: 4, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 4, background: "rgba(201,74,42,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎛️</div>
+                  <div>
+                    <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>FOH</div>
+                    <div style={{ fontSize: 11, color: "#B0A090", marginTop: 1, fontFamily: "'DM Mono',monospace" }}>{totalForStage(activeStage)} artistas · {activeStage.days.length} días</div>
+                  </div>
+                </button>
+              )}
+              {/* MON positions — encima de Escenario */}
               {(activeStage.monPositions || []).map(mp => (
                 <div key={mp.id} style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
                   <button
                     onClick={() => onOpenMon(activeStage.id, mp.id)}
-                    style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: dark ? "#1e3a4a" : "#0c2233", border: "none", borderRadius: 16, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎧</div>
+                    style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: "#1A1410", border: "none", borderLeft: "4px solid #D4A843", borderRadius: 4, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 4, background: "rgba(212,168,67,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎧</div>
                     <div>
-                      <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#fff", letterSpacing: "0.08em" }}>{mp.name}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 1 }}>
+                      <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>{mp.name}</div>
+                      <div style={{ fontSize: 11, color: "#B0A090", marginTop: 1, fontFamily: "'DM Mono',monospace" }}>
                         {(mp.inputs || []).length} inputs · {(mp.outputs || []).length} outputs · {(mp.rfEntries || []).length} RF
                       </div>
                     </div>
                   </button>
                   {editMode && (
-                    <button onClick={() => deleteMonPosition(mp.id)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 8, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+                    <button onClick={() => deleteMonPosition(mp.id)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
                   )}
                 </div>
               ))}
-              {/* Add new MON position */}
+              {/* ESCENARIO — solo si tiene contenido, debajo de MON */}
+              {hasEscenario && (
+                <button
+                  onClick={() => onOpenEscenario(activeStage.id)}
+                  style={{ display: "flex", alignItems: "center", gap: 14, background: "#1A1410", border: "none", borderLeft: "4px solid #2A6B6B", borderRadius: 4, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 4, background: "rgba(42,107,107,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎭</div>
+                  <div>
+                    <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>ESCENARIO</div>
+                    <div style={{ fontSize: 11, color: "#B0A090", marginTop: 1, fontFamily: "'DM Mono',monospace" }}>
+                      {(activeStage.escenario?.inputs || []).length} inputs · {(activeStage.escenario?.power || []).length} grupos corriente
+                    </div>
+                  </div>
+                </button>
+              )}
+              {/* Añadir posiciones */}
               {showAddPos ? (
-                <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "16px 20px" }}>
-                  <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, marginBottom: 10 }}>NOMBRE DE LA POSICIÓN</div>
+                <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 4, padding: "16px 20px" }}>
+                  <div style={{ fontSize: 10, letterSpacing: "0.1em", color: T.text4, marginBottom: 10, fontFamily: "'DM Mono',monospace" }}>NOMBRE DE LA POSICIÓN MON</div>
                   <input
                     value={newPosName}
                     onChange={e => setNewPosName(e.target.value.toUpperCase())}
@@ -949,21 +978,40 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
                     autoFocus
                   />
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={addMonPosition} disabled={!newPosName.trim()} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13, opacity: newPosName.trim() ? 1 : 0.4 }}>Crear posición</button>
+                    <button onClick={addMonPosition} disabled={!newPosName.trim()} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13, opacity: newPosName.trim() ? 1 : 0.4 }}>Crear posición MON</button>
                     <button onClick={() => { setShowAddPos(false); setNewPosName("MON WORLD"); }} style={{ ...S.navBtn, flex: 0.5 }}>Cancelar</button>
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setShowAddPos(true)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 16, padding: "16px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>＋</div>
-                  <div>
-                    <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>NUEVA POSICIÓN MON</div>
-                    <div style={{ fontSize: 11, color: T.text4, marginTop: 1 }}>Añadir posición de monitores</div>
-                  </div>
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {!hasFoh && (
+                    <button onClick={() => onOpenStage(activeStage.id)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎛️</div>
+                      <div>
+                        <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR FOH</div>
+                        <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>Gestión de consola y artistas</div>
+                      </div>
+                    </button>
+                  )}
+                  {!hasEscenario && (
+                    <button onClick={() => onOpenEscenario(activeStage.id)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎭</div>
+                      <div>
+                        <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR ESCENARIO</div>
+                        <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>Inputs, corriente y plano</div>
+                      </div>
+                    </button>
+                  )}
+                  <button onClick={() => setShowAddPos(true)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎧</div>
+                    <div>
+                      <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR MONITORES</div>
+                      <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>Nueva posición de monitores</div>
+                    </div>
+                  </button>
+                </div>
               )}
             </div>
-
           </div>
         ) : (
           <>
@@ -1025,9 +1073,16 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
                             <div style={{ width: 24, height: 24, borderRadius: 7, background: T.border, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, fontFamily: "monospace", color: T.text3, flexShrink: 0 }}>{i + 1}</div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <input
+                                ref={el => dayLabelRefs.current[i] = el}
                                 defaultValue={d.label}
                                 onBlur={e => updateDayLabel(st.id, d.id, e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                                onKeyDown={e => {
+                                  if (e.key === "Enter") {
+                                    e.target.blur();
+                                    const next = dayLabelRefs.current[i + 1];
+                                    if (next) next.focus();
+                                  }
+                                }}
                                 style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 13, fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", color: T.text }}
                               />
                               <input
@@ -1293,73 +1348,75 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
   const T = dark ? DK : LT;
   const S = makeS(T);
   const TopBar = ({ onBackBtn }) => (
-    <div style={{ ...S.topBar, flexWrap: "wrap", rowGap: 8, padding: "10px 12px 8px", background: T.card, borderBottomColor: T.border }}>
-      <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-        <button onClick={onBackBtn} style={S.backBtn}>‹</button>
-        <div style={{ flex: 1, textAlign: "center", fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>{stage.name}</div>
-        <button onClick={() => setShowLog(true)} style={{ ...S.syncBtn, fontFamily: "monospace", fontSize: 13, letterSpacing: 0 }}>{">_"}</button>
+    <div style={{ flexWrap: "wrap", background: "#1A1410", borderBottom: "3px solid #C94A2A", position: "sticky", top: 0, zIndex: 10 }}>
+      {/* row 1: back + title + log */}
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 12px 8px", gap: 10 }}>
+        <button onClick={onBackBtn} style={{ ...S.backBtn, background: "#261E18", borderColor: "#3D2B1F", color: "#D8CEB8" }}>‹</button>
+        <div style={{ flex: 1, textAlign: "center", fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>{stage.name}</div>
+        <button onClick={() => setShowLog(true)} style={{ ...S.syncBtn }}>{">"}_</button>
       </div>
-      {/* BANDAS / RULOS tab switcher + sync */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", paddingBottom: 2 }}>
-        <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3 }}>
-          {["bandas", "rulos", "horarios"].map(t => (
+      {/* row 2: BANDAS / RULOS / HORARIOS + sync */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px 8px" }}>
+        <div style={{ display: "flex", gap: 0 }}>
+          {["bandas", "rulos", "horarios", "etapas"].map(t => (
             <button key={t} onClick={() => { setTab(t); setSelectedId(null); setShowAdd(false); }} style={{
-              padding: "4px 10px", borderRadius: 8, fontSize: 11,
-              fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
-              border: "none",
-              background: tab === t ? (dark ? "#334155" : "#0f172a") : "transparent",
-              color: tab === t ? "#fff" : T.text4,
-              transition: "all 0.2s",
-            }}>{t === "bandas" ? "BANDAS" : t === "rulos" ? "RULOS" : "HORARIOS"}</button>
+              padding: "6px 12px", fontSize: 12,
+              fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.08em", cursor: "pointer",
+              border: "none", background: "none",
+              color: tab === t ? "#F5EFE0" : "#7A6652",
+              borderBottom: tab === t ? "2px solid #D4A843" : "2px solid transparent",
+            }}>{t === "bandas" ? "BANDAS" : t === "rulos" ? "RULOS" : t === "horarios" ? "HORARIOS" : "ETAPAS"}</button>
           ))}
         </div>
-        <button onClick={onRefresh} style={{ ...S.syncBtn, flexShrink: 0 }}>↻ {lastSync ? lastSync.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }) : ""}</button>
+        <button onClick={onRefresh} style={{ ...S.syncBtn }}>↻ {lastSync ? lastSync.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }) : ""}</button>
       </div>
-      {/* day pills */}
-      <div style={{ display: "flex", gap: 6, overflowX: "auto", width: "100%", paddingBottom: 2, alignItems: "center" }}>
-          {stage.days.map((d, i) => {
-            const dn = d.artists.filter(a => checks[`${fest.id}__${d.id}__${a.id}__sc`] && checks[`${fest.id}__${d.id}__${a.id}__show`]).length;
-            const active = i === dayIdx;
-            const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "short" }) : null;
-            return (
-              <button key={d.id} onClick={() => { setDayIdx(i); setSelectedId(null); setShowAdd(false); }} style={{
-                flexShrink: 0, padding: dateLabel ? "4px 12px" : "5px 12px", borderRadius: 20, fontSize: 12,
-                fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
-                whiteSpace: "nowrap", border: "none", lineHeight: 1.2,
-                background: active ? (dark ? "#334155" : "#0f172a") : (dark ? "#1e293b" : "#f1f5f9"),
-                color: active ? "#fff" : T.text4,
-              }}>
-                <div>{d.label} <span style={{ opacity: 0.6, fontSize: 10 }}>{dn}/{d.artists.length}</span></div>
-                {dateLabel && <div style={{ fontSize: 9, opacity: 0.7, fontFamily: "monospace", letterSpacing: 0, marginTop: 1 }}>{dateLabel}</div>}
-              </button>
-            );
-          })}
-          {showAddDay ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0, background: dark ? "#1e293b" : "#f1f5f9", borderRadius: 14, padding: "4px 8px" }}>
-              <input
-                value={newDayLabel}
-                onChange={e => setNewDayLabel(e.target.value)}
-                placeholder={`DÍA ${stage.days.length + 1}`}
-                style={{ width: 70, fontSize: 11, fontFamily: "'Bebas Neue',sans-serif", background: "transparent", border: "none", outline: "none", color: T.text, letterSpacing: "0.06em" }}
-                autoFocus
-              />
-              <input
-                type="date"
-                value={newDayDate}
-                onChange={e => setNewDayDate(e.target.value)}
-                style={{ fontSize: 10, background: "transparent", border: "none", outline: "none", color: T.text3, fontFamily: "monospace", width: 100 }}
-              />
-              <button onClick={confirmAddDay} style={{ background: dark ? "#334155" : "#0f172a", border: "none", borderRadius: 10, color: "#fff", fontSize: 12, padding: "3px 8px", cursor: "pointer" }}>✓</button>
-              <button onClick={() => { setShowAddDay(false); setNewDayLabel(""); setNewDayDate(""); }} style={{ background: "transparent", border: "none", color: T.text4, fontSize: 14, cursor: "pointer", padding: "2px 4px" }}>×</button>
-            </div>
-          ) : (
-            <button onClick={() => setShowAddDay(true)} style={{
-              flexShrink: 0, padding: "5px 10px", borderRadius: 20, fontSize: 14,
-              fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-              border: "1.5px dashed #94a3b8", background: "transparent", color: "#94a3b8",
-            }}>+</button>
-          )}
-        </div>
+      {/* row 3: day tabs */}
+      <div style={{ display: "flex", overflowX: "auto", borderTop: "1px solid #3D2B1F" }}>
+        {stage.days.map((d, i) => {
+          const dn = d.artists.filter(a => checks[`${fest.id}__${d.id}__${a.id}__sc`] && checks[`${fest.id}__${d.id}__${a.id}__show`]).length;
+          const active = i === dayIdx;
+          const dayColor = PALETTE[i % PALETTE.length];
+          const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "short" }) : null;
+          return (
+            <button key={d.id} onClick={() => { setDayIdx(i); setSelectedId(null); setShowAdd(false); }} style={{
+              flexShrink: 0, padding: "10px 20px", cursor: "pointer",
+              whiteSpace: "nowrap", border: "none", background: "none", lineHeight: 1.3,
+              borderBottom: active ? `3px solid ${dayColor}` : "3px solid transparent",
+              marginBottom: -3,
+            }}>
+              <div style={{ fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.1em", fontSize: 14, color: active ? dayColor : "#7A6652" }}>
+                {d.label} <span style={{ fontSize: 10, opacity: 0.7 }}>{dn}/{d.artists.length}</span>
+              </div>
+              {dateLabel && <div style={{ fontSize: 9, color: active ? dayColor : "#7A6652", fontFamily: "'DM Mono',monospace", opacity: 0.8, marginTop: 1 }}>{dateLabel}</div>}
+            </button>
+          );
+        })}
+        {showAddDay ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0, padding: "8px 12px" }}>
+            <input
+              value={newDayLabel}
+              onChange={e => setNewDayLabel(e.target.value)}
+              placeholder={`DÍA ${stage.days.length + 1}`}
+              style={{ width: 70, fontSize: 11, fontFamily: "'Bebas Neue',sans-serif", background: "transparent", border: "none", outline: "none", color: "#F5EFE0", letterSpacing: "0.06em" }}
+              autoFocus
+            />
+            <input
+              type="date"
+              value={newDayDate}
+              onChange={e => setNewDayDate(e.target.value)}
+              style={{ fontSize: 10, background: "transparent", border: "none", outline: "none", color: "#B0A090", fontFamily: "'DM Mono',monospace", width: 100 }}
+            />
+            <button onClick={confirmAddDay} style={{ background: "#C94A2A", border: "none", borderRadius: 2, color: "#fff", fontSize: 12, padding: "3px 8px", cursor: "pointer" }}>✓</button>
+            <button onClick={() => { setShowAddDay(false); setNewDayLabel(""); setNewDayDate(""); }} style={{ background: "transparent", border: "none", color: "#7A6652", fontSize: 14, cursor: "pointer", padding: "2px 4px" }}>×</button>
+          </div>
+        ) : (
+          <button onClick={() => setShowAddDay(true)} style={{
+            flexShrink: 0, padding: "10px 14px", fontSize: 14,
+            fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+            border: "none", background: "none", color: "#7A6652",
+          }}>+</button>
+        )}
+      </div>
     </div>
   );
 
@@ -1566,8 +1623,8 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
               Vas a borrar <strong style={{ color: T.text }}>{art.artist}</strong>. Esta acción no se puede deshacer.
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setConfirmDeleteArt(false)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", color: T.text2 }}>Cancelar</button>
-              <button onClick={() => { deleteArtist(art.id); setConfirmDeleteArt(false); setSelectedId(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", color: "#fff" }}>Sí, borrar</button>
+              <button onClick={() => setConfirmDeleteArt(false)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
+              <button onClick={() => { deleteArtist(art.id); setConfirmDeleteArt(false); setSelectedId(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Sí, borrar</button>
             </div>
           </div>
         </div>
@@ -1584,9 +1641,24 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
           <RulosView
             rulos={day.rulos || []}
             permRulos={stage.rulos || []}
+            ruloOverrides={day.ruloOverrides || {}}
             onAdd={(pos) => { setEditRuloId(null); setShowRuloForm(true); setPrefillPos(pos || null); }}
             onEdit={(id) => { setEditRuloId(id); setShowRuloForm(true); setPrefillPos(null); }}
             onDelete={deleteRulo}
+            onSaveOverride={(ruloId, desc) => {
+              const newOverrides = { ...(day.ruloOverrides || {}), [ruloId]: { desc } };
+              const newDays = stage.days.map((d, i) => i === dayIdx ? { ...d, ruloOverrides: newOverrides } : d);
+              const newStages = (fest.stages || []).map(s => s.id === stage.id ? { ...s, days: newDays } : s);
+              onEditFest({ ...fest, stages: newStages });
+            }}
+            onClearOverride={(ruloId) => {
+              const newOverrides = { ...(day.ruloOverrides || {}) };
+              delete newOverrides[ruloId];
+              const newDays = stage.days.map((d, i) => i === dayIdx ? { ...d, ruloOverrides: newOverrides } : d);
+              const newStages = (fest.stages || []).map(s => s.id === stage.id ? { ...s, days: newDays } : s);
+              onEditFest({ ...fest, stages: newStages });
+            }}
+            dayLabel={day.label}
           />
         </div>
       ) : tab === "horarios" ? (
@@ -1597,21 +1669,36 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             onSaveTime={saveArtistTime}
           />
         </div>
+      ) : tab === "etapas" ? (
+        <div style={{ flex: 1, background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
+          <EtapasView
+            etapas={stage.etapas || []}
+            onSave={(newEtapas) => {
+              const newStages = (fest.stages || []).map(s => s.id === stage.id ? { ...s, etapas: newEtapas } : s);
+              onEditFest({ ...fest, stages: newStages });
+            }}
+          />
+        </div>
       ) : (
-        <div style={{ flex: 1, padding: "12px 14px", background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
+        <div style={{ flex: 1, background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
+          {/* day title */}
+          <div style={{ padding: "24px 20px 12px" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+              <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "2.8rem", letterSpacing: "0.04em", color: PALETTE[dayIdx % PALETTE.length], lineHeight: 1 }}>{day?.label || ""}</span>
+              {day?.date && <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem", color: T.text4, letterSpacing: "0.1em" }}>{new Date(day.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "long" })} · {stage.name}</span>}
+            </div>
+          </div>
           {artists.length === 0 && (
-            <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 40 }}>Sin artistas en este día</div>
+            <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>Sin artistas en este día</div>
           )}
-          {artists.length > 0 && (
-            <span style={{ fontSize: 10, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Ficha compacta</span>
-          )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {artists.map((a) => (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "0 14px" }}>
+            {artists.map((a, i) => (
               <CompactArtistCard
                 key={a.id}
                 a={a}
                 fest={fest}
                 day={day}
+                colorIdx={i}
                 onSelect={setSelectedId}
               />
             ))}
@@ -1934,7 +2021,7 @@ function FohNotes({ notes, onAdd, onDel }) {
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onAdd(draft); setDraft(""); setEditing(false); } }}
             placeholder="Nota para tu compañero…"
             style={{ ...S.input, flex: 1, resize: "none", borderColor: noteBorder }} />
-          <button onClick={() => { onAdd(draft); setDraft(""); setEditing(false); }} style={{ ...S.smBtn, background: "#f59e0b", color: "#fff" }}>OK</button>
+          <button onClick={() => { onAdd(draft); setDraft(""); setEditing(false); }} style={{ ...S.smBtn, background: "#D4A843", color: "#fff" }}>OK</button>
         </div>
       ) : (
         <button onClick={() => setEditing(true)} style={{ ...S.addBtn, color: noteLabel, borderColor: noteBorder, background: noteBg, marginTop: 0 }}>+ Añadir nota</button>
@@ -1967,10 +2054,10 @@ function FestEditModal({ fest, onSave, onClose }) {
         <input value={name} onChange={e => setName(e.target.value)} style={{ ...S.input, marginBottom: 20 }} autoFocus />
 
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", color: T.text2 }}>
+          <button onClick={onClose} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
             Cancelar
           </button>
-          <button onClick={save} disabled={!name.trim()} style={{ flex: 1, padding: "14px", background: dark ? "#334155" : "#0f172a", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: name.trim() ? "pointer" : "not-allowed", fontFamily: "'JetBrains Mono',monospace", color: "#fff", opacity: name.trim() ? 1 : 0.4 }}>
+          <button onClick={save} disabled={!name.trim()} style={{ flex: 1, padding: "14px", background: dark ? "#334155" : "#0f172a", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: name.trim() ? "pointer" : "not-allowed", fontFamily: "'DM Mono',monospace", color: "#fff", opacity: name.trim() ? 1 : 0.4 }}>
             Guardar
           </button>
         </div>
@@ -1979,8 +2066,160 @@ function FestEditModal({ fest, onSave, onClose }) {
   );
 }
 
+/* ---------- etapas view ---------- */
+function EtapasView({ etapas, onSave }) {
+  const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
+  const [editGrupoId, setEditGrupoId] = useState(null); // id del grupo en edición, o "new"
+  const [grupoName, setGrupoName] = useState("");
+  const [grupoRows, setGrupoRows] = useState([]); // [{ id, amp, ampId }]
+  const [expandedId, setExpandedId] = useState(null);
+  const rowAmpRefs = useRef([]);
+
+  function openNew() {
+    setEditGrupoId("new");
+    setGrupoName("");
+    setGrupoRows([{ id: uid(), amp: "", ampId: "" }]);
+  }
+
+  function openEdit(g) {
+    setEditGrupoId(g.id);
+    setGrupoName(g.name);
+    setGrupoRows(g.rows.map(r => ({ ...r })));
+  }
+
+  function addRow() {
+    setGrupoRows(r => {
+      const next = [...r, { id: uid(), amp: "", ampId: "" }];
+      setTimeout(() => {
+        const el = rowAmpRefs.current[next.length - 1];
+        if (el) el.focus();
+      }, 0);
+      return next;
+    });
+  }
+  function delRow(id) { setGrupoRows(r => r.filter(x => x.id !== id)); }
+  function setRow(id, field, val) { setGrupoRows(r => r.map(x => x.id === id ? { ...x, [field]: val } : x)); }
+
+  function saveGrupo() {
+    if (!grupoName.trim()) return;
+    const validRows = grupoRows.filter(r => r.amp.trim() || r.ampId.trim());
+    if (editGrupoId === "new") {
+      onSave([...etapas, { id: uid(), name: grupoName.trim().toUpperCase(), rows: validRows }]);
+    } else {
+      onSave(etapas.map(g => g.id === editGrupoId ? { ...g, name: grupoName.trim().toUpperCase(), rows: validRows } : g));
+    }
+    setEditGrupoId(null);
+  }
+
+  function deleteGrupo(id) {
+    onSave(etapas.filter(g => g.id !== id));
+    if (expandedId === id) setExpandedId(null);
+  }
+
+  function duplicateGrupo(g) {
+    const copy = { ...g, id: uid(), name: g.name + " COPIA", rows: g.rows.map(r => ({ ...r, id: uid() })) };
+    const idx = etapas.findIndex(x => x.id === g.id);
+    const next = [...etapas];
+    next.splice(idx + 1, 0, copy);
+    onSave(next);
+    openEdit(copy);
+  }
+
+  if (editGrupoId !== null) {
+    return (
+      <div style={{ padding: "16px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <button onClick={() => setEditGrupoId(null)} style={{ ...S.backBtn, background: "#261E18", borderColor: "#3D2B1F", color: "#D8CEB8" }}>‹</button>
+          <div style={{ flex: 1, fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>
+            {editGrupoId === "new" ? "NUEVO GRUPO" : "EDITAR GRUPO"}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>NOMBRE DEL GRUPO</div>
+          <input value={grupoName} onChange={e => setGrupoName(e.target.value.toUpperCase())}
+            placeholder="PA L" style={{ ...S.input }} autoFocus />
+        </div>
+
+        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 8 }}>FILAS · AMP — ID</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+          {grupoRows.map((row, i) => (
+            <div key={row.id} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <input ref={el => rowAmpRefs.current[i] = el} value={row.amp} onChange={e => setRow(row.id, "amp", e.target.value.toUpperCase())}
+                placeholder="GSL8" style={{ ...S.input, flex: "0 0 90px", padding: "10px 10px", fontSize: 13, fontFamily: "'DM Mono',monospace" }} />
+              <input value={row.ampId} onChange={e => setRow(row.id, "ampId", e.target.value)}
+                placeholder="A/B 0.01" style={{ ...S.input, flex: 1, padding: "10px 10px", fontSize: 13, fontFamily: "'DM Mono',monospace" }}
+                onKeyDown={e => { if (e.key === "Enter") addRow(); }} />
+              <button onClick={() => delRow(row.id)} style={{ background: "none", border: "none", color: T.text4, fontSize: 18, cursor: "pointer", padding: "0 4px", flexShrink: 0 }}>×</button>
+            </div>
+          ))}
+        </div>
+        <button onClick={addRow} style={{ ...S.addBtn, marginBottom: 20 }}>+ Añadir fila</button>
+        <button onClick={saveGrupo} disabled={!grupoName.trim()} style={{ ...S.bigBtn, opacity: grupoName.trim() ? 1 : 0.4 }}>
+          {editGrupoId === "new" ? "CREAR GRUPO" : "GUARDAR CAMBIOS"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "16px 14px" }}>
+      {etapas.length === 0 && (
+        <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "'DM Mono',monospace" }}>
+          Sin grupos de etapas
+        </div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+        {etapas.map(g => {
+          const isExpanded = expandedId === g.id;
+          return (
+            <div key={g.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderLeft: "4px solid #D4A843", borderRadius: 4, overflow: "hidden" }}>
+              {/* header */}
+              <div style={{ display: "flex", alignItems: "center", padding: "10px 14px", background: T.card2, cursor: "pointer" }}
+                onClick={() => setExpandedId(isExpanded ? null : g.id)}>
+                <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 15, letterSpacing: "0.08em", color: T.text, flex: 1 }}>{g.name}</span>
+                <span style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginRight: 10 }}>{g.rows.length} filas</span>
+                <button onClick={e => { e.stopPropagation(); openEdit(g); }}
+                  style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>✏️</button>
+                <button onClick={e => { e.stopPropagation(); duplicateGrupo(g); }}
+                  title="Duplicar grupo"
+                  style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>⎘</button>
+                <button onClick={e => { e.stopPropagation(); deleteGrupo(g.id); }}
+                  style={{ background: "none", border: "none", color: "#C94A2A", fontSize: 14, cursor: "pointer", padding: "0 4px" }}>×</button>
+                <span style={{ color: T.text4, fontSize: 14, marginLeft: 4 }}>{isExpanded ? "▾" : "▸"}</span>
+              </div>
+              {/* filas */}
+              {isExpanded && (
+                <div style={{ padding: "0 0 8px" }}>
+                  {/* cabecera columnas */}
+                  <div style={{ display: "grid", gridTemplateColumns: "90px 1fr", gap: 0, padding: "5px 14px 3px", borderBottom: `1px solid ${T.border}` }}>
+                    <span style={{ fontSize: 8, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.12em" }}>AMP</span>
+                    <span style={{ fontSize: 8, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.12em" }}>ID</span>
+                  </div>
+                  {g.rows.map((row, i) => (
+                    <div key={row.id} style={{
+                      display: "grid", gridTemplateColumns: "90px 1fr", gap: 0,
+                      padding: "6px 14px",
+                      background: i % 2 === 0 ? "transparent" : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
+                      borderBottom: i < g.rows.length - 1 ? `1px solid ${T.border2}` : "none",
+                    }}>
+                      <span style={{ fontSize: 12, fontFamily: "'DM Mono',monospace", color: "#D4A843", fontWeight: 600 }}>{row.amp || "—"}</span>
+                      <span style={{ fontSize: 12, fontFamily: "'DM Mono',monospace", color: T.text2 }}>{row.ampId || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <button onClick={openNew} style={{ ...S.bigBtn, marginTop: 0 }}>+ AÑADIR GRUPO</button>
+    </div>
+  );
+}
+
 /* ---------- compact artist card (ficha compacta) ---------- */
-function CompactArtistCard({ a, fest, day, onSelect }) {
+function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
   const color = sigColor(a.signal);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
@@ -1991,62 +2230,60 @@ function CompactArtistCard({ a, fest, day, onSelect }) {
   const chipBorder = T.border;
   const textTertiary = T.text4;
   const textSecondary = T.text3;
-  const accentLeft = color;
+  const accentLeft = PALETTE[(colorIdx ?? 0) % PALETTE.length];
 
   return (
-    <div style={{ background: T.bg, borderRadius: 14, padding: "0.75rem" }}>
+    <div
+      onClick={() => onSelect(a.id)}
+      style={{
+        border: `1px solid ${borderC}`,
+        borderLeft: `5px solid ${accentLeft}`,
+        borderRadius: 4,
+        background: cardBg,
+        color: cardText,
+        cursor: "pointer",
+        overflow: "hidden",
+        position: "relative",
+      }}>
 
-      {/* main card */}
-      <div
-        onClick={() => onSelect(a.id)}
-        style={{
-          border: `0.5px solid ${borderC}`,
-          borderLeft: `3px solid ${accentLeft}`,
-          borderRadius: 12,
-          padding: "0.85rem 1rem",
-          background: cardBg,
-          color: cardText,
-          cursor: "pointer",
-          transition: "background 0.2s, color 0.2s, border-color 0.2s",
-        }}>
-
-        {/* name + console */}
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
-            <span style={{ fontSize: 21, fontWeight: 500, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {a.artist || "—"}
-            </span>
-          </div>
+      {/* header: name + tecnico/mesa */}
+      <div style={{ padding: "16px 18px 12px 18px", borderBottom: `1px solid ${borderC}`, background: T.card2 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+          <span style={{ fontSize: 22, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.03em", lineHeight: 1, color: cardText }}>
+            {a.artist || "—"}
+          </span>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexShrink: 0, lineHeight: 1 }}>
             {a.tecnico && (
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 9, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.06em" }}>técnico</div>
-                <div style={{ fontSize: 13, fontWeight: 500, fontFamily: "monospace" }}>{noInfo(a.tecnico)}</div>
+                <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>técnico</div>
+                <div style={{ fontSize: 13, fontFamily: "'DM Mono',monospace" }}>{noInfo(a.tecnico)}</div>
               </div>
             )}
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 9, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.06em" }}>mesa</div>
-              <div style={{ fontSize: 15, fontWeight: 500, fontFamily: "monospace" }}>{noInfo(a.console) || "—"}</div>
+              <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>mesa</div>
+              <div style={{ fontSize: 15, fontFamily: "'DM Mono',monospace" }}>{noInfo(a.console) || "—"}</div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* signal chain chips */}
-        <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "10px 0", flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color: cardText }}>
+      {/* body: signal chain chips */}
+      <div style={{ padding: "12px 18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono',monospace", padding: "4px 10px", borderRadius: 2, background: chipBg, border: `1px solid ${chipBorder}`, color: cardText }}>
             {noInfo(a.connection) || "—"}
           </span>
-          <span style={{ color: textTertiary, opacity: 0.5, fontSize: 12 }}>·</span>
-          <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color }}>
+          <span style={{ color: textTertiary, fontSize: 12 }}>·</span>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono',monospace", padding: "4px 10px", borderRadius: 2, background: chipBg, border: `1px solid ${chipBorder}`, color }}>
             {noInfo(a.signal) || "—"}
           </span>
           {a.preset && (
             <span style={{
-              marginLeft: "auto", fontSize: 11, fontWeight: 500, fontFamily: "monospace",
-              padding: "3px 8px", borderRadius: 6,
-              background: a.presetOk ? "#f0fdf4" : chipBg,
-              border: `0.5px solid ${a.presetOk ? "#16a34a" : chipBorder}`,
-              color: a.presetOk ? "#16a34a" : textSecondary,
+              marginLeft: "auto", fontSize: 11, fontFamily: "'DM Mono',monospace",
+              padding: "4px 10px", borderRadius: 2,
+              background: a.presetOk ? "rgba(42,107,107,0.1)" : chipBg,
+              border: `1px solid ${a.presetOk ? "#2A6B6B" : chipBorder}`,
+              color: a.presetOk ? "#2A6B6B" : textSecondary,
               display: "inline-flex", alignItems: "center", gap: 4,
             }}>
               ⚙ {noInfo(a.preset)}
@@ -2054,22 +2291,22 @@ function CompactArtistCard({ a, fest, day, onSelect }) {
           )}
         </div>
 
-        {/* footer: lx · mon · corriente */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: textSecondary, paddingTop: 8, borderTop: `0.5px solid ${borderC}` }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: a.toLx ? 1 : 0.5 }}>
-            💡 LX <strong style={{ color: cardText, fontWeight: 500 }}>{noInfo(a.toLx) || "No"}</strong>
+        {/* footer: lx · mon */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: textSecondary, paddingTop: 10, borderTop: `1px solid ${borderC}` }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: a.toLx ? 1 : 0.45 }}>
+            💡 LX <strong style={{ color: cardText, fontFamily: "'DM Mono',monospace", fontWeight: 500 }}>{noInfo(a.toLx) || "No"}</strong>
           </span>
           <span style={{ color: textTertiary }}>·</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: a.toMon ? 1 : 0.5 }}>
-            🎧 Mon <strong style={{ color: cardText, fontWeight: 500 }}>{noInfo(a.toMon) || "No"}</strong>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: a.toMon ? 1 : 0.45 }}>
+            🎧 Mon <strong style={{ color: cardText, fontFamily: "'DM Mono',monospace", fontWeight: 500 }}>{noInfo(a.toMon) || "No"}</strong>
           </span>
           {a.corriente && (
             <>
               <span style={{ color: textTertiary }}>·</span>
               <span style={{
-                fontSize: 9, fontWeight: 600, fontFamily: "monospace", letterSpacing: "0.06em",
-                padding: "2px 6px", borderRadius: 4,
-                background: "#fefce8", border: "0.5px solid #fde047", color: "#a16207",
+                fontSize: 9, fontFamily: "'DM Mono',monospace", letterSpacing: "0.06em",
+                padding: "2px 6px", borderRadius: 2,
+                background: "#FFF8EC", border: "1px solid #D4A843", color: "#8a6e2a",
                 display: "inline-flex", alignItems: "center", gap: 3,
                 maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>⚡ {a.corriente}</span>
@@ -2086,21 +2323,22 @@ const RULO_TYPES = ["HMA OPTOCORE", "RJ / CAT6", "OPTICALCON", "MULTIPAR", "OTRO
 
 function ruloColor(type) {
   const t = (type || "").toUpperCase();
-  if (t.includes("OPTOCORE")) return "#16a34a";
-  if (t.includes("RJ") || t.includes("CAT")) return "#7c3aed";
-  if (t.includes("OPTICAL")) return "#2563eb";
-  if (t.includes("MULTIPAR")) return "#ea580c";
-  if (t.includes("ETHERNET")) return "#0891b2";
-  return "#64748b";
+  if (t.includes("OPTOCORE")) return "#2A6B6B";
+  if (t.includes("RJ") || t.includes("CAT")) return "#7B5EA7";
+  if (t.includes("OPTICAL")) return "#C94A2A";
+  if (t.includes("MULTIPAR")) return "#D4A843";
+  if (t.includes("ETHERNET")) return "#1E6B8C";
+  return "#7A6652";
 }
 
 const POSITIONS = ["SR", "SL"];
 
-function RulosView({ rulos, permRulos, onAdd, onEdit, onDelete }) {
+function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDelete, onSaveOverride, onClearOverride, dayLabel }) {
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [confirmId, setConfirmId] = useState(null);
   const [confirmIsPerm, setConfirmIsPerm] = useState(false);
   const [sheetRulo, setSheetRulo] = useState(null);
+  const [overrideDraft, setOverrideDraft] = useState(null); // null | string
 
   const allRulos = [
     ...permRulos.map(r => ({ ...r, _perm: true })),
@@ -2109,16 +2347,25 @@ function RulosView({ rulos, permRulos, onAdd, onEdit, onDelete }) {
   const byPos = pos => allRulos.filter(r => r.position === pos);
   const noPos = allRulos.filter(r => !POSITIONS.includes(r.position));
 
+  function openSheet(r) {
+    setSheetRulo(r);
+    setOverrideDraft(r._perm ? (ruloOverrides[r.id]?.desc ?? null) : null);
+  }
+
   function RuloChip({ r }) {
     const color = ruloColor(r.type);
+    const displayDesc = r._perm ? (ruloOverrides[r.id]?.desc ?? r.desc) : r.desc;
+    const hasOverride = r._perm && ruloOverrides[r.id] !== undefined;
     return (
-      <div onClick={() => setSheetRulo(r)}
-        style={{ background: dark ? `${color}14` : `${color}0a`, border: `1px solid ${dark ? color + "55" : color + "28"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: r.desc || r.note ? 4 : 0 }}>
+      <div onClick={() => openSheet(r)}
+        style={{ background: T.card, border: `1px solid ${T.border}`, borderLeft: `4px solid ${color}`, borderRadius: 4, padding: "10px 12px", cursor: "pointer" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: displayDesc || r.note ? 5 : 0 }}>
           {r._perm && <span style={{ fontSize: 10, lineHeight: 1 }}>📌</span>}
-          <span style={{ fontSize: 11, fontWeight: 700, color, fontFamily: "monospace", letterSpacing: "0.04em" }}>{r.type || "CABLE"}{r.qty ? ` ×${r.qty}` : ""}</span>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono',monospace", letterSpacing: "0.06em", color, fontWeight: 600 }}>{r.type || "CABLE"}{r.qty ? ` ×${r.qty}` : ""}</span>
+          {hasOverride && <span style={{ fontSize: 9, color: "#D4A843", fontFamily: "'DM Mono',monospace", marginLeft: "auto" }}>{dayLabel}</span>}
         </div>
-        {r.desc && <div style={{ fontSize: 12, color: T.text2, fontFamily: "monospace", lineHeight: 1.3 }}>{r.desc}</div>}
+        {displayDesc && <div style={{ fontSize: 12, color: T.text2, fontFamily: "'DM Mono',monospace", lineHeight: 1.3 }}>{displayDesc}</div>}
+        {r.note && <div style={{ fontSize: 11, color: "#D4A843", fontFamily: "'DM Mono',monospace", marginTop: 4 }}>⚠ {r.note}</div>}
       </div>
     );
   }
@@ -2127,19 +2374,19 @@ function RulosView({ rulos, permRulos, onAdd, onEdit, onDelete }) {
     <div>
       {/* Stage plot SR / SL */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.12em", marginBottom: 6, fontWeight: 700, textAlign: "center" }}>ESCENARIO</div>
+        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", marginBottom: 8, fontFamily: "'DM Mono',monospace", textAlign: "center", textTransform: "uppercase" }}>Escenario</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {POSITIONS.map(pos => {
             const posRulos = byPos(pos);
             return (
-              <div key={pos} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, overflow: "hidden", minHeight: 70 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${T.border2}`, background: T.card2 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "monospace", color: T.text3, letterSpacing: "0.08em" }}>{pos}</span>
-                  <button onClick={() => onAdd(pos)} style={{ background: "none", border: "none", color: T.text4, fontSize: 16, cursor: "pointer", lineHeight: 1, padding: "0 2px" }}>+</button>
+              <div key={pos} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, overflow: "hidden", minHeight: 70 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", borderBottom: `1px solid ${T.border}`, background: "#1A1410" }}>
+                  <span style={{ fontSize: 11, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.12em" }}>{pos}</span>
+                  <button onClick={() => onAdd(pos)} style={{ background: "none", border: "none", color: "#B0A090", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: "0 2px" }}>+</button>
                 </div>
-                <div style={{ padding: 6, display: "flex", flexDirection: "column", gap: 5 }}>
+                <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 6 }}>
                   {posRulos.length === 0
-                    ? <div style={{ fontSize: 10, color: T.text4, textAlign: "center", padding: "8px 0" }}>—</div>
+                    ? <div style={{ fontSize: 11, color: T.text4, textAlign: "center", padding: "10px 0", fontFamily: "'DM Mono',monospace" }}>—</div>
                     : posRulos.map(r => <RuloChip key={r.id} r={r} />)
                   }
                 </div>
@@ -2152,7 +2399,7 @@ function RulosView({ rulos, permRulos, onAdd, onEdit, onDelete }) {
       {/* Sin posición — chips compactos */}
       {noPos.length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.12em", marginBottom: 6, fontWeight: 700 }}>GENERAL</div>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", marginBottom: 8, fontFamily: "'DM Mono',monospace", textTransform: "uppercase" }}>General</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {noPos.map(r => <RuloChip key={r.id} r={r} />)}
           </div>
@@ -2164,24 +2411,60 @@ function RulosView({ rulos, permRulos, onAdd, onEdit, onDelete }) {
       {sheetRulo && (() => {
         const r = sheetRulo;
         const color = ruloColor(r.type);
+        const hasOverride = r._perm && ruloOverrides[r.id] !== undefined;
+        const baseDesc = r.desc;
         return (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "flex-end" }}
             onClick={() => setSheetRulo(null)}>
-            <div style={{ background: T.card, borderRadius: "20px 20px 0 0", padding: "20px 20px 36px", width: "100%", maxWidth: 480, margin: "0 auto" }}
+            <div style={{ background: T.card, borderRadius: "8px 8px 0 0", padding: "20px 20px 36px", width: "100%", maxWidth: 480, margin: "0 auto", borderTop: `4px solid ${color}` }}
               onClick={e => e.stopPropagation()}>
-              <div style={{ width: 36, height: 4, background: T.border, borderRadius: 2, margin: "0 auto 16px" }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 {r._perm && <span>📌</span>}
-                <span style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "monospace", letterSpacing: "0.04em" }}>{r.type || "CABLE"}{r.qty ? ` ×${r.qty}` : ""}</span>
-                {r.position && <span style={{ fontSize: 11, color: T.text4, fontFamily: "monospace", marginLeft: "auto" }}>{r.position}</span>}
+                <span style={{ fontSize: 14, color, fontFamily: "'DM Mono',monospace", letterSpacing: "0.06em", fontWeight: 600 }}>{r.type || "CABLE"}{r.qty ? ` ×${r.qty}` : ""}</span>
+                {r.position && <span style={{ fontSize: 11, color: T.text4, fontFamily: "'DM Mono',monospace", marginLeft: "auto" }}>{r.position}</span>}
               </div>
-              {r.desc && <div style={{ fontSize: 15, color: T.text, fontFamily: "monospace", lineHeight: 1.4, marginBottom: 10 }}>{r.desc}</div>}
-              {r.note && <div style={{ fontSize: 12, color: "#b45309", lineHeight: 1.4, padding: "8px 10px", background: dark ? "#78350f33" : "#fffbeb", borderLeft: "3px solid #fcd34d", borderRadius: "0 8px 8px 0", marginBottom: 10 }}>⚠ {r.note}</div>}
-              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+
+              {/* Descripción editable por día — solo para rulos permanentes */}
+              {r._perm ? (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 9, color: "#D4A843", fontFamily: "'DM Mono',monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                      Descripción · {dayLabel}
+                    </span>
+                    {hasOverride && (
+                      <button onClick={() => { onClearOverride(r.id); setOverrideDraft(null); }}
+                        style={{ background: "none", border: "none", fontSize: 10, color: T.text4, cursor: "pointer", fontFamily: "'DM Mono',monospace", padding: 0 }}>
+                        Usar global ↩
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      value={overrideDraft ?? (ruloOverrides[r.id]?.desc ?? baseDesc ?? "")}
+                      onChange={e => setOverrideDraft(e.target.value)}
+                      placeholder={baseDesc || "Sin descripción"}
+                      style={{ ...S.input, flex: 1, padding: "10px 12px", fontSize: 13 }}
+                    />
+                    <button
+                      onClick={() => { if (overrideDraft !== null) { onSaveOverride(r.id, overrideDraft); } }}
+                      style={{ padding: "10px 14px", background: "#D4A843", border: "none", borderRadius: 4, color: "#1A1410", fontSize: 13, fontFamily: "'DM Mono',monospace", fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>
+                      ✓
+                    </button>
+                  </div>
+                  {hasOverride && baseDesc && (
+                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginTop: 5 }}>Global: {baseDesc}</div>
+                  )}
+                </div>
+              ) : (
+                r.desc && <div style={{ fontSize: 15, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.4, marginBottom: 14 }}>{r.desc}</div>
+              )}
+
+              {r.note && <div style={{ fontSize: 12, color: "#D4A843", lineHeight: 1.4, padding: "8px 10px", background: dark ? "rgba(212,168,67,0.1)" : "#FFF8EC", borderLeft: "3px solid #D4A843", marginBottom: 14 }}>⚠ {r.note}</div>}
+              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                 <button onClick={() => { setSheetRulo(null); onEdit(r.id); }}
-                  style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, color: T.text2, cursor: "pointer", fontFamily: "monospace" }}>✏️ Editar</button>
+                  style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, fontSize: 13, color: T.text2, cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>✏️ Editar</button>
                 <button onClick={() => { setSheetRulo(null); setConfirmId(r.id); setConfirmIsPerm(r._perm); }}
-                  style={{ flex: 1, padding: "13px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 12, fontSize: 14, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 Borrar</button>
+                  style={{ flex: 1, padding: "13px", background: "rgba(201,74,42,0.08)", border: "1px solid rgba(201,74,42,0.3)", borderRadius: 4, fontSize: 13, color: "#C94A2A", cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>🗑 Borrar</button>
               </div>
             </div>
           </div>
@@ -2191,13 +2474,12 @@ function RulosView({ rulos, permRulos, onAdd, onEdit, onDelete }) {
       {confirmId && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick={() => setConfirmId(null)}>
-          <div style={{ background: T.card, borderRadius: 20, padding: 28, width: "100%", maxWidth: 320, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
+          <div style={{ background: T.card, borderRadius: 4, padding: 28, width: "100%", maxWidth: 320, boxShadow: "0 8px 40px rgba(0,0,0,0.3)", borderTop: "4px solid #C94A2A" }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 28, textAlign: "center", marginBottom: 10 }}>🗑️</div>
-            <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20 }}>¿Borrar esta conexión?</div>
+            <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20, fontFamily: "'DM Mono',monospace" }}>¿Borrar esta conexión?</div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 13, cursor: "pointer", fontFamily: "monospace", color: T.text2 }}>Cancelar</button>
-              <button onClick={() => { onDelete(confirmId, confirmIsPerm); setConfirmId(null); }} style={{ flex: 1, padding: "13px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "monospace", color: "#fff" }}>Borrar</button>
+              <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
+              <button onClick={() => { onDelete(confirmId, confirmIsPerm); setConfirmId(null); }} style={{ flex: 1, padding: "13px", background: "#C94A2A", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Borrar</button>
             </div>
           </div>
         </div>
@@ -2213,54 +2495,38 @@ function RuloCard({ r, onEdit, onDelete }) {
   const border = dark ? `${color}44` : `${color}28`;
 
   return (
-    <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 16, overflow: "hidden" }}>
-      {/* colored top accent + type badge */}
-      <div style={{ height: 3, background: color }} />
+    <div style={{ background: T.card, border: `1px solid ${T.border}`, borderLeft: `5px solid ${color}`, borderRadius: 4, overflow: "hidden" }}>
       <div style={{ padding: "12px 14px" }}>
-        {/* type + qty + actions */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "monospace", padding: "3px 9px", borderRadius: 8, background: bg, border: `1px solid ${border}`, color, letterSpacing: "0.04em" }}>
-              {r.type || "CABLE"}
+            <span style={{ fontSize: 11, fontFamily: "'DM Mono',monospace", color, letterSpacing: "0.06em", fontWeight: 600 }}>
+              {r.type || "CABLE"}{r.qty ? ` ×${r.qty}` : ""}
             </span>
-            {r.qty && (
-              <span style={{ fontSize: 13, fontWeight: 700, color: T.text, fontFamily: "monospace" }}>{r.qty}</span>
-            )}
           </div>
           <div style={{ display: "flex", gap: 4 }}>
-            <button onClick={onEdit} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: T.text3, cursor: "pointer" }}>✏️</button>
-            <button onClick={onDelete} style={{ background: "none", border: "none", padding: "4px 6px", fontSize: 14, color: "#94a3b8", cursor: "pointer" }}>×</button>
+            <button onClick={onEdit} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, padding: "4px 9px", fontSize: 12, color: T.text3, cursor: "pointer" }}>✏️</button>
+            <button onClick={onDelete} style={{ background: "none", border: "none", padding: "4px 6px", fontSize: 14, color: T.text4, cursor: "pointer" }}>×</button>
           </div>
         </div>
-
-        {/* description */}
-        {r.desc && (
-          <div style={{ fontSize: 15, fontWeight: 500, color: T.text, marginBottom: 10, lineHeight: 1.3 }}>{noInfo(r.desc)}</div>
-        )}
-
-        {/* DE → PARA diagram */}
+        {r.desc && <div style={{ fontSize: 14, color: T.text, marginBottom: 8, lineHeight: 1.3, fontFamily: "'DM Mono',monospace" }}>{noInfo(r.desc)}</div>}
         {(r.from || r.to) && (
-          <div style={{ display: "flex", alignItems: "stretch", gap: 0, marginBottom: r.note ? 10 : 0 }}>
-            <div style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "10px 0 0 10px", padding: "8px 10px" }}>
-              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontWeight: 700, marginBottom: 3 }}>DE</div>
-              <div style={{ fontSize: 12, color: T.text, fontFamily: "monospace", lineHeight: 1.3 }}>{noInfo(r.from) || "—"}</div>
+          <div style={{ display: "flex", alignItems: "stretch", gap: 0, marginBottom: r.note ? 8 : 0 }}>
+            <div style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "2px 0 0 2px", padding: "6px 10px" }}>
+              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>DE</div>
+              <div style={{ fontSize: 11, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.3 }}>{noInfo(r.from) || "—"}</div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, background: bg, border: `1px solid ${border}`, borderLeft: "none", borderRight: "none", padding: "0 6px" }}>
-              <div style={{ width: 6, height: 1, background: color, opacity: 0.5, borderRadius: 1 }} />
-              <div style={{ width: 3, height: 3, borderRadius: "50%", background: color, opacity: 0.5 }} />
-              <div style={{ width: 6, height: 1, background: color, opacity: 0.5, borderRadius: 1 }} />
+            <div style={{ display: "flex", alignItems: "center", background: bg, border: `1px solid ${border}`, borderLeft: "none", borderRight: "none", padding: "0 6px" }}>
+              <span style={{ color, fontSize: 10 }}>→</span>
             </div>
-            <div style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "0 10px 10px 0", padding: "8px 10px" }}>
-              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontWeight: 700, marginBottom: 3 }}>PARA</div>
-              <div style={{ fontSize: 12, color: T.text, fontFamily: "monospace", lineHeight: 1.3 }}>{noInfo(r.to) || "—"}</div>
+            <div style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "0 2px 2px 0", padding: "6px 10px" }}>
+              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>PARA</div>
+              <div style={{ fontSize: 11, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.3 }}>{noInfo(r.to) || "—"}</div>
             </div>
           </div>
         )}
-
-        {/* note */}
         {r.note && (
-          <div style={{ fontSize: 12, color: "#92400e", lineHeight: 1.5, padding: "6px 10px", background: "#fffbeb", borderLeft: "2px solid #fcd34d", borderRadius: "0 6px 6px 0", marginTop: r.from || r.to ? 8 : 0 }}>
-            ⚠️ {r.note}
+          <div style={{ fontSize: 11, color: "#D4A843", lineHeight: 1.5, padding: "6px 10px", background: dark ? "rgba(212,168,67,0.1)" : "#FFF8EC", borderLeft: "2px solid #D4A843", marginTop: r.from || r.to ? 8 : 0 }}>
+            ⚠ {r.note}
           </div>
         )}
       </div>
@@ -2378,19 +2644,19 @@ function HorarioPill({ label, start, end, color, bg, border, T }) {
   const hasTime = start || end;
   return (
     <div style={{
-      display: "inline-flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
       background: hasTime ? bg : T.card2,
       border: `1px solid ${hasTime ? border : T.border}`,
-      borderRadius: 10, padding: "7px 28px", minWidth: 180,
+      borderRadius: 4, padding: "10px 24px", width: "100%",
     }}>
-      <span style={{ fontSize: 9, letterSpacing: "0.14em", color: hasTime ? color : T.text4, fontFamily: "'Bebas Neue',sans-serif" }}>{label}</span>
+      <span style={{ fontSize: 9, letterSpacing: "0.18em", color: hasTime ? color : T.text4, fontFamily: "'DM Mono',monospace", textTransform: "uppercase" }}>{label}</span>
       {hasTime ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 17, fontWeight: 700, color, fontFamily: "monospace", letterSpacing: "0.04em" }}>{start || "—"}</span>
-          {end && <><span style={{ fontSize: 12, color: T.text4 }}>→</span><span style={{ fontSize: 17, fontWeight: 700, color, fontFamily: "monospace", letterSpacing: "0.04em" }}>{end}</span></>}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 22, color, fontFamily: "'DM Mono',monospace", letterSpacing: "0.04em" }}>{start || "—"}</span>
+          {end && <><span style={{ fontSize: 14, color: T.text4 }}>→</span><span style={{ fontSize: 22, color, fontFamily: "'DM Mono',monospace", letterSpacing: "0.04em" }}>{end}</span></>}
         </div>
       ) : (
-        <span style={{ fontSize: 13, color: T.text4, fontFamily: "monospace" }}>—</span>
+        <span style={{ fontSize: 13, color: T.text4, fontFamily: "'DM Mono',monospace" }}>—</span>
       )}
     </div>
   );
@@ -2399,18 +2665,20 @@ function HorarioPill({ label, start, end, color, bg, border, T }) {
 function HorariosView({ artists, day, onSaveTime }) {
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [editId, setEditId] = useState(null);
+  const [editScCall, setEditScCall] = useState("");
+  const [editScLoadIn, setEditScLoadIn] = useState("");
   const [editScStart, setEditScStart] = useState("");
   const [editScEnd, setEditScEnd] = useState("");
   const [editShowStart, setEditShowStart] = useState("");
   const [editShowEnd, setEditShowEnd] = useState("");
   const [horariosTab, setHorariosTab] = useState("show");
 
-  const scColor   = dark ? "#34d399" : "#059669";
-  const scBg      = dark ? "#064e3b" : "#ecfdf5";
-  const scBorder  = dark ? "#06564055" : "#a7f3d0";
-  const showColor  = dark ? "#818cf8" : "#4f46e5";
-  const showBg     = dark ? "#1e1b4b" : "#eef2ff";
-  const showBorder = dark ? "#4338ca55" : "#c7d2fe";
+  const scColor   = "#2A6B6B";
+  const scBg      = dark ? "rgba(42,107,107,0.15)" : "rgba(42,107,107,0.08)";
+  const scBorder  = dark ? "rgba(42,107,107,0.4)" : "rgba(42,107,107,0.25)";
+  const showColor  = "#C94A2A";
+  const showBg     = dark ? "rgba(201,74,42,0.15)" : "rgba(201,74,42,0.08)";
+  const showBorder = dark ? "rgba(201,74,42,0.4)" : "rgba(201,74,42,0.25)";
 
   const sorted = [...artists].sort((a, b) => {
     const ta = horariosTab === "sc" ? festTimeToMin(a.scStart || a.showStart) : festTimeToMin(a.showStart || a.scStart);
@@ -2420,6 +2688,8 @@ function HorariosView({ artists, day, onSaveTime }) {
 
   function openEdit(a) {
     setEditId(a.id);
+    setEditScCall(a.scCall || "");
+    setEditScLoadIn(a.scLoadIn || "");
     setEditScStart(a.scStart || "");
     setEditScEnd(a.scEnd || "");
     setEditShowStart(a.showStart || "");
@@ -2428,6 +2698,7 @@ function HorariosView({ artists, day, onSaveTime }) {
 
   async function confirmEdit(artId) {
     await onSaveTime(artId, {
+      scCall: editScCall, scLoadIn: editScLoadIn,
       scStart: editScStart, scEnd: editScEnd,
       showStart: editShowStart, showEnd: editShowEnd,
     });
@@ -2439,27 +2710,24 @@ function HorariosView({ artists, day, onSaveTime }) {
 
   return (
     <div>
-      {/* toggle SC / SHOW */}
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
-        <div style={{ display: "flex", background: T.card2, borderRadius: 12, padding: 3, gap: 3 }}>
-          {[["sc", "SOUNDCHECK", scColor, scBg, scBorder], ["show", "SHOW", showColor, showBg, showBorder]].map(([val, lbl, col, bg, brd]) => (
-            <button key={val} onClick={() => setHorariosTab(val)} style={{
-              padding: "6px 18px", borderRadius: 9, border: "none", cursor: "pointer",
-              fontFamily: "'Bebas Neue',sans-serif", fontSize: 13, letterSpacing: "0.08em",
-              background: horariosTab === val ? bg : "transparent",
-              color: horariosTab === val ? col : T.text4,
-              outline: horariosTab === val ? `1.5px solid ${brd}` : "none",
-              transition: "all 0.15s",
-            }}>{lbl}</button>
-          ))}
-        </div>
+      {/* toggle SC / SHOW — estilo Mallorca nav */}
+      <div style={{ display: "flex", background: "#1A1410", borderBottom: "1px solid #3D2B1F", marginBottom: 16 }}>
+        {[["sc", "SOUNDCHECK", scColor], ["show", "SHOW", showColor]].map(([val, lbl, col]) => (
+          <button key={val} onClick={() => setHorariosTab(val)} style={{
+            flex: 1, padding: "12px 0", border: "none", cursor: "pointer", background: "none",
+            fontFamily: "'Bebas Neue',sans-serif", fontSize: 13, letterSpacing: "0.1em",
+            color: horariosTab === val ? col : "#7A6652",
+            borderBottom: horariosTab === val ? `3px solid ${col}` : "3px solid transparent",
+            marginBottom: -1,
+          }}>{lbl}</button>
+        ))}
       </div>
 
       {artists.length === 0 && (
         <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>Sin artistas en este día</div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {sorted.map(a => {
           const isEditing = editId === a.id;
           const hasAnytime = a.scStart || a.scEnd || a.showStart || a.showEnd;
@@ -2470,51 +2738,66 @@ function HorariosView({ artists, day, onSaveTime }) {
           return (
             <div key={a.id} style={{
               background: T.card,
-              border: `1px solid ${isEditing ? accentBorder : T.border}`,
-              borderLeft: `3px solid ${hasAnytime ? accentColor : T.border}`,
-              borderRadius: 12,
-              padding: "12px 14px",
-              textAlign: "center",
+              border: `1px solid ${T.border}`,
+              borderLeft: `5px solid ${hasAnytime ? accentColor : T.border}`,
+              borderRadius: 4,
+              overflow: "hidden",
             }}>
               {isEditing ? (
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 12, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.04em" }}>{a.artist || "—"}</div>
+                <div style={{ padding: "14px 16px" }}>
+                  <div style={{ fontSize: 16, color: T.text, marginBottom: 14, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em" }}>{a.artist || "—"}</div>
                   <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.1em", marginBottom: 5 }}>SC INICIO</div>
-                      <input type="time" value={editScStart} onChange={e => setEditScStart(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} autoFocus />
+                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>LOAD IN</div>
+                      <input type="time" value={editScLoadIn} onChange={e => setEditScLoadIn(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} autoFocus />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SC INICIO</div>
+                      <input type="time" value={editScStart} onChange={e => setEditScStart(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.1em", marginBottom: 5 }}>SC FIN</div>
+                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SC FIN</div>
                       <input type="time" value={editScEnd} onChange={e => setEditScEnd(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.1em", marginBottom: 5 }}>SH INICIO</div>
+                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SH INICIO</div>
                       <input type="time" value={editShowStart} onChange={e => setEditShowStart(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.1em", marginBottom: 5 }}>SH FIN</div>
+                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SH FIN</div>
                       <input type="time" value={editShowEnd} onChange={e => setEditShowEnd(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => confirmEdit(a.id)} style={{ flex: 1, padding: "10px", background: showColor, color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "monospace" }}>Guardar</button>
+                    <button onClick={() => confirmEdit(a.id)} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13 }}>Guardar</button>
                     <button onClick={() => setEditId(null)} style={{ ...S.smBtn, flex: 0.5 }}>Cancelar</button>
                   </div>
                 </div>
               ) : (
                 <div style={{ cursor: "pointer" }} onClick={() => openEdit(a)}>
-                  <div style={{ textAlign: "center", marginBottom: 10 }}>
-                    <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{a.artist || "—"}</div>
-                    {a.console && <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace" }}>{a.console}</div>}
+                  {/* header */}
+                  <div style={{ padding: "14px 18px 10px", borderBottom: `1px solid ${T.border}`, background: T.card2 }}>
+                    <div style={{ fontSize: 20, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{a.artist || "—"}</div>
+                    {a.console && <div style={{ fontSize: 11, color: T.text3, fontFamily: "'DM Mono',monospace", marginTop: 2 }}>{a.console}</div>}
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  {/* time pill */}
+                  <div style={{ padding: "12px 18px 14px" }}>
                     <HorarioPill label={activePill.label} start={activePill.start} end={activePill.end} color={activePill.color} bg={activePill.bg} border={activePill.border} T={T} />
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <span style={{ color: T.text4, fontSize: 12 }}>✏️</span>
+                    {horariosTab === "sc" && a.scLoadIn && (
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <div style={{ flex: 1, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, padding: "6px 10px", textAlign: "center" }}>
+                          <div style={{ fontSize: 8, color: scColor, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>LOAD IN</div>
+                          <div style={{ fontSize: 15, color: scColor, fontFamily: "'DM Mono',monospace", fontWeight: 700 }}>{a.scLoadIn}</div>
+                        </div>
+                      </div>
+                    )}
+                    <div style={{ textAlign: "center", marginTop: 8 }}>
+                      <span style={{ color: T.text4, fontSize: 11 }}>✏️</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2529,7 +2812,8 @@ function HorariosView({ artists, day, onSaveTime }) {
 /* ---------- mon view ---------- */
 function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack }) {
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
-  const [tab, setTab] = useState("inputs"); // "inputs" | "outputs" | "rf" | "horarios"
+  const [tab, setTab] = useState("bandas"); // "bandas" | "inputs" | "outputs" | "rf" | "horarios"
+  const [selectedArtistId, setSelectedArtistId] = useState(null);
   // inline editing for static fields
   const [editingConsole, setEditingConsole] = useState(false);
   const [editingTecnico, setEditingTecnico] = useState(false);
@@ -2632,179 +2916,203 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
     transition: "all 0.2s",
   });
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
-      {/* top bar */}
-      <div style={{ ...S.topBar, flexDirection: "column", alignItems: "stretch", gap: 0, padding: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 8px" }}>
-          <button onClick={onBack} style={S.backBtn}>‹</button>
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>🎧 {monPos.name}</div>
-            <div style={{ fontSize: 10, color: T.text3, fontFamily: "monospace", letterSpacing: "0.04em" }}>{stage.name}</div>
-          </div>
-          <div style={{ width: 44 }} />
+  const MonTopBar = ({ onBackBtn }) => (
+    <div style={{ ...S.topBar, flexDirection: "column", alignItems: "stretch", gap: 0, padding: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 8px" }}>
+        <button onClick={onBackBtn} style={S.backBtn}>‹</button>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>🎧 {monPos.name}</div>
+          <div style={{ fontSize: 10, color: T.text3, fontFamily: "monospace", letterSpacing: "0.04em" }}>{stage.name}</div>
         </div>
-        {/* day pills */}
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", padding: "0 12px 8px" }}>
-          {stage.days.map((d, i) => (
-            <button key={d.id} onClick={() => setDayIdx(i)} style={{
-              flexShrink: 0, padding: "4px 12px", borderRadius: 20, fontSize: 12,
+        <div style={{ width: 44 }} />
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 12px 4px", borderBottom: `1px solid ${T.border}` }}>
+        <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3 }}>
+          {["bandas", "inputs", "outputs", "rf", "horarios"].map(t => (
+            <button key={t} onClick={() => { setTab(t); setSelectedArtistId(null); }} style={{
+              padding: "4px 8px", borderRadius: 8, fontSize: 11,
               fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
-              whiteSpace: "nowrap", border: "none",
-              background: i === dayIdx ? (dark ? "#334155" : "#0f172a") : (dark ? "#1e293b" : "#f1f5f9"),
-              color: i === dayIdx ? "#fff" : T.text4,
-            }}>{d.label}</button>
-          ))}
-        </div>
-        {/* tab bar */}
-        <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 0, padding: "4px 12px", borderTop: `1px solid ${T.border}` }}>
-          {["inputs", "outputs", "rf", "horarios"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={tabBtnStyle(tab === t)}>
-              {t === "inputs" ? "INPUTS" : t === "outputs" ? "OUTPUTS" : t === "rf" ? "RF" : "HORARIOS"}
+              border: "none",
+              background: tab === t ? (dark ? "#334155" : "#0f172a") : "transparent",
+              color: tab === t ? "#fff" : T.text4,
+              transition: "all 0.2s",
+            }}>
+              {t === "bandas" ? "BANDAS" : t === "inputs" ? "INPUTS" : t === "outputs" ? "OUTPUTS" : t === "rf" ? "RF" : "HORARIOS"}
             </button>
           ))}
         </div>
       </div>
+      <div style={{ display: "flex", gap: 6, overflowX: "auto", padding: "6px 12px 8px", alignItems: "center" }}>
+        {stage.days.map((d, i) => {
+          const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "short" }) : null;
+          return (
+            <button key={d.id} onClick={() => { setDayIdx(i); setSelectedArtistId(null); }} style={{
+              flexShrink: 0, padding: dateLabel ? "4px 12px" : "5px 12px", borderRadius: 20, fontSize: 12,
+              fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
+              whiteSpace: "nowrap", border: "none", lineHeight: 1.2,
+              background: i === dayIdx ? (dark ? "#334155" : "#0f172a") : (dark ? "#1e293b" : "#f1f5f9"),
+              color: i === dayIdx ? "#fff" : T.text4,
+            }}>
+              <div>{d.label}</div>
+              {dateLabel && <div style={{ fontSize: 9, opacity: 0.7, fontFamily: "monospace", letterSpacing: 0, marginTop: 1 }}>{dateLabel}</div>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  /* ---- detail screen ---- */
+  const selectedArt = selectedArtistId ? (day?.artists || []).find(a => a.id === selectedArtistId) : null;
+  if (selectedArt) return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+      <MonTopBar onBackBtn={() => setSelectedArtistId(null)} />
+      <div style={{ flex: 1, padding: "12px 14px", background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
+        <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 16, overflow: "hidden" }}>
+
+          {/* nombre */}
+          <div style={{ padding: "14px 16px", borderBottom: `0.5px solid ${T.border}` }}>
+            <div style={{ fontSize: 24, fontWeight: 500, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.02em", color: T.text, lineHeight: 1.1 }}>{selectedArt.artist || "—"}</div>
+            <div style={{ fontSize: 11, color: "#7c3aed", marginTop: 4, fontFamily: "monospace" }}>{monPos.name}</div>
+          </div>
+
+          {/* setup monitor */}
+          <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
+            <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: T.text4 }}>🎧</span>
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Setup monitor</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5px", background: T.border }}>
+              <div style={{ padding: "10px 12px", background: T.card2 }}>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: "#7c3aed", marginBottom: 4 }}>Consola MON</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(monPos.console) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>Sin confirmar</span>}</div>
+              </div>
+              <div style={{ padding: "10px 12px", background: T.card2 }}>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Técnico</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.tecnico) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>Sin confirmar</span>}</div>
+              </div>
+              {selectedArt.toMon && (
+                <div style={{ padding: "10px 12px", background: T.card2, gridColumn: "1 / -1" }}>
+                  <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: "#7c3aed", marginBottom: 4 }}>To MON</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.toMon)}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* conexiones FOH (para parcheo) */}
+          <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
+            <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: T.text4 }}>🔌</span>
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Parcheo FOH</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5px", background: T.border }}>
+              <div style={{ padding: "10px 12px", background: T.card2 }}>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Señal</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: sigColor(selectedArt.signal), lineHeight: 1.3 }}>{noInfo(selectedArt.signal) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>—</span>}</div>
+              </div>
+              <div style={{ padding: "10px 12px", background: T.card2 }}>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Mesa FOH</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.console) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>—</span>}</div>
+              </div>
+              {selectedArt.connection && (
+                <div style={{ padding: "10px 12px", background: T.card2, gridColumn: "1 / -1" }}>
+                  <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Conexión</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.connection)}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* To LX */}
+          {selectedArt.toLx && (
+            <div style={{ borderBottom: `0.5px solid ${T.border}`, padding: "0 12px 12px" }}>
+              <div style={{ padding: "10px 4px 8px", fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Rutas</div>
+              <RouteChip icon="💡" label="TO LX" value={noInfo(selectedArt.toLx)} color="#ea580c" />
+            </div>
+          )}
+
+          {/* Notas previas */}
+          {(selectedArt.comments || []).length > 0 && (
+            <div style={{ borderBottom: `0.5px solid ${T.border}`, padding: "10px 16px 12px" }}>
+              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4, marginBottom: 8 }}>Notas previas</div>
+              {selectedArt.comments.map((c, i) => (
+                <div key={i} style={{ fontSize: 13, color: T.text2, lineHeight: 1.5, padding: "6px 10px", background: T.card2, borderLeft: `2px solid ${T.border}`, borderRadius: "0 6px 6px 0", marginBottom: 4 }}>{c}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Extra slots */}
+          {(selectedArt.extraSlots || []).filter(s => s.label).length > 0 && (
+            <div style={{ padding: "10px 16px 12px" }}>
+              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4, marginBottom: 8 }}>Campos extra</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {(selectedArt.extraSlots || []).filter(s => s.label).map(s => (
+                  <RouteChip key={s.id} icon="📋" label={s.label} value={s.value || "—"} color="#2563eb" />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+      <MonTopBar onBackBtn={onBack} />
 
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px", background: T.bg, paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
 
-        {/* static info card */}
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "12px 14px", marginBottom: 14, display: "flex", gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>CONSOLA</div>
-            {editingConsole ? (
-              <input value={consoleVal} onChange={e => setConsoleVal(e.target.value)} onBlur={saveConsole} onKeyDown={e => { if (e.key === "Enter") saveConsole(); if (e.key === "Escape") { setEditingConsole(false); setConsoleVal(monPos.console || ""); } }}
-                style={{ ...S.input, padding: "5px 8px", fontSize: 13, fontFamily: "monospace" }} autoFocus />
-            ) : (
-              <div onClick={() => { setEditingConsole(true); setConsoleVal(monPos.console || ""); }} style={{ fontSize: 13, color: monPos.console ? T.text : T.text4, fontFamily: "monospace", cursor: "text", padding: "2px 0", minHeight: 20 }}>
-                {monPos.console || "—"}
-              </div>
+        {/* BANDAS TAB — fichas compactas como FOH */}
+        {tab === "bandas" && (
+          <div>
+            {sortedArtists.length === 0 && (
+              <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "monospace" }}>Sin artistas en este día</div>
             )}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>TÉCNICO</div>
-            {editingTecnico ? (
-              <input value={tecnicoVal} onChange={e => setTecnicoVal(e.target.value)} onBlur={saveTecnico} onKeyDown={e => { if (e.key === "Enter") saveTecnico(); if (e.key === "Escape") { setEditingTecnico(false); setTecnicoVal(monPos.tecnico || ""); } }}
-                style={{ ...S.input, padding: "5px 8px", fontSize: 13, fontFamily: "monospace" }} autoFocus />
-            ) : (
-              <div onClick={() => { setEditingTecnico(true); setTecnicoVal(monPos.tecnico || ""); }} style={{ fontSize: 13, color: monPos.tecnico ? T.text : T.text4, fontFamily: "monospace", cursor: "text", padding: "2px 0", minHeight: 20 }}>
-                {monPos.tecnico || "—"}
-              </div>
+            {sortedArtists.length > 0 && (
+              <span style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Ficha compacta</span>
             )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {sortedArtists.map(a => (
+                <MonCompactArtistCard key={a.id} a={a} monPos={monPos} T={T} dark={dark} onSelect={setSelectedArtistId} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* INPUTS TAB */}
         {tab === "inputs" && (
-          <div>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 10 }}>INPUTS — {(monPos.inputs || []).length} entradas</div>
-            {/* header */}
-            {(monPos.inputs || []).length > 0 && (
-              <div style={{ display: "flex", gap: 8, padding: "4px 10px", marginBottom: 4 }}>
-                <span style={{ ...labelStyle, width: 28 }}>CH</span>
-                <span style={{ ...labelStyle, flex: 2 }}>SOURCE</span>
-                <span style={{ ...labelStyle, flex: 1 }}>TYPE</span>
-                <span style={{ width: 24 }} />
-              </div>
-            )}
-            {(monPos.inputs || []).map(inp => (
-              editInputId === inp.id ? (
-                <div key={inp.id} style={{ ...rowStyle, flexDirection: "column", alignItems: "stretch", gap: 6 }}>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <input value={editInputVal.ch ?? inp.ch} onChange={e => setEditInputVal(v => ({ ...v, ch: e.target.value }))} placeholder="CH" style={{ ...S.input, padding: "5px 8px", width: 60, fontSize: 13 }} autoFocus />
-                    <input value={editInputVal.source ?? inp.source} onChange={e => setEditInputVal(v => ({ ...v, source: e.target.value }))} placeholder="Source" style={{ ...S.input, padding: "5px 8px", flex: 1, fontSize: 13 }} />
-                    <select value={editInputVal.type ?? inp.type} onChange={e => setEditInputVal(v => ({ ...v, type: e.target.value }))} style={{ ...S.input, padding: "5px 8px", width: 90, fontSize: 13 }}>
-                      {["Mic", "Line", "DI", "FX", "Playback"].map(t => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => saveInput(inp.id)} style={{ ...S.smBtn, flex: 1, padding: "6px", fontSize: 12 }}>✓ Guardar</button>
-                    <button onClick={() => setEditInputId(null)} style={{ ...S.smBtn, flex: 0.5, padding: "6px", fontSize: 12 }}>Cancelar</button>
-                  </div>
-                </div>
-              ) : (
-                <div key={inp.id} style={rowStyle} onClick={() => { setEditInputId(inp.id); setEditInputVal({}); }}>
-                  <span style={{ width: 28, color: T.text3, fontWeight: 700, fontSize: 11, flexShrink: 0 }}>{inp.ch || "—"}</span>
-                  <span style={{ ...cellStyle, flex: 2 }}>{inp.source || "—"}</span>
-                  <span style={{ ...cellStyle, flex: 1, color: T.text3, fontSize: 11 }}>{inp.type}</span>
-                  <button onClick={e => { e.stopPropagation(); deleteInput(inp.id); }} style={{ background: "none", border: "none", color: T.text4, fontSize: 16, cursor: "pointer", padding: "0 2px", flexShrink: 0 }}>×</button>
-                </div>
-              )
-            ))}
-            {showAddInput ? (
-              <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px", marginTop: 8 }}>
-                <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                  <input value={newInput.ch} onChange={e => setNewInput(v => ({ ...v, ch: e.target.value }))} placeholder="CH" style={{ ...S.input, padding: "7px 8px", width: 60, fontSize: 13 }} autoFocus />
-                  <input value={newInput.source} onChange={e => setNewInput(v => ({ ...v, source: e.target.value }))} placeholder="Source" style={{ ...S.input, padding: "7px 8px", flex: 1, fontSize: 13 }} />
-                  <select value={newInput.type} onChange={e => setNewInput(v => ({ ...v, type: e.target.value }))} style={{ ...S.input, padding: "7px 8px", width: 90, fontSize: 13 }}>
-                    {["Mic", "Line", "DI", "FX", "Playback"].map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={addInput} style={{ ...S.bigBtn, flex: 1, padding: "10px", marginTop: 0, fontSize: 13 }}>Añadir</button>
-                  <button onClick={() => { setShowAddInput(false); setNewInput({ ch: "", source: "", type: "Mic" }); }} style={{ ...S.navBtn, flex: 0.5 }}>Cancelar</button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setShowAddInput(true)} style={{ ...S.addBtn, marginTop: 4 }}>+ Añadir input</button>
-            )}
-          </div>
+          <QuickTable
+            label="INPUTS"
+            items={monPos.inputs || []}
+            cols={[
+              { key: "ch", placeholder: "CH", width: 52 },
+              { key: "source", placeholder: "Name", flex: 2 },
+              { key: "type", placeholder: "Mic / DI", flex: 1.2 },
+            ]}
+            onAdd={entry => { const e = { id: uid(), ch: entry.ch || "", source: entry.source || "", type: entry.type || "" }; saveMonPos({ ...monPos, inputs: [...(monPos.inputs || []), e] }); }}
+            onEdit={(id, field, val) => saveMonPos({ ...monPos, inputs: (monPos.inputs || []).map(x => x.id === id ? { ...x, [field]: val } : x) })}
+            onDelete={id => saveMonPos({ ...monPos, inputs: (monPos.inputs || []).filter(x => x.id !== id) })}
+            T={T} S={S}
+          />
         )}
 
         {/* OUTPUTS TAB */}
         {tab === "outputs" && (
-          <div>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 10 }}>OUTPUTS — {(monPos.outputs || []).length} salidas</div>
-            {(monPos.outputs || []).length > 0 && (
-              <div style={{ display: "flex", gap: 8, padding: "4px 10px", marginBottom: 4 }}>
-                <span style={{ ...labelStyle, width: 28 }}>MIX</span>
-                <span style={{ ...labelStyle, flex: 2 }}>DEST</span>
-                <span style={{ ...labelStyle, flex: 1 }}>TYPE</span>
-                <span style={{ width: 24 }} />
-              </div>
-            )}
-            {(monPos.outputs || []).map(out => (
-              editOutputId === out.id ? (
-                <div key={out.id} style={{ ...rowStyle, flexDirection: "column", alignItems: "stretch", gap: 6 }}>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <input value={editOutputVal.mix ?? out.mix} onChange={e => setEditOutputVal(v => ({ ...v, mix: e.target.value }))} placeholder="MIX" style={{ ...S.input, padding: "5px 8px", width: 60, fontSize: 13 }} autoFocus />
-                    <input value={editOutputVal.dest ?? out.dest} onChange={e => setEditOutputVal(v => ({ ...v, dest: e.target.value }))} placeholder="Dest" style={{ ...S.input, padding: "5px 8px", flex: 1, fontSize: 13 }} />
-                    <select value={editOutputVal.type ?? out.type} onChange={e => setEditOutputVal(v => ({ ...v, type: e.target.value }))} style={{ ...S.input, padding: "5px 8px", width: 90, fontSize: 13 }}>
-                      {["Wedge", "IEM", "Fill", "Sub"].map(t => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => saveOutput(out.id)} style={{ ...S.smBtn, flex: 1, padding: "6px", fontSize: 12 }}>✓ Guardar</button>
-                    <button onClick={() => setEditOutputId(null)} style={{ ...S.smBtn, flex: 0.5, padding: "6px", fontSize: 12 }}>Cancelar</button>
-                  </div>
-                </div>
-              ) : (
-                <div key={out.id} style={rowStyle} onClick={() => { setEditOutputId(out.id); setEditOutputVal({}); }}>
-                  <span style={{ width: 28, color: T.text3, fontWeight: 700, fontSize: 11, flexShrink: 0 }}>{out.mix || "—"}</span>
-                  <span style={{ ...cellStyle, flex: 2 }}>{out.dest || "—"}</span>
-                  <span style={{ ...cellStyle, flex: 1, color: T.text3, fontSize: 11 }}>{out.type}</span>
-                  <button onClick={e => { e.stopPropagation(); deleteOutput(out.id); }} style={{ background: "none", border: "none", color: T.text4, fontSize: 16, cursor: "pointer", padding: "0 2px", flexShrink: 0 }}>×</button>
-                </div>
-              )
-            ))}
-            {showAddOutput ? (
-              <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px", marginTop: 8 }}>
-                <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                  <input value={newOutput.mix} onChange={e => setNewOutput(v => ({ ...v, mix: e.target.value }))} placeholder="MIX" style={{ ...S.input, padding: "7px 8px", width: 60, fontSize: 13 }} autoFocus />
-                  <input value={newOutput.dest} onChange={e => setNewOutput(v => ({ ...v, dest: e.target.value }))} placeholder="Dest" style={{ ...S.input, padding: "7px 8px", flex: 1, fontSize: 13 }} />
-                  <select value={newOutput.type} onChange={e => setNewOutput(v => ({ ...v, type: e.target.value }))} style={{ ...S.input, padding: "7px 8px", width: 90, fontSize: 13 }}>
-                    {["Wedge", "IEM", "Fill", "Sub"].map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={addOutput} style={{ ...S.bigBtn, flex: 1, padding: "10px", marginTop: 0, fontSize: 13 }}>Añadir</button>
-                  <button onClick={() => { setShowAddOutput(false); setNewOutput({ mix: "", dest: "", type: "Wedge" }); }} style={{ ...S.navBtn, flex: 0.5 }}>Cancelar</button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setShowAddOutput(true)} style={{ ...S.addBtn, marginTop: 4 }}>+ Añadir output</button>
-            )}
-          </div>
+          <QuickTable
+            label="OUTPUTS"
+            items={monPos.outputs || []}
+            cols={[
+              { key: "mix", placeholder: "MIX", width: 52 },
+              { key: "dest", placeholder: "Dest", flex: 2 },
+              { key: "type", placeholder: "Type", flex: 1, options: ["Wedge", "IEM", "Fill", "Sub"] },
+            ]}
+            onAdd={entry => { const e = { id: uid(), mix: entry.mix || "", dest: entry.dest || "", type: entry.type || "Wedge" }; saveMonPos({ ...monPos, outputs: [...(monPos.outputs || []), e] }); }}
+            onEdit={(id, field, val) => saveMonPos({ ...monPos, outputs: (monPos.outputs || []).map(x => x.id === id ? { ...x, [field]: val } : x) })}
+            onDelete={id => saveMonPos({ ...monPos, outputs: (monPos.outputs || []).filter(x => x.id !== id) })}
+            T={T} S={S}
+          />
         )}
 
         {/* RF TAB */}
@@ -2839,7 +3147,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
               ) : (
                 <div key={rf.id} style={rowStyle} onClick={() => { setEditRfId(rf.id); setEditRfVal({}); }}>
                   <span style={{ width: 28, color: T.text3, fontWeight: 700, fontSize: 11, flexShrink: 0 }}>{rf.ch || "—"}</span>
-                  <span style={{ ...cellStyle, flex: 1, color: "#f59e0b", fontWeight: 600 }}>{rf.freq || "—"}</span>
+                  <span style={{ ...cellStyle, flex: 1, color: "#D4A843", fontWeight: 600 }}>{rf.freq || "—"}</span>
                   <span style={{ ...cellStyle, flex: 2 }}>{rf.user || "—"}</span>
                   <span style={{ ...cellStyle, flex: 1, color: T.text3, fontSize: 11 }}>{rf.type}</span>
                   <button onClick={e => { e.stopPropagation(); deleteRf(rf.id); }} style={{ background: "none", border: "none", color: T.text4, fontSize: 16, cursor: "pointer", padding: "0 2px", flexShrink: 0 }}>×</button>
@@ -2890,6 +3198,609 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
           </div>
         )}
 
+      </div>
+    </div>
+  );
+}
+
+/* ---------- EscenarioView ---------- */
+const PLOT_COLS = 8;
+const PLOT_ROWS = 5;
+const PLOT_ICONS = [
+  { icon: "🎤", label: "Voz" },
+  { icon: "🥁", label: "Batería" },
+  { icon: "🎸", label: "Guitarra" },
+  { icon: "🎹", label: "Teclado" },
+  { icon: "🎺", label: "Viento" },
+  { icon: "🎻", label: "Cuerda" },
+  { icon: "🔊", label: "Sub" },
+  { icon: "📦", label: "Amp" },
+  { icon: "💡", label: "Luz" },
+  { icon: "📺", label: "Pantalla" },
+  { icon: "🧍", label: "Persona" },
+  { icon: "⬜", label: "Libre" },
+];
+
+function EscenarioView({ fest, stage, onEditFest, onBack }) {
+  const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
+  const [tab, setTab] = useState("inputs");
+  const [pickerCell, setPickerCell] = useState(null); // { row, col } or null
+  const [pickerTab, setPickerTab] = useState("icon");  // icon | subbox | corriente
+  const [selectedPlotId, setSelectedPlotId] = useState(null);
+  const [customLabel, setCustomLabel] = useState("");
+  const [sbDraft, setSbDraft] = useState({ name: "", from: "", to: "" });
+
+  const esc = stage.escenario || { inputs: [], power: [], plot: [] };
+
+  function saveEsc(updated) {
+    const newStages = (fest.stages || []).map(s =>
+      s.id === stage.id ? { ...s, escenario: updated } : s
+    );
+    onEditFest({ ...fest, stages: newStages });
+  }
+
+  // Inputs
+  function addInput(entry) {
+    saveEsc({ ...esc, inputs: [...(esc.inputs || []), { id: uid(), ch: entry.ch || "", source: entry.source || "", type: entry.type || "Mic" }] });
+  }
+  function editInput(id, field, val) {
+    saveEsc({ ...esc, inputs: (esc.inputs || []).map(x => x.id === id ? { ...x, [field]: val } : x) });
+  }
+  function delInput(id) { saveEsc({ ...esc, inputs: (esc.inputs || []).filter(x => x.id !== id) }); }
+
+  // Power
+  function addPower(entry) {
+    saveEsc({ ...esc, power: [...(esc.power || []), { id: uid(), grupo: entry.grupo || "", tomas: entry.tomas || "", kw: entry.kw || "", notas: entry.notas || "" }] });
+  }
+  function editPower(id, field, val) {
+    saveEsc({ ...esc, power: (esc.power || []).map(x => x.id === id ? { ...x, [field]: val } : x) });
+  }
+  function delPower(id) { saveEsc({ ...esc, power: (esc.power || []).filter(x => x.id !== id) }); }
+
+  // Plot
+  const plotItems = esc.plot || [];
+  const kindOf = (p) => p.kind || "icon";
+  function cellItem(row, col) { return plotItems.find(p => p.row === row && p.col === col); }
+  function placeAt(row, col, data) {
+    const filtered = plotItems.filter(p => !(p.row === row && p.col === col));
+    saveEsc({ ...esc, plot: [...filtered, { id: uid(), row, col, ...data }] });
+  }
+  function updateItem(id, patch) {
+    saveEsc({ ...esc, plot: plotItems.map(p => p.id === id ? { ...p, ...patch } : p) });
+  }
+  function removeItem(id) { saveEsc({ ...esc, plot: plotItems.filter(p => p.id !== id) }); }
+
+  // links to other tabs
+  const powerById = (id) => (esc.power || []).find(p => p.id === id);
+  function inputsInRange(from, to) {
+    const a = parseInt(from, 10), b = parseInt(to, 10);
+    if (isNaN(a) && isNaN(b)) return [];
+    const lo = isNaN(a) ? b : isNaN(b) ? a : Math.min(a, b);
+    const hi = isNaN(b) ? a : isNaN(a) ? b : Math.max(a, b);
+    return (esc.inputs || []).filter(i => { const n = parseInt(i.ch, 10); return !isNaN(n) && n >= lo && n <= hi; });
+  }
+  const rangeStr = (p) => (p.from && p.to) ? `${p.from}–${p.to}` : (p.from || p.to || "");
+
+  // category palette
+  const CAT = {
+    icon:      { color: dark ? "#34d399" : "#16a34a", bg: dark ? "#064e3b" : "#dcfce7", border: dark ? "#10b981" : "#16a34a", glyph: "🎚️", label: "Instrumento" },
+    subbox:    { color: dark ? "#60a5fa" : "#2563eb", bg: dark ? "#172554" : "#dbeafe", border: dark ? "#3b82f6" : "#2563eb", glyph: "🔌", label: "Subbox" },
+    corriente: { color: dark ? "#fbbf24" : "#d97706", bg: dark ? "#422006" : "#fef3c7", border: dark ? "#D4A843" : "#d97706", glyph: "⚡", label: "Corriente" },
+  };
+
+  function renderPlotCell(item) {
+    const k = kindOf(item);
+    if (k === "subbox") return (
+      <>
+        <div style={{ fontSize: 13, lineHeight: 1 }}>🔌</div>
+        <div style={{ fontSize: 8, fontWeight: 700, color: CAT.subbox.color, marginTop: 1, lineHeight: 1.05, textAlign: "center", wordBreak: "break-word", maxWidth: "100%" }}>{item.name || "SB"}</div>
+        {rangeStr(item) && <div style={{ fontSize: 7, color: T.text4, lineHeight: 1 }}>{rangeStr(item)}</div>}
+      </>
+    );
+    if (k === "corriente") {
+      const g = powerById(item.refId);
+      return (
+        <>
+          <div style={{ fontSize: 14, lineHeight: 1 }}>⚡</div>
+          <div style={{ fontSize: 8, fontWeight: 700, color: CAT.corriente.color, marginTop: 1, lineHeight: 1.05, textAlign: "center", wordBreak: "break-word", maxWidth: "100%" }}>{g?.grupo || "—"}</div>
+          {g?.kw && <div style={{ fontSize: 7, color: T.text4, lineHeight: 1 }}>{g.kw}kW</div>}
+        </>
+      );
+    }
+    return (
+      <>
+        <div style={{ fontSize: 18, lineHeight: 1 }}>{item.icon}</div>
+        <div style={{ fontSize: 7, color: T.text3, marginTop: 1, textAlign: "center", lineHeight: 1.1, wordBreak: "break-word", maxWidth: "100%" }}>{item.label}</div>
+      </>
+    );
+  }
+
+  const inputCols = [
+    { key: "ch", placeholder: "CH", width: 44 },
+    { key: "source", placeholder: "Nombre / Fuente", flex: 2 },
+    { key: "type", placeholder: "Tipo", flex: 1, options: ["Mic", "DI", "Line", "SB", "MADI", "AES", "Otro"] },
+  ];
+  const powerCols = [
+    { key: "grupo", placeholder: "Grupo", width: 60 },
+    { key: "tomas", placeholder: "Tomas", width: 54 },
+    { key: "kw", placeholder: "kW", width: 44 },
+    { key: "notas", placeholder: "Notas", flex: 2 },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+      {/* top bar + tabs combined, same pattern as FestView */}
+      <div style={{ ...S.topBar, flexWrap: "wrap", rowGap: 8, padding: "10px 12px 8px" }}>
+        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+          <button onClick={onBack} style={S.backBtn}>‹</button>
+          <div style={{ flex: 1, textAlign: "center", fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>
+            🎭 {stage.name}
+          </div>
+          <div style={{ width: 44 }} />
+        </div>
+        {/* tab pills */}
+        <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3 }}>
+          {[["inputs", "INPUTS"], ["power", "CORRIENTE"], ["plot", "PLANO"]].map(([id, lbl]) => (
+            <button key={id} onClick={() => setTab(id)} style={{
+              padding: "4px 10px", borderRadius: 8, fontSize: 11,
+              fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
+              border: "none",
+              background: tab === id ? (dark ? "#334155" : "#0f172a") : "transparent",
+              color: tab === id ? "#fff" : T.text4,
+              transition: "all 0.2s",
+            }}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
+
+        {tab === "inputs" && (
+          <QuickTable
+            items={esc.inputs || []}
+            cols={inputCols}
+            onAdd={addInput}
+            onEdit={editInput}
+            onDelete={delInput}
+            T={T} S={S}
+          />
+        )}
+
+        {tab === "power" && (
+          <QuickTable
+            items={esc.power || []}
+            cols={powerCols}
+            onAdd={addPower}
+            onEdit={editPower}
+            onDelete={delPower}
+            T={T} S={S}
+          />
+        )}
+
+        {tab === "plot" && (
+          <div>
+            {/* Stage frame */}
+            <div style={{ border: `1.5px solid ${T.border}`, borderRadius: 16, background: dark ? "#0b1220" : "#fbfdff", padding: 12, boxShadow: dark ? "none" : "inset 0 1px 4px rgba(0,0,0,0.04)" }}>
+              {/* back wall */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 22, marginBottom: 10, borderRadius: 7, background: T.card2, border: `1px solid ${T.border}`, color: T.text4, fontSize: 9, letterSpacing: "0.18em", fontFamily: "'Bebas Neue',sans-serif" }}>
+                FONDO · BACKLINE
+              </div>
+              {/* Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${PLOT_COLS}, 1fr)`, gap: 5 }}>
+                {Array.from({ length: PLOT_ROWS }, (_, row) =>
+                  Array.from({ length: PLOT_COLS }, (_, col) => {
+                    const item = cellItem(row, col);
+                    const sel = item && selectedPlotId === item.id;
+                    const cat = item ? CAT[kindOf(item)] : null;
+                    return (
+                      <div key={`${row}-${col}`}
+                        onClick={() => {
+                          if (item) { setSelectedPlotId(sel ? null : item.id); }
+                          else { setPickerCell({ row, col }); setPickerTab("icon"); setSelectedPlotId(null); setCustomLabel(""); setSbDraft({ name: "", from: "", to: "" }); }
+                        }}
+                        style={{
+                          aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column",
+                          alignItems: "center", justifyContent: "center", cursor: "pointer",
+                          background: item ? (sel ? cat.bg : T.card) : "transparent",
+                          border: item ? `1.5px solid ${sel ? cat.border : T.border}` : `1px dashed ${T.border}`,
+                          boxShadow: sel ? `0 0 0 2px ${cat.border}55` : "none",
+                          borderLeft: item && !sel ? `2.5px solid ${cat.border}` : undefined,
+                          transition: "all 0.15s", overflow: "hidden", padding: 3,
+                        }}>
+                        {item ? renderPlotCell(item) : <div style={{ fontSize: 15, color: T.border, opacity: 0.55 }}>+</div>}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              {/* downstage edge */}
+              <div style={{ height: 10, marginTop: 10, borderRadius: 6, background: dark ? "#334155" : "#0f172a" }} />
+            </div>
+            <div style={{ textAlign: "center", fontSize: 9, color: T.text4, letterSpacing: "0.2em", marginTop: 6, marginBottom: 14, fontFamily: "'Bebas Neue',sans-serif" }}>▼ PÚBLICO ▼</div>
+
+            {/* Legend */}
+            <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 14 }}>
+              {["icon", "subbox", "corriente"].map(k => (
+                <div key={k} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.text4 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 3, background: CAT[k].bg, border: `1.5px solid ${CAT[k].border}` }} />
+                  {CAT[k].label}
+                </div>
+              ))}
+            </div>
+
+            {/* Selected item panel */}
+            {selectedPlotId && (() => {
+              const item = plotItems.find(p => p.id === selectedPlotId);
+              if (!item) return null;
+              const k = kindOf(item);
+              const cat = CAT[k];
+              const chip = { fontSize: 11, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: T.card2, border: `0.5px solid ${T.border}`, color: T.text2 };
+              return (
+                <div style={{ background: T.card, border: `1px solid ${cat.border}`, borderLeft: `3px solid ${cat.border}`, borderRadius: 14, padding: "12px 14px", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ fontSize: 24 }}>{k === "icon" ? item.icon : cat.glyph}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 9, color: cat.color, letterSpacing: "0.1em", fontWeight: 700 }}>{cat.label.toUpperCase()}</div>
+                      <div style={{ fontSize: 11, color: T.text4 }}>Fila {item.row + 1} · Col {item.col + 1}</div>
+                    </div>
+                    <button onClick={() => { removeItem(selectedPlotId); setSelectedPlotId(null); }}
+                      style={{ background: "#fee2e2", border: "1px solid #fecaca", borderRadius: 8, color: "#ef4444", padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>
+                      Borrar
+                    </button>
+                  </div>
+
+                  {k === "icon" && (
+                    <input value={item.label || ""} onChange={e => updateItem(item.id, { label: e.target.value })} placeholder="Etiqueta" style={{ ...S.input, fontSize: 13, marginTop: 10 }} />
+                  )}
+
+                  {k === "subbox" && (
+                    <div style={{ marginTop: 10 }}>
+                      <input value={item.name || ""} onChange={e => updateItem(item.id, { name: e.target.value })} placeholder="Nombre (ej. SB1)" style={{ ...S.input, fontSize: 13, marginBottom: 8 }} />
+                      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                        <input value={item.from || ""} onChange={e => updateItem(item.id, { from: e.target.value })} placeholder="CH desde" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                        <input value={item.to || ""} onChange={e => updateItem(item.id, { to: e.target.value })} placeholder="CH hasta" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                      </div>
+                      {(() => {
+                        const ins = inputsInRange(item.from, item.to);
+                        return (
+                          <>
+                            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 6 }}>{ins.length} INPUT{ins.length !== 1 ? "S" : ""} EN RANGO</div>
+                            {ins.length > 0 ? (
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                                {ins.map(i => (
+                                  <span key={i.id} style={chip}><b style={{ color: CAT.subbox.color }}>{i.ch}</b> {i.source || ""}</span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: 11, color: T.text4 }}>Sin inputs en este rango — defínelos en la pestaña INPUTS.</div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {k === "corriente" && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 6 }}>GRUPO VINCULADO</div>
+                      <select value={item.refId || ""} onChange={e => updateItem(item.id, { refId: e.target.value })} style={{ ...S.input, fontSize: 13 }}>
+                        <option value="">— Sin vincular —</option>
+                        {(esc.power || []).map(g => <option key={g.id} value={g.id}>{g.grupo || "(sin nombre)"}{g.kw ? ` · ${g.kw}kW` : ""}</option>)}
+                      </select>
+                      {(() => {
+                        const g = powerById(item.refId);
+                        return g ? (
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                            {g.tomas && <span style={chip}>Tomas {g.tomas}</span>}
+                            {g.kw && <span style={chip}>{g.kw} kW</span>}
+                            {g.notas && <span style={chip}>{g.notas}</span>}
+                          </div>
+                        ) : <div style={{ fontSize: 11, color: T.text4, marginTop: 8 }}>Vincula un grupo de la pestaña CORRIENTE.</div>;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Picker */}
+            {pickerCell && (
+              <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.12em" }}>AÑADIR AL PLANO</div>
+                  <button onClick={() => setPickerCell(null)} style={{ background: "none", border: "none", color: T.text4, fontSize: 20, cursor: "pointer", lineHeight: 1, padding: 0 }}>×</button>
+                </div>
+
+                {/* category tabs */}
+                <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+                  {[["icon", "Instrumento"], ["subbox", "Subbox"], ["corriente", "Corriente"]].map(([id, lbl]) => {
+                    const active = pickerTab === id; const c = CAT[id];
+                    return (
+                      <button key={id} onClick={() => setPickerTab(id)}
+                        style={{ flex: 1, padding: "6px 8px", borderRadius: 9, border: `1px solid ${active ? c.border : T.border}`, background: active ? c.bg : "transparent", color: active ? c.color : T.text4, fontSize: 11, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer" }}>
+                        {lbl}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {pickerTab === "icon" && (
+                  <>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
+                      {PLOT_ICONS.map(({ icon, label }) => (
+                        <button key={icon} onClick={() => { placeAt(pickerCell.row, pickerCell.col, { kind: "icon", icon, label: customLabel || label }); setPickerCell(null); }}
+                          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 4px", cursor: "pointer" }}>
+                          <div style={{ fontSize: 22 }}>{icon}</div>
+                          <div style={{ fontSize: 9, color: T.text3 }}>{label}</div>
+                        </button>
+                      ))}
+                    </div>
+                    <input value={customLabel} onChange={e => setCustomLabel(e.target.value)} placeholder="Etiqueta personalizada (opcional)" style={{ ...S.input, fontSize: 12 }} />
+                  </>
+                )}
+
+                {pickerTab === "subbox" && (
+                  <>
+                    <input value={sbDraft.name} onChange={e => setSbDraft(v => ({ ...v, name: e.target.value }))} placeholder="Nombre (ej. SB1)" style={{ ...S.input, fontSize: 13, marginBottom: 8 }} />
+                    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                      <input value={sbDraft.from} onChange={e => setSbDraft(v => ({ ...v, from: e.target.value }))} placeholder="CH desde" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                      <input value={sbDraft.to} onChange={e => setSbDraft(v => ({ ...v, to: e.target.value }))} placeholder="CH hasta" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                    </div>
+                    {(sbDraft.from || sbDraft.to) && (() => {
+                      const n = inputsInRange(sbDraft.from, sbDraft.to).length;
+                      return <div style={{ fontSize: 10, color: CAT.subbox.color, marginBottom: 10 }}>{n} input{n !== 1 ? "s" : ""} de la pestaña INPUTS en este rango</div>;
+                    })()}
+                    <button onClick={() => { placeAt(pickerCell.row, pickerCell.col, { kind: "subbox", name: sbDraft.name.trim(), from: sbDraft.from.trim(), to: sbDraft.to.trim() }); setPickerCell(null); }}
+                      style={{ width: "100%", padding: 14, borderRadius: 12, border: "none", cursor: "pointer", background: CAT.subbox.border, color: "#fff", fontSize: 14, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.08em" }}>
+                      Colocar subbox
+                    </button>
+                  </>
+                )}
+
+                {pickerTab === "corriente" && (
+                  (esc.power || []).length === 0 ? (
+                    <div style={{ fontSize: 12, color: T.text4, textAlign: "center", padding: "16px 8px", lineHeight: 1.6 }}>
+                      No hay grupos de corriente.<br />Créalos primero en la pestaña <b style={{ color: CAT.corriente.color }}>CORRIENTE</b>.
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {(esc.power || []).map(g => (
+                        <button key={g.id} onClick={() => { placeAt(pickerCell.row, pickerCell.col, { kind: "corriente", refId: g.id }); setPickerCell(null); }}
+                          style={{ display: "flex", alignItems: "center", gap: 10, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", textAlign: "left" }}>
+                          <span style={{ fontSize: 18 }}>⚡</span>
+                          <span style={{ flex: 1 }}>
+                            <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: T.text }}>{g.grupo || "(sin nombre)"}</span>
+                            <span style={{ fontSize: 11, color: T.text4, fontFamily: "monospace" }}>{[g.tomas && `${g.tomas} tomas`, g.kw && `${g.kw}kW`].filter(Boolean).join(" · ") || "—"}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- QuickTable: inline add row, tap to edit ---------- */
+function QuickTable({ label, items, cols, onAdd, onEdit, onDelete, T, S }) {
+  const autoCol = cols.find(c => !c.options); // first text col (CH / MIX) gets auto-number
+  const emptyDraft = (nextN) => {
+    const d = Object.fromEntries(cols.map(c => [c.key, c.options ? c.options[0] : ""]));
+    if (autoCol) d[autoCol.key] = String(nextN ?? items.length + 1);
+    return d;
+  };
+  const [draft, setDraft] = useState(() => emptyDraft());
+  const [editId, setEditId] = useState(null);
+  const [editField, setEditField] = useState(null);
+  const [editDraft, setEditDraft] = useState({});
+  const sourceRef = useRef(null); // foco directo al campo Source/Dest
+  const skipBlur = useRef(false);
+
+  function saveItem(item) {
+    cols.forEach(c => {
+      const val = editDraft[c.key];
+      onEdit(item.id, c.key, val !== undefined && val !== "" ? val : item[c.key]);
+    });
+  }
+  function commitEdit(item) {
+    saveItem(item);
+    setEditId(null); setEditField(null); setEditDraft({});
+  }
+  function commitAndMoveNext(item) {
+    skipBlur.current = true;
+    saveItem(item);
+    const nextIdx = items.findIndex(x => x.id === item.id) + 1;
+    if (nextIdx < items.length) {
+      setEditId(items[nextIdx].id);
+      setEditField(editField);
+      setEditDraft({});
+    } else {
+      setEditId(null); setEditField(null); setEditDraft({});
+    }
+  }
+  function cancelEdit() { setEditId(null); setEditField(null); setEditDraft({}); }
+
+  // keep auto-number in sync after each add
+  useEffect(() => {
+    if (autoCol) setDraft(v => ({ ...v, [autoCol.key]: String(items.length + 1) }));
+  }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function commitAdd() {
+    const hasValue = cols.some(c => !c.options && (draft[c.key] || "").trim());
+    if (!hasValue) return;
+    onAdd(draft);
+    // reset all fields except autoCol (CH/MIX) — useEffect handles that
+    setDraft(v => Object.fromEntries(cols.map(c => [c.key, c === autoCol ? v[c.key] : c.options ? c.options[0] : ""])));
+    setTimeout(() => sourceRef.current?.focus(), 0);
+  }
+
+  const rowBase = { display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderRadius: 10, marginBottom: 5, fontFamily: "monospace", fontSize: 13 };
+
+  return (
+    <div>
+      {/* header */}
+      {items.length > 0 && (
+        <div style={{ display: "flex", gap: 6, padding: "0 10px", marginBottom: 3 }}>
+          {cols.map(c => (
+            <span key={c.key} style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", textTransform: "uppercase", flexShrink: 0, ...(c.width ? { width: c.width } : { flex: c.flex || 1 }) }}>
+              {c.placeholder.toUpperCase()}
+            </span>
+          ))}
+          <span style={{ width: 20 }} />
+        </div>
+      )}
+
+      {/* existing rows */}
+      {items.map(item => {
+        const isRowEditing = editId === item.id;
+        return (
+          <div key={item.id} style={{ ...rowBase, background: isRowEditing ? T.card2 : T.card, border: `1px solid ${T.border}` }}>
+            {cols.map(c => {
+              const isCellEditing = isRowEditing && editField === c.key;
+              if (isCellEditing) {
+                return c.options ? (
+                  <select key={c.key} autoFocus
+                    value={editDraft[c.key] ?? item[c.key]}
+                    onChange={e => setEditDraft(v => ({ ...v, [c.key]: e.target.value }))}
+                    onBlur={() => commitEdit(item)}
+                    onKeyDown={e => { if (e.key === "Enter") commitEdit(item); if (e.key === "Escape") cancelEdit(); }}
+                    style={{ ...S.input, padding: "4px 6px", fontSize: 12, ...(c.width ? { width: c.width } : { flex: c.flex || 1 }) }}>
+                    {c.options.map(o => <option key={o}>{o}</option>)}
+                  </select>
+                ) : (
+                  <input key={c.key} autoFocus
+                    value={editDraft[c.key] ?? ""}
+                    placeholder={item[c.key] || ""}
+                    onChange={e => setEditDraft(v => ({ ...v, [c.key]: e.target.value }))}
+                    onBlur={() => { if (skipBlur.current) { skipBlur.current = false; return; } commitEdit(item); }}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); commitAndMoveNext(item); } if (e.key === "Escape") cancelEdit(); }}
+                    style={{ ...S.input, padding: "4px 6px", fontSize: 12, ...(c.width ? { width: c.width } : { flex: c.flex || 1 }) }} />
+                );
+              }
+              return (
+                <span key={c.key}
+                  onClick={() => { setEditId(item.id); setEditField(c.key); setEditDraft({}); }}
+                  style={{ color: c.options ? T.text3 : T.text2, fontSize: c.options ? 11 : 13, flexShrink: 0, cursor: "text", ...(c.width ? { width: c.width, fontWeight: 700 } : { flex: c.flex || 1 }) }}>
+                  {item[c.key] || "—"}
+                </span>
+              );
+            })}
+            {isRowEditing ? (
+              <>
+                <button onClick={() => commitEdit(item)}
+                  style={{ background: "none", border: "none", color: "#16a34a", fontSize: 17, cursor: "pointer", padding: "0 4px", flexShrink: 0 }}>✓</button>
+                <button onClick={() => { onDelete(item.id); cancelEdit(); }}
+                  style={{ background: "none", border: "none", color: "#ef4444", fontSize: 17, cursor: "pointer", padding: "0 4px", flexShrink: 0 }}>🗑</button>
+              </>
+            ) : (
+              <button onClick={e => { e.stopPropagation(); onDelete(item.id); }}
+                style={{ background: "none", border: "none", color: T.text4, fontSize: 18, cursor: "pointer", padding: "4px 8px", flexShrink: 0 }}>×</button>
+            )}
+          </div>
+        );
+      })}
+
+      {/* inline add row — siempre visible */}
+      <div style={{ ...rowBase, background: T.card2, border: `1.5px dashed ${T.border}`, marginTop: 4 }}>
+        {cols.map((c, ci) => {
+          const isSourceCol = ci === 1 && !c.options;
+          return c.options ? (
+            <select key={c.key} value={draft[c.key]} onChange={e => setDraft(v => ({ ...v, [c.key]: e.target.value }))}
+              style={{ ...S.input, padding: "4px 6px", fontSize: 12, background: "transparent", border: "none", color: T.text3, ...(c.width ? { width: c.width } : { flex: c.flex || 1 }) }}>
+              {c.options.map(o => <option key={o}>{o}</option>)}
+            </select>
+          ) : (
+            <input key={c.key} ref={isSourceCol ? sourceRef : null}
+              value={draft[c.key]} onChange={e => setDraft(v => ({ ...v, [c.key]: e.target.value }))}
+              onKeyDown={e => { if (e.key === "Enter") commitAdd(); }}
+              placeholder={c.placeholder}
+              autoFocus={isSourceCol}
+              style={{ ...S.input, padding: "4px 6px", fontSize: 12, background: "transparent", border: "none", ...(c.width ? { width: c.width } : { flex: c.flex || 1 }) }} />
+          );
+        })}
+        <button onClick={commitAdd}
+          style={{ background: "none", border: "none", color: T.text3, fontSize: 18, cursor: "pointer", padding: "0 2px", flexShrink: 0, lineHeight: 1 }}>+</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- compact artist card for Mon view ---------- */
+function MonCompactArtistCard({ a, monPos, T, dark, onSelect }) {
+  const chipBg = T.card2;
+  const chipBorder = T.border;
+  const monConsole = monPos?.console;
+
+  return (
+    <div style={{ background: T.bg, borderRadius: 14, padding: "0.75rem" }}>
+      <div style={{
+        border: `0.5px solid ${T.border}`,
+        borderLeft: "3px solid #7c3aed",
+        borderRadius: 12,
+        padding: "0.85rem 1rem",
+        background: T.card,
+        cursor: onSelect ? "pointer" : "default",
+      }}
+      onClick={() => onSelect && onSelect(a.id)}>
+        {/* nombre + técnico + consola MON */}
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+          <span style={{ fontSize: 21, fontWeight: 500, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: T.text }}>
+            {a.artist || "—"}
+          </span>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexShrink: 0, lineHeight: 1 }}>
+            {a.tecnico && (
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 9, color: T.text4, textTransform: "uppercase", letterSpacing: "0.06em" }}>técnico</div>
+                <div style={{ fontSize: 13, fontWeight: 500, fontFamily: "monospace", color: T.text2 }}>{noInfo(a.tecnico)}</div>
+              </div>
+            )}
+            {monConsole && (
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 9, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em" }}>consola mon</div>
+                <div style={{ fontSize: 15, fontWeight: 500, fontFamily: "monospace", color: T.text }}>{noInfo(monConsole)}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* chips: señal FOH · toMon */}
+        <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "10px 0", flexWrap: "wrap" }}>
+          {a.signal && (
+            <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color: sigColor(a.signal) }}>
+              {noInfo(a.signal)}
+            </span>
+          )}
+          {a.toMon && (
+            <>
+              <span style={{ color: T.text4, opacity: 0.5, fontSize: 12 }}>·</span>
+              <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: "#f5f3ff", border: "0.5px solid #ddd6fe", color: "#7c3aed" }}>
+                🎧 {noInfo(a.toMon)}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* footer: inputs · outputs · RF del monPos */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 11, color: T.text4, paddingTop: 8, borderTop: `0.5px solid ${T.border}` }}>
+          <span>{(monPos?.inputs || []).length} inputs</span>
+          <span style={{ color: T.border }}>·</span>
+          <span>{(monPos?.outputs || []).length} outputs</span>
+          <span style={{ color: T.border }}>·</span>
+          <span>{(monPos?.rfEntries || []).length} RF</span>
+          {a.toLx && (
+            <>
+              <span style={{ color: T.border, marginLeft: "auto" }}>·</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, color: T.text3 }}>
+                💡 <span style={{ fontFamily: "monospace", fontSize: 10 }}>{noInfo(a.toLx)}</span>
+              </span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -3051,19 +3962,19 @@ function GeneralScheduleView({ fest }) {
 /* ---------- styles ---------- */
 function makeS(T) {
   return {
-    app: { height: "100dvh", overflow: "hidden", background: T.bg, fontFamily: "'JetBrains Mono',monospace", width: "100%", color: T.text },
-    festCard: { display: "flex", alignItems: "center", gap: 12, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
-    bigBtn: { width: "100%", padding: "18px", background: T.bg === DK.bg ? "#334155" : "#0f172a", color: T.bg === DK.bg ? "#f1f5f9" : "#fff", border: "none", borderRadius: 16, fontSize: 16, fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.1em", cursor: "pointer", marginTop: 10 },
+    app: { height: "100dvh", overflow: "hidden", background: T.bg, fontFamily: "'DM Sans',sans-serif", width: "100%", color: T.text },
+    festCard: { display: "flex", alignItems: "center", gap: 12, background: T.card, border: `1px solid ${T.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 10, cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", borderLeft: `4px solid #C94A2A` },
+    bigBtn: { width: "100%", padding: "18px", background: T.bg === DK.bg ? "#3D2B1F" : "#C94A2A", color: "#fff", border: "none", borderRadius: 4, fontSize: 16, fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.12em", cursor: "pointer", marginTop: 10 },
     iconBtn: { background: "none", border: "none", color: T.text4, fontSize: 20, cursor: "pointer", padding: "6px 8px" },
-    backBtn: { background: T.card2, border: `1px solid ${T.border}`, color: T.text2, fontSize: 22, width: 44, height: 44, borderRadius: 12, cursor: "pointer", lineHeight: 1 },
-    input: { width: "100%", background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, color: T.text, fontSize: 16, padding: "13px 14px", fontFamily: "monospace", outline: "none" },
-    daySection: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, marginBottom: 14 },
-    artForm: { background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, padding: 14, marginBottom: 12 },
-    addBtn: { width: "100%", padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, color: T.text3, fontSize: 14, cursor: "pointer", fontFamily: "monospace", marginTop: 8 },
-    smBtn: { padding: "10px 16px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, color: T.text2, fontSize: 13, cursor: "pointer" },
-    topBar: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 8px", position: "sticky", top: 0, background: T.card, zIndex: 10, borderBottom: `1px solid ${T.border}` },
-    syncBtn: { background: "none", border: `1px solid ${T.border}`, borderRadius: 10, color: T.text4, fontSize: 11, padding: "8px 11px", cursor: "pointer" },
-    navBtn: { flex: 1, padding: "16px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, color: T.text2, fontSize: 14, cursor: "pointer", fontFamily: "monospace" },
+    backBtn: { background: T.card2, border: `1px solid ${T.border}`, color: T.text2, fontSize: 22, width: 44, height: 44, borderRadius: 4, cursor: "pointer", lineHeight: 1 },
+    input: { width: "100%", background: T.card, border: `1px solid ${T.border}`, borderRadius: 4, color: T.text, fontSize: 16, padding: "13px 14px", fontFamily: "'DM Mono',monospace", outline: "none" },
+    daySection: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 4, padding: 16, marginBottom: 14 },
+    artForm: { background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, padding: 14, marginBottom: 12 },
+    addBtn: { width: "100%", padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, color: T.text3, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", marginTop: 8 },
+    smBtn: { padding: "10px 16px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, color: T.text2, fontSize: 13, cursor: "pointer" },
+    topBar: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 8px", position: "sticky", top: 0, background: "#1A1410", zIndex: 10, borderBottom: `3px solid #C94A2A` },
+    syncBtn: { background: "none", border: `1px solid #3D2B1F`, borderRadius: 4, color: "#B0A090", fontSize: 11, padding: "8px 11px", cursor: "pointer" },
+    navBtn: { flex: 1, padding: "16px", background: T.card, border: `1px solid ${T.border}`, borderRadius: 4, color: T.text2, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace" },
   };
 }
 
@@ -3077,12 +3988,12 @@ function Style({ dark }) {
     document.body.style.background = dark ? DK.bg : LT.bg;
   }, [dark]);
   return <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
     ::-webkit-scrollbar { width:4px; height:4px; }
-    ::-webkit-scrollbar-thumb { background:#334155; border-radius:2px; }
-    input::placeholder, textarea::placeholder { color:#64748b; }
+    ::-webkit-scrollbar-thumb { background:#C94A2A; border-radius:2px; }
+    input::placeholder, textarea::placeholder { color:#B0A090; }
     input, textarea, select { font-size:16px !important; }
-    button { font-family:'JetBrains Mono',monospace; }
+    button { font-family:'DM Mono',monospace; }
   `}</style>;
 }
