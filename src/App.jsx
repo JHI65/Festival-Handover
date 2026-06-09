@@ -3812,7 +3812,7 @@ function GeneralScheduleView({ fest }) {
   const [mode, setMode] = useState("show");
 
   const stages = fest.stages || [];
-  const getTime = (a) => mode === "show" ? (a.showStart || "") : mode === "sc" ? (a.scStart || "") : (a.scLoadIn || "");
+  const getTime = (a) => mode === "show" ? (a.showStart || "") : (a.scStart || "");
 
   const scColor = dark ? "#34d399" : "#059669";
   const scBg = dark ? "#064e3b" : "#ecfdf5";
@@ -3821,9 +3821,7 @@ function GeneralScheduleView({ fest }) {
   const showBg = dark ? "#1e1b4b" : "#eef2ff";
   const showBorder = dark ? "#4338ca55" : "#c7d2fe";
   const loadinColor = dark ? "#fb923c" : "#ea580c";
-  const loadinBg = dark ? "#431407" : "#fff7ed";
-  const loadinBorder = dark ? "#9a3412aa" : "#fdba74";
-  const activeColor = mode === "show" ? showColor : mode === "sc" ? scColor : loadinColor;
+  const activeColor = mode === "show" ? showColor : scColor;
 
   // Unique day labels in order of first appearance
   const dayLabels = [];
@@ -3846,7 +3844,7 @@ function GeneralScheduleView({ fest }) {
       {/* SHOW / SC toggle + day pills */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: 2, gap: 2, flexShrink: 0 }}>
-          {[{ id: "show", label: "SHOW", color: showColor, bg: showBg, border: showBorder }, { id: "sc", label: "SC", color: scColor, bg: scBg, border: scBorder }, { id: "loadin", label: "LOAD IN", color: loadinColor, bg: loadinBg, border: loadinBorder }].map(opt => (
+          {[{ id: "show", label: "SHOW", color: showColor, bg: showBg, border: showBorder }, { id: "sc", label: "SC", color: scColor, bg: scBg, border: scBorder }].map(opt => (
             <button key={opt.id} onClick={() => setMode(opt.id)} style={{
               padding: "4px 14px", borderRadius: 8, border: "none", cursor: "pointer",
               fontSize: 10, fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.08em",
@@ -3928,21 +3926,36 @@ function GeneralScheduleView({ fest }) {
                           const a = rowData[st.id];
                           return (
                             <td key={st.id} style={{
-                              padding: "11px 12px", textAlign: "center",
+                              padding: "8px 10px", textAlign: "center",
                               borderBottom: `1px solid ${T.border2}`,
                               borderRight: `1px solid ${T.border}`,
                             }}>
                               {a ? (
-                                <div style={{
-                                  fontSize: 13, fontFamily: "'Bebas Neue',sans-serif",
-                                  color: T.text, letterSpacing: "0.04em",
-                                  border: `1px solid ${T.border}`,
-                                  borderRadius: 6, padding: "3px 8px",
-                                  display: "inline-block",
-                                  background: isEven ? T.card2 : T.card,
-                                  maxWidth: "100%", overflow: "hidden",
-                                  textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                }}>{a.artist || "—"}</div>
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                  <div style={{
+                                    fontSize: 13, fontFamily: "'Bebas Neue',sans-serif",
+                                    color: T.text, letterSpacing: "0.04em",
+                                    border: `1px solid ${T.border}`,
+                                    borderRadius: 6, padding: "3px 8px",
+                                    background: isEven ? T.card2 : T.card,
+                                    maxWidth: "100%", overflow: "hidden",
+                                    textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                  }}>{a.artist || "—"}</div>
+                                  {mode === "sc" && a.scLoadIn && (
+                                    <div style={{
+                                      display: "flex", alignItems: "center", gap: 3,
+                                      fontSize: 10, fontFamily: "'DM Mono',monospace",
+                                      color: loadinColor, fontWeight: 600,
+                                      background: dark ? "rgba(251,146,60,0.12)" : "rgba(234,88,12,0.08)",
+                                      border: `1px solid ${dark ? "rgba(251,146,60,0.3)" : "rgba(234,88,12,0.2)"}`,
+                                      borderRadius: 4, padding: "2px 6px",
+                                      whiteSpace: "nowrap",
+                                    }}>
+                                      <span style={{ fontSize: 8, opacity: 0.7 }}>↓</span>
+                                      {a.scLoadIn}
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <div style={{ height: 1, background: T.border, margin: "0 auto", width: "50%" }} />
                               )}
