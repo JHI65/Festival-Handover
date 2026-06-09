@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- fondo redondeado -->
+  <rect width="512" height="512" rx="110" fill="#1A1410"/>
+  <rect width="512" height="512" rx="110" fill="url(#grad)" opacity="0.6"/>
+  <!-- barras del ecualizador centradas -->
+  <rect x="168" y="296" width="36" height="80" rx="8" fill="#C94A2A"/>
+  <rect x="220" y="248" width="36" height="128" rx="8" fill="#D4A843"/>
+  <rect x="272" y="200" width="36" height="176" rx="8" fill="#F5EFE0"/>
+  <rect x="324" y="248" width="36" height="128" rx="8" fill="#D4A843"/>
+  <rect x="376" y="296" width="36" height="80" rx="8" fill="#C94A2A"/>
+  <!-- línea base -->
+  <rect x="140" y="388" width="300" height="4" rx="2" fill="rgba(245,239,224,0.15)"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C94A2A" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#D4A843" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+</svg>
