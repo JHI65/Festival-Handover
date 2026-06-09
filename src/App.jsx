@@ -914,21 +914,21 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
   const [showDayAdd, setShowDayAdd] = useState(false);
   const [newDayLabel, setNewDayLabel] = useState("");
   const [newDayDate, setNewDayDate] = useState("");
-  const [showAddPos, setShowAddPos] = useState(false);
-  const [newPosName, setNewPosName] = useState("MON WORLD");
   const dayLabelRefs = useRef([]);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
   function addMonPosition() {
-    if (!newPosName.trim()) return;
-    const newPos = { id: uid(), name: newPosName.trim().toUpperCase(), console: "", tecnico: "", inputs: [], outputs: [], rfEntries: [] };
+    const existing = activeStage.monPositions || [];
+    const baseName = "MON WORLD";
+    let name = baseName;
+    let n = 2;
+    while (existing.some(p => p.name === name)) { name = `${baseName} ${n++}`; }
+    const newPos = { id: uid(), name, console: "", tecnico: "", inputs: [], outputs: [], rfEntries: [] };
     const newStages = (fest.stages || []).map(s => s.id === activeStage.id
-      ? { ...s, monPositions: [...(s.monPositions || []), newPos] }
+      ? { ...s, monPositions: [...existing, newPos] }
       : s
     );
     onEditFest({ ...fest, stages: newStages });
-    setShowAddPos(false);
-    setNewPosName("MON WORLD");
   }
 
   function deleteMonPosition(mid) {
@@ -1067,24 +1067,7 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
                 </div>
               )}
               {/* Añadir posiciones */}
-              {showAddPos ? (
-                <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 4, padding: "16px 20px" }}>
-                  <div style={{ fontSize: 10, letterSpacing: "0.1em", color: T.text4, marginBottom: 10, fontFamily: "'DM Mono',monospace" }}>NOMBRE DE LA POSICIÓN MON</div>
-                  <input
-                    value={newPosName}
-                    onChange={e => setNewPosName(e.target.value.toUpperCase())}
-                    onKeyDown={e => { if (e.key === "Enter") addMonPosition(); if (e.key === "Escape") { setShowAddPos(false); setNewPosName("MON WORLD"); } }}
-                    placeholder="MON WORLD"
-                    style={{ ...S.input, marginBottom: 12 }}
-                    autoFocus
-                  />
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={addMonPosition} disabled={!newPosName.trim()} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13, opacity: newPosName.trim() ? 1 : 0.4 }}>Crear posición MON</button>
-                    <button onClick={() => { setShowAddPos(false); setNewPosName("MON WORLD"); }} style={{ ...S.navBtn, flex: 0.5 }}>Cancelar</button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {!hasFoh && (
                     <button onClick={() => onOpenStage(activeStage.id)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
                       <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎛️</div>
@@ -1110,7 +1093,7 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
                       </div>
                     </button>
                   )}
-                  <button onClick={() => setShowAddPos(true)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                  <button onClick={addMonPosition} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
                     <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎧</div>
                     <div>
                       <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR MONITORES</div>
@@ -1118,7 +1101,6 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
                     </div>
                   </button>
                 </div>
-              )}
             </div>
           </div>
         ) : (
