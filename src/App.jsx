@@ -3812,7 +3812,7 @@ function GeneralScheduleView({ fest }) {
   const [mode, setMode] = useState("show");
 
   const stages = fest.stages || [];
-  const getTime = (a) => mode === "show" ? (a.showStart || "") : (a.scStart || "");
+  const getTime = (a) => mode === "show" ? (a.showStart || "") : mode === "sc" ? (a.scStart || "") : (a.scLoadIn || "");
 
   const scColor = dark ? "#34d399" : "#059669";
   const scBg = dark ? "#064e3b" : "#ecfdf5";
@@ -3820,7 +3820,10 @@ function GeneralScheduleView({ fest }) {
   const showColor = dark ? "#818cf8" : "#4f46e5";
   const showBg = dark ? "#1e1b4b" : "#eef2ff";
   const showBorder = dark ? "#4338ca55" : "#c7d2fe";
-  const activeColor = mode === "show" ? showColor : scColor;
+  const loadinColor = dark ? "#fb923c" : "#ea580c";
+  const loadinBg = dark ? "#431407" : "#fff7ed";
+  const loadinBorder = dark ? "#9a3412aa" : "#fdba74";
+  const activeColor = mode === "show" ? showColor : mode === "sc" ? scColor : loadinColor;
 
   // Unique day labels in order of first appearance
   const dayLabels = [];
@@ -3843,7 +3846,7 @@ function GeneralScheduleView({ fest }) {
       {/* SHOW / SC toggle + day pills */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: 2, gap: 2, flexShrink: 0 }}>
-          {[{ id: "show", label: "SHOW", color: showColor, bg: showBg, border: showBorder }, { id: "sc", label: "SC", color: scColor, bg: scBg, border: scBorder }].map(opt => (
+          {[{ id: "show", label: "SHOW", color: showColor, bg: showBg, border: showBorder }, { id: "sc", label: "SC", color: scColor, bg: scBg, border: scBorder }, { id: "loadin", label: "LOAD IN", color: loadinColor, bg: loadinBg, border: loadinBorder }].map(opt => (
             <button key={opt.id} onClick={() => setMode(opt.id)} style={{
               padding: "4px 14px", borderRadius: 8, border: "none", cursor: "pointer",
               fontSize: 10, fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.08em",
