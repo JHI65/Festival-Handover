@@ -4264,6 +4264,7 @@ function GeneralScheduleView({ fest }) {
 
   const stages = fest.stages || [];
   const getTime = (a) => mode === "show" ? (a.showStart || "") : (a.scStart || "");
+  const getEndTime = (a) => mode === "show" ? (a.showEnd || "") : (a.scEnd || "");
 
   const scColor = dark ? "#34d399" : "#059669";
   const scBg = dark ? "#064e3b" : "#ecfdf5";
@@ -4322,6 +4323,7 @@ function GeneralScheduleView({ fest }) {
       {[activeDay].map(dayLabel => {
         // Build { time -> { stageId: artist } } for this day
         const timeMap = {};
+        const endTimeMap = {};
         for (const stage of stages) {
           const day = stage.days.find(d => d.label === dayLabel);
           if (!day) continue;
@@ -4330,6 +4332,8 @@ function GeneralScheduleView({ fest }) {
             if (!t) continue;
             if (!timeMap[t]) timeMap[t] = {};
             timeMap[t][stage.id] = a;
+            const e = getEndTime(a);
+            if (e && !endTimeMap[t]) endTimeMap[t] = e;
           }
         }
 
@@ -4367,12 +4371,17 @@ function GeneralScheduleView({ fest }) {
                     return (
                       <tr key={time} style={{ background: isEven ? T.card : T.card2 }}>
                         <td style={{
-                          padding: "11px 10px", fontSize: 13, fontFamily: "monospace",
-                          color: T.text2, fontWeight: 700, whiteSpace: "nowrap",
+                          padding: "11px 10px",
                           borderBottom: `1px solid ${T.border2}`,
                           borderRight: `1px solid ${T.border}`,
                           textAlign: "right",
-                        }}>{time}</td>
+                          verticalAlign: "middle",
+                        }}>
+                          <div style={{ fontSize: 13, fontFamily: "monospace", color: T.text2, fontWeight: 700, whiteSpace: "nowrap" }}>{time}</div>
+                          {endTimeMap[time] && (
+                            <div style={{ fontSize: 11, fontFamily: "monospace", color: T.text4, whiteSpace: "nowrap", marginTop: 2 }}>{endTimeMap[time]}</div>
+                          )}
+                        </td>
                         {stages.map(st => {
                           const a = rowData[st.id];
                           return (
