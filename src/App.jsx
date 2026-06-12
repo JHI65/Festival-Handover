@@ -1523,14 +1523,14 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
       {/* row 2: BANDAS / RULOS / HORARIOS + sync */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px 8px" }}>
         <div style={{ display: "flex", gap: 0 }}>
-          {["bandas", "rulos", "horarios", "etapas"].map(t => (
+          {["bandas", "rulos", "horarios", "etapas", "notas"].map(t => (
             <button key={t} onClick={() => { setTab(t); setSelectedId(null); setShowAdd(false); }} style={{
               padding: "6px 12px", fontSize: 12,
               fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.08em", cursor: "pointer",
               border: "none", background: "none",
               color: tab === t ? "#F5EFE0" : "#7A6652",
               borderBottom: tab === t ? "2px solid #D4A843" : "2px solid transparent",
-            }}>{t === "bandas" ? "BANDAS" : t === "rulos" ? "RULOS" : t === "horarios" ? "HORARIOS" : "ETAPAS"}</button>
+            }}>{t === "bandas" ? "BANDAS" : t === "rulos" ? "RULOS" : t === "horarios" ? "HORARIOS" : t === "etapas" ? "ETAPAS" : "NOTAS"}</button>
           ))}
         </div>
         <button onClick={onRefresh} style={{ ...S.syncBtn }}>↻ {lastSync ? lastSync.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }) : ""}</button>
@@ -1844,6 +1844,17 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             }}
           />
         </div>
+      ) : tab === "notas" ? (
+        <div style={{ flex: 1, background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
+          <NotasDiaView
+            festId={fest.id}
+            stageId={stage.id}
+            day={day}
+            dayColor={PALETTE[dayIdx % PALETTE.length]}
+            notes={notes}
+            setNotes={setNotes}
+          />
+        </div>
       ) : (
         <div style={{ flex: 1, background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
           {/* day title */}
@@ -1939,7 +1950,7 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
 
 /* ---------- small components ---------- */
 function AddArtistScreen({ onAdd, onBack, initial }) {
-  const [f, setF] = useState(initial ? { artist: initial.artist || "", console: initial.console || "", connection: initial.connection || "", signal: initial.signal || "", preset: initial.preset || "INITIAL", toLx: initial.toLx || "", toMon: initial.toMon || "", tecnico: initial.tecnico || "", corriente: initial.corriente || "" } : { artist: "", console: "", connection: "", signal: "", preset: "INITIAL", toLx: "", toMon: "", tecnico: "", corriente: "" });
+  const [f, setF] = useState(initial ? { artist: initial.artist || "", console: initial.console || "", connection: initial.connection || "", signal: initial.signal || "", preset: initial.preset || "INITIAL", toLx: initial.toLx || "", toMon: initial.toMon || "", tecnico: initial.tecnico || "", corriente: initial.corriente || "", escConsole: initial.escConsole || "", escSignal: initial.escSignal || "", escConnection: initial.escConnection || "", escTecnico: initial.escTecnico || "" } : { artist: "", console: "", connection: "", signal: "", preset: "INITIAL", toLx: "", toMon: "", tecnico: "", corriente: "", escConsole: "", escSignal: "", escConnection: "", escTecnico: "" });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const isEdit = !!initial;
 
@@ -1971,6 +1982,13 @@ function AddArtistScreen({ onAdd, onBack, initial }) {
       </div>
       <input value={f.preset} onChange={e => set("preset", e.target.value)} placeholder="Preset" style={{ ...S.input, marginBottom: 8 }} />
       <textarea value={f.corriente} onChange={e => set("corriente", e.target.value)} placeholder="Corriente" rows={1} style={{ ...S.input, marginBottom: 14, resize: "vertical", fontFamily: "inherit", fontSize: 12 }} />
+      <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>ESCENARIO</div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+        <input value={f.escConsole} onChange={e => set("escConsole", e.target.value)} placeholder="Consola escenario" style={S.input} />
+        <input value={f.escSignal} onChange={e => set("escSignal", e.target.value)} placeholder="Señal escenario" style={S.input} />
+      </div>
+      <input value={f.escConnection} onChange={e => set("escConnection", e.target.value)} placeholder="Conexión escenario" style={{ ...S.input, marginBottom: 8 }} />
+      <input value={f.escTecnico} onChange={e => set("escTecnico", e.target.value)} placeholder="Técnico escenario" style={{ ...S.input, marginBottom: 14 }} />
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={confirm} disabled={!f.artist.trim()} style={{ ...S.bigBtn, flex: 1, padding: "13px", marginTop: 0, opacity: f.artist.trim() ? 1 : 0.4 }}>{isEdit ? "Guardar cambios" : "Guardar artista"}</button>
         <button onClick={onBack} style={{ ...S.navBtn, flex: 0.5 }}>‹ Volver</button>
@@ -2881,6 +2899,103 @@ function HorarioPill({ label, start, end, color, bg, border, T }) {
   );
 }
 
+function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes }) {
+  const [draft, setDraft] = useState("");
+  const textareaRef = useRef(null);
+  const { dark } = useTheme();
+  const T = dark ? DK : LT;
+
+  const noteKey = `${festId}__${stageId}__${day.id}__general`;
+  const dayNotes = notes[noteKey] || [];
+
+  function addNota() {
+    if (!draft.trim()) return;
+    setNotes({ ...notes, [noteKey]: [...dayNotes, { text: draft.trim(), ts: Date.now() }] });
+    setDraft("");
+    if (textareaRef.current) textareaRef.current.focus();
+  }
+
+  function delNota(i) {
+    setNotes({ ...notes, [noteKey]: dayNotes.filter((_, idx) => idx !== i) });
+  }
+
+  return (
+    <div style={{ padding: "20px 14px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
+        <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "2.2rem", letterSpacing: "0.04em", color: dayColor, lineHeight: 1 }}>{day.label}</span>
+        <span style={{ fontSize: 11, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.1em" }}>NOTAS DEL DÍA</span>
+      </div>
+
+      {/* input nueva nota */}
+      <div style={{ marginBottom: 20 }}>
+        <textarea
+          ref={textareaRef}
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addNota(); }}
+          placeholder="Escribe una nota…"
+          rows={3}
+          style={{
+            width: "100%", boxSizing: "border-box",
+            padding: "12px 14px", borderRadius: 10,
+            border: `1.5px solid ${T.border}`,
+            background: T.card, color: T.text,
+            fontFamily: "'DM Sans',sans-serif", fontSize: 14,
+            resize: "vertical", outline: "none",
+            lineHeight: 1.5,
+          }}
+        />
+        <button
+          onClick={addNota}
+          style={{
+            marginTop: 8, width: "100%", padding: "13px",
+            background: "#D4A843", border: "none", borderRadius: 10,
+            fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.1em",
+            fontSize: 15, color: "#1A1410", cursor: "pointer",
+          }}
+        >+ AÑADIR NOTA</button>
+      </div>
+
+      {/* lista de notas */}
+      {dayNotes.length === 0 ? (
+        <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 32, fontFamily: "'DM Mono',monospace" }}>
+          Sin notas para este día
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[...dayNotes].reverse().map((n, ri) => {
+            const i = dayNotes.length - 1 - ri;
+            const time = new Date(n.ts).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
+            return (
+              <div key={n.ts} style={{
+                background: T.card, border: `1px solid ${T.border}`,
+                borderLeft: `3px solid ${dayColor}`,
+                borderRadius: "0 10px 10px 0",
+                padding: "12px 14px",
+                position: "relative",
+              }}>
+                <div style={{ fontSize: 9, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", marginBottom: 6 }}>{time}</div>
+                <div style={{ fontSize: 14, color: T.text, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word", paddingRight: 28 }}>{n.text}</div>
+                <button
+                  onClick={() => delNota(i)}
+                  style={{
+                    position: "absolute", top: 10, right: 10,
+                    width: 24, height: 24, borderRadius: "50%",
+                    background: "none", border: `1px solid ${T.border2}`,
+                    color: T.text4, fontSize: 14, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    lineHeight: 1,
+                  }}
+                >×</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HorariosView({ artists, day, onSaveTime }) {
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [editId, setEditId] = useState(null);
@@ -3423,7 +3538,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
 }
 
 /* ---------- EscenarioView ---------- */
-const PLOT_COLS = 8;
+const PLOT_COLS = 7;
 const PLOT_ROWS = 5;
 const PLOT_ICONS = [
   { icon: "🎤", label: "Voz" },
@@ -4092,10 +4207,9 @@ function MonCompactArtistCard({ a, monPos, T, dark, onSelect }) {
 }
 
 /* ---------- EscenarioCompactArtistCard ---------- */
-function EscenarioCompactArtistCard({ a, dayRulos, permRulos, T, dark }) {
+function EscenarioCompactArtistCard({ a, T, dark }) {
   const chipBg = T.card2;
   const chipBorder = T.border;
-  const allRulos = [...(permRulos || []), ...(dayRulos || [])];
 
   return (
     <div style={{ borderRadius: 14, overflow: "hidden", border: `0.5px solid ${T.border}`, borderLeft: "3px solid #2A6B6B", background: T.card }}>
@@ -4104,67 +4218,41 @@ function EscenarioCompactArtistCard({ a, dayRulos, permRulos, T, dark }) {
         <span style={{ fontSize: 20, fontWeight: 500, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: T.text }}>
           {a.artist || "—"}
         </span>
-        {a.tecnico && (
+        {a.escTecnico && (
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ fontSize: 9, color: T.text4, textTransform: "uppercase", letterSpacing: "0.06em" }}>técnico</div>
-            <div style={{ fontSize: 13, fontWeight: 500, fontFamily: "monospace", color: T.text2 }}>{noInfo(a.tecnico)}</div>
+            <div style={{ fontSize: 13, fontWeight: 500, fontFamily: "monospace", color: T.text2 }}>{noInfo(a.escTecnico)}</div>
           </div>
         )}
       </div>
 
-      {/* chips: señal · conexión */}
-      {(a.signal || a.connection || a.console) && (
+      {/* chips: señal · conexión — campos propios de escenario */}
+      {(a.escSignal || a.escConnection || a.escConsole) && (
         <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px 10px", flexWrap: "wrap" }}>
-          {a.signal && (
-            <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color: sigColor(a.signal) }}>
-              {noInfo(a.signal)}
+          {a.escSignal && (
+            <span style={{ fontSize: 11, fontWeight: 500, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color: sigColor(a.escSignal) }}>
+              {noInfo(a.escSignal)}
             </span>
           )}
-          {a.connection && (
+          {a.escConnection && (
             <>
-              {a.signal && <span style={{ color: T.text4, opacity: 0.5, fontSize: 12 }}>·</span>}
+              {a.escSignal && <span style={{ color: T.text4, opacity: 0.5, fontSize: 12 }}>·</span>}
               <span style={{ fontSize: 11, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color: T.text2 }}>
-                {noInfo(a.connection)}
+                {noInfo(a.escConnection)}
               </span>
             </>
           )}
-          {a.console && (
+          {a.escConsole && (
             <>
               <span style={{ color: T.text4, opacity: 0.5, fontSize: 12 }}>·</span>
               <span style={{ fontSize: 11, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: chipBg, border: `0.5px solid ${chipBorder}`, color: T.text3 }}>
-                {noInfo(a.console)}
+                {noInfo(a.escConsole)}
               </span>
             </>
           )}
         </div>
       )}
 
-      {/* rulos SR / SL */}
-      {allRulos.length > 0 && (
-        <div style={{ borderTop: `0.5px solid ${T.border}`, padding: "8px 14px 12px" }}>
-          <div style={{ fontSize: 9, color: "#2A6B6B", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6, fontFamily: "'DM Mono',monospace" }}>Conexiones escenario</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-            {allRulos.map(r => {
-              const rc = ruloColor(r.type);
-              return (
-                <span key={r.id} style={{ fontSize: 11, fontFamily: "monospace", padding: "3px 8px", borderRadius: 6, background: `${rc}14`, border: `0.5px solid ${rc}60`, color: rc, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  {r.position && <span style={{ fontWeight: 700, fontSize: 10 }}>{r.position}</span>}
-                  {r.position && <span style={{ opacity: 0.4 }}>·</span>}
-                  {r.qty && `${r.qty} `}{r.desc || r.type}
-                  {r.permanent && <span style={{ fontSize: 9, opacity: 0.6 }}>📌</span>}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* footer vacío si no hay rulos */}
-      {allRulos.length === 0 && (
-        <div style={{ borderTop: `0.5px solid ${T.border}`, padding: "8px 14px", fontSize: 11, color: T.text4, fontFamily: "monospace" }}>
-          Sin conexiones de escenario registradas
-        </div>
-      )}
     </div>
   );
 }
