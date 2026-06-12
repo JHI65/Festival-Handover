@@ -4379,7 +4379,7 @@ function GeneralScheduleView({ fest }) {
                         }}>
                           <div style={{ fontSize: 13, fontFamily: "monospace", color: T.text2, fontWeight: 700, whiteSpace: "nowrap" }}>{time}</div>
                           {endTimeMap[time] && (
-                            <div style={{ fontSize: 11, fontFamily: "monospace", color: T.text4, whiteSpace: "nowrap", marginTop: 2 }}>{endTimeMap[time]}</div>
+                            <div style={{ fontSize: 11, fontFamily: "monospace", color: T.text2, fontWeight: 700, whiteSpace: "nowrap", marginTop: 2 }}>{endTimeMap[time]}</div>
                           )}
                         </td>
                         {stages.map(st => {
