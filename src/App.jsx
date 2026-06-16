@@ -1982,9 +1982,12 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
         <div style={{ flex: 1, background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
           {/* day title */}
           <div style={{ padding: "24px 20px 12px" }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "2.8rem", letterSpacing: "0.04em", color: PALETTE[dayIdx % PALETTE.length], lineHeight: 1 }}>{day?.label || ""}</span>
               {day?.date && <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem", color: T.text4, letterSpacing: "0.1em" }}>{new Date(day.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "long" })} · {stage.name}</span>}
+              {artists.length > 0 && (
+                <button onClick={() => printHandoverPDF(artists, { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id })} title="Exportar PDF del día" style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 20, opacity: 0.5, lineHeight: 1, padding: "2px 4px" }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0.5}>🖨</button>
+              )}
             </div>
           </div>
           {artists.length === 0 && (
@@ -2007,11 +2010,6 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             {artists.length > 0 && stage.days.length > 1 && (
               <button onClick={() => { setShowCopy(true); setCopySelected({}); setCopyTargetDays({}); }} style={{ ...S.addBtn, flex: 1, marginTop: 0, color: "#7c3aed", borderColor: "#ddd6fe", background: "#f5f3ff" }}>
                 Copiar al día →
-              </button>
-            )}
-            {artists.length > 0 && (
-              <button onClick={() => printHandoverPDF(artists, { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id })} style={{ ...S.addBtn, marginTop: 0, color: "#C94A2A", borderColor: "#f7c5ba", background: "#fff5f3", flexShrink: 0 }}>
-                🖨 PDF
               </button>
             )}
           </div>
