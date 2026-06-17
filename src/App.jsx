@@ -2604,31 +2604,28 @@ function LogModal({ log, festName, onClose }) {
 function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
   const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
-  // null = eligiendo rol | "editor" | "viewer" = mostrando enlace
-  const [step, setStep] = useState(null);
+  const [step, setStep] = useState(null); // null | "picking"
   const [copied, setCopied] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
-  const chosenUrl = step === "viewer" ? viewerUrl : editorUrl;
-  const chosenLabel = step === "viewer" ? "VISOR" : "EDITOR";
-  const chosenAccent = step === "viewer" ? "#6366f1" : "#16a34a";
+  // step: null = botones iniciales | "share" | "copy" = eligiendo rol para esa acción
+  const [pendingAction, setPendingAction] = useState(null); // "share" | "copy"
+
+  function startAction(action) { setPendingAction(action); setStep("picking"); setCopied(false); }
 
   function pickRole(role) {
-    setStep(role);
-    setCopied(false);
-    // Si hay native share, lanzarlo directamente
-    if (navigator.share) {
-      const label = role === "viewer" ? "Visor" : "Editor";
-      const url = role === "viewer" ? viewerUrl : editorUrl;
+    const url = role === "viewer" ? viewerUrl : editorUrl;
+    const label = role === "viewer" ? "Visor" : "Editor";
+    if (pendingAction === "share" && navigator.share) {
       navigator.share({ title: fest.name, text: `Te invito a ${fest.name} como ${label}`, url }).catch(() => {});
+      setStep(null); setPendingAction(null);
+    } else {
+      navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => { setCopied(false); setStep(null); setPendingAction(null); }, 2000); });
     }
   }
 
-  function copy() {
-    navigator.clipboard.writeText(chosenUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  }
 
   const members = (fest.members || []).filter(m => m !== ownerId && m !== fest.user_id);
   function setRole(mid, role) { onManageMembers({ ...fest, roles: { ...fest.roles, [mid]: role } }); }
@@ -2653,11 +2650,14 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
           <button onClick={onClose} style={S.iconBtn}>✕</button>
         </div>
 
-        {step === null ? (
-          /* ── Paso 1: elegir rol ── */
+        {step === "picking" ? (
+          /* ── Paso 2: elegir rol ── */
           <>
-            <div style={{ fontSize: 13, color: T.text3, fontFamily: "monospace", marginBottom: 16, textAlign: "center" }}>
-              ¿Con qué acceso quieres compartir?
+            <button onClick={() => { setStep(null); setPendingAction(null); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: T.text4, fontFamily: "monospace", fontSize: 11, marginBottom: 16, padding: 0 }}>
+              ‹ Volver
+            </button>
+            <div style={{ fontSize: 13, color: T.text3, fontFamily: "monospace", marginBottom: 14, textAlign: "center" }}>
+              ¿Con qué acceso?
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
@@ -2673,44 +2673,30 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
                     <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 18, color: r.accent, letterSpacing: "0.08em", lineHeight: 1 }}>{r.label}</div>
                     <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace", marginTop: 4, lineHeight: 1.4 }}>{r.desc}</div>
                   </div>
-                  <span style={{ marginLeft: "auto", color: T.text4, fontSize: 18 }}>›</span>
+                  {copied ? <span style={{ marginLeft: "auto", color: "#16a34a", fontSize: 13 }}>✓</span> : <span style={{ marginLeft: "auto", color: T.text4, fontSize: 18 }}>›</span>}
                 </button>
               ))}
             </div>
           </>
         ) : (
-          /* ── Paso 2: enlace del rol elegido ── */
-          <>
-            <button onClick={() => setStep(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: T.text4, fontFamily: "monospace", fontSize: 11, marginBottom: 16, padding: 0 }}>
-              ‹ Cambiar acceso
-            </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 20, color: chosenAccent, letterSpacing: "0.08em" }}>{chosenLabel}</span>
-              <span style={{ fontSize: 11, color: T.text3, fontFamily: "monospace" }}>
-                {step === "viewer" ? "Solo lectura" : "Puede editar"}
-              </span>
-            </div>
-            <div style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, wordBreak: "break-all", fontSize: 10, color: T.text3 }}>
-              {chosenUrl}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {navigator.share && (
-                <button onClick={() => navigator.share({ title: fest.name, text: `Te invito a ${fest.name} como ${chosenLabel}`, url: chosenUrl }).catch(() => {})} style={{
-                  flex: 1, padding: "11px 0", borderRadius: 9, border: "none", cursor: "pointer",
-                  fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700,
-                  background: chosenAccent, color: "#fff",
-                }}>Compartir</button>
-              )}
-              <button onClick={copy} style={{
-                flex: 1, padding: "11px 0", borderRadius: 9, cursor: "pointer",
-                fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700,
-                background: copied ? chosenAccent : "transparent",
-                color: copied ? "#fff" : T.text2,
-                border: `1.5px solid ${copied ? chosenAccent : T.border}`,
-                transition: "all 0.15s",
-              }}>{copied ? "✓ Copiado" : "Copiar URL"}</button>
-            </div>
-          </>
+          /* ── Paso 1: botones de acción ── */
+          <div style={{ display: "flex", gap: 8 }}>
+            {navigator.share && (
+              <button onClick={() => startAction("share")} style={{
+                flex: 1, padding: "13px 0", borderRadius: 10, border: "none", cursor: "pointer",
+                fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, letterSpacing: "0.05em",
+                background: dark ? "#334155" : "#0f172a", color: "#fff",
+              }}>COMPARTIR</button>
+            )}
+            <button onClick={() => startAction("copy")} style={{
+              flex: 1, padding: "13px 0", borderRadius: 10, cursor: "pointer",
+              fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, letterSpacing: "0.05em",
+              background: copied ? "#16a34a" : T.card2,
+              color: copied ? "#fff" : T.text2,
+              border: `1.5px solid ${copied ? "#16a34a" : T.border}`,
+              transition: "all 0.15s",
+            }}>{copied ? "✓ COPIADO" : "COPIAR URL"}</button>
+          </div>
         )}
 
         {/* Miembros (solo owner) */}
