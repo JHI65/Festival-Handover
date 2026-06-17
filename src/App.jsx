@@ -22,9 +22,8 @@ const INSTALL_STEPS = {
     <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
   ],
   desktop: [
-    <>Menú <span style={{ color: "#D4A843" }}>⋮</span> arriba a la derecha</>,
-    <>"Más herramientas" → "<span style={{ color: "#D4A843" }}>Crear acceso directo...</span>"</>,
-    <>Marca "Abrir como ventana" y pulsa "<span style={{ color: "#D4A843" }}>Crear</span>"</>,
+    <>Icono de instalación <span style={{ color: "#D4A843" }}>⊞</span> en la barra de direcciones</>,
+    <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
   ],
 };
 
@@ -42,7 +41,7 @@ function InstallSteps({ icon, title, steps }) {
         <span style={{ fontSize: 13, color: "#F5EFE0", fontFamily: "'DM Sans',sans-serif", fontWeight: 700 }}>{title}</span>
       </div>
       {steps.map((step, t) => (
-        <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: t < 2 ? 8 : 0 }}>
+        <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: t < steps.length - 1 ? 8 : 0 }}>
           <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(212,168,67,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#D4A843", fontFamily: "'DM Mono',monospace", flexShrink: 0, marginTop: 1 }}>{t + 1}</div>
           <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.45 }}>{step}</div>
         </div>
