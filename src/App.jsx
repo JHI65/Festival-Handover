@@ -30,12 +30,18 @@ const SEED = [{
 function normalizeFest(f) {
   // Nuevo formato: days es { _stages: [...] }
   if (f.days && !Array.isArray(f.days) && Array.isArray(f.days._stages)) {
-    return { ...f, stages: f.days._stages, log: f.days._log || [] };
+    return { ...f, stages: f.days._stages, log: f.days._log || [], roles: f.days._roles || {} };
   }
   // Ya tiene stages (en memoria, tras normalizar)
-  if (Array.isArray(f.stages)) return { ...f, log: f.log || [] };
+  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], roles: f.roles || {} };
   // Legacy: days es array → migrar a un stage por defecto
-  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [] };
+  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], roles: {} };
+}
+
+function getUserRole(fest, userId) {
+  if (!fest || !userId) return "viewer";
+  if (fest.user_id === userId) return "owner";
+  return fest.roles?.[userId] || "editor";
 }
 
 /* ---------- theme ---------- */
@@ -203,7 +209,7 @@ async function loadFests(userId) {
 
 function festToDB(fest) {
   // Serializa stages en el campo days del schema existente
-  return { _stages: fest.stages || [], _log: fest.log || [] };
+  return { _stages: fest.stages || [], _log: fest.log || [], _roles: fest.roles || {} };
 }
 
 async function insertFest(userId, fest) {
@@ -538,8 +544,9 @@ function Main({ session, offlineBannerOffset }) {
       // Check URL for shared festival
       const searchParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#\??/, ""));
-      // ?join=<id> (new short format) or legacy ?fest=<base64>
+      // ?join=<id>[&role=viewer|editor] (new short format) or legacy ?fest=<base64>
       const joinId = searchParams.get("join") || hashParams.get("join");
+      const joinRole = searchParams.get("role") || hashParams.get("role") || "editor";
       const legacyFest = searchParams.get("fest") || hashParams.get("fest");
 
       let f = await loadFests(userId);
@@ -557,10 +564,20 @@ function Main({ session, offlineBannerOffset }) {
       }
 
       if (joinId) {
-        // New short format: ?join=<festId>
+        // New short format: ?join=<festId>[&role=viewer|editor]
         const ok = await joinFestAsMember(joinId);
-        if (ok) f = await loadFests(userId);
-        else console.error("No se pudo unir al festival compartido");
+        if (ok) {
+          f = await loadFests(userId);
+          // Guardar rol si es viewer (editor es el default, no hace falta escribirlo)
+          if (joinRole === "viewer") {
+            const joined = f.find(x => x.id === joinId);
+            if (joined && joined.user_id !== userId) {
+              const updatedRoles = { ...joined.roles, [userId]: "viewer" };
+              await updateFestRow({ ...joined, roles: updatedRoles });
+              f = f.map(x => x.id === joinId ? { ...x, roles: updatedRoles } : x);
+            }
+          }
+        } else console.error("No se pudo unir al festival compartido");
         window.history.replaceState({}, "", window.location.pathname);
       } else if (legacyFest) {
         // Legacy format: ?fest=<base64 JSON>
@@ -718,6 +735,7 @@ function Main({ session, offlineBannerOffset }) {
           <Home
             fests={fests}
             user={session.user}
+            userId={userId}
             onOpen={(id) => { setFestId(id); setScreen("stages"); }}
             onNew={() => setScreen("builder")}
             onDelete={removeFest}
@@ -729,6 +747,7 @@ function Main({ session, offlineBannerOffset }) {
           <StageView
             fest={fest}
             userEmail={session.user.email}
+            userRole={getUserRole(fest, userId)}
             onBack={() => setScreen("home")}
             onEditFest={updateFest}
             onOpenStage={(sid) => { setStageId(sid); setDayIdx(0); setScreen("view"); }}
@@ -747,6 +766,7 @@ function Main({ session, offlineBannerOffset }) {
             fest={fest}
             stage={stage}
             userEmail={session.user.email}
+            userRole={getUserRole(fest, userId)}
             dayIdx={dayIdx} setDayIdx={setDayIdx}
             notes={notes} setNotes={updateNotes}
             checks={checks} toggleCheck={toggleCheck}
@@ -805,7 +825,7 @@ function Splash() {
 }
 
 /* ---------- home ---------- */
-function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
+function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
@@ -885,12 +905,14 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
       <div style={{ flex: 1, overflowY: "auto", marginBottom: 14 }}>
         {fests.map(f => {
           const total = (f.stages || []).reduce((s, st) => s + st.days.reduce((a, d) => a + d.artists.length, 0), 0);
+          const fRole = getUserRole(f, userId);
+          const fIsOwner = fRole === "owner";
           return (
             <div key={f.id} style={{ ...S.festCard, background: T.card, border: `1px solid ${T.border}`, position: "relative", overflow: "visible" }}
               onClick={() => { if (!editMode) onOpen(f.id); }}>
               {/* slot izquierdo — siempre ocupa el mismo espacio */}
               <div style={{ width: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {editMode && (
+                {editMode && fIsOwner && (
                   <button
                     onClick={e => { e.stopPropagation(); setConfirmId(f.id); }}
                     style={{
@@ -906,11 +928,14 @@ function Home({ fests, user, onOpen, onNew, onDelete, onEdit, onLogout }) {
               {/* nombre siempre centrado */}
               <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
                 <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
-                <div style={{ fontSize: 12, color: T.text4, marginTop: 2 }}>{(f.stages || []).length} stages · {total} artistas</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 2 }}>
+                  <span style={{ fontSize: 12, color: T.text4 }}>{(f.stages || []).length} stages · {total} artistas</span>
+                  {!fIsOwner && <span style={{ fontSize: 9, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", padding: "1px 6px", borderRadius: 4, background: fRole === "viewer" ? "#e0e7ff" : "#f0fdf4", color: fRole === "viewer" ? "#3730a3" : "#166534" }}>{fRole === "viewer" ? "VISOR" : "EDITOR"}</span>}
+                </div>
               </div>
               {/* slot derecho — mismo ancho que el izquierdo */}
               <div style={{ width: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {editMode ? (
+                {editMode && fIsOwner ? (
                   <button
                     onClick={e => { e.stopPropagation(); setEditFestId(f.id); }}
                     style={{
@@ -1124,7 +1149,8 @@ function Builder({ onCancel, onSave }) {
 }
 
 /* ---------- stage view ---------- */
-function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon, onOpenEscenario }) {
+function StageView({ fest, userEmail, userRole, onBack, onEditFest, onOpenStage, onOpenMon, onOpenEscenario }) {
+  const isOwner = userRole === "owner";
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [selectedStage, setSelectedStage] = useState(null);
@@ -1346,10 +1372,10 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
             ) : (
             <>
             <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              <button onClick={() => { setEditMode(m => !m); setRenamingId(null); }} style={{
+              {isOwner && <button onClick={() => { setEditMode(m => !m); setRenamingId(null); }} style={{
                 background: editMode ? "#fef2f2" : T.card2, border: `1px solid ${editMode ? "#fecaca" : T.border}`,
                 borderRadius: 8, padding: "4px 8px", cursor: "pointer", fontSize: 14, color: editMode ? "#ef4444" : T.text3, lineHeight: 1,
-              }}>⚙️</button>
+              }}>⚙️</button>}
               <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginLeft: 10 }}>STAGES</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1539,7 +1565,7 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
               })}
             </div>
 
-            {showAdd ? (
+            {isOwner && (showAdd ? (
               <div style={{ marginTop: 12, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px" }}>
                 <input value={newName} onChange={e => setNewName(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && addStage()}
@@ -1551,7 +1577,7 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
               </div>
             ) : (
               <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, marginTop: 12 }}>+ Añadir stage</button>
-            )}
+            ))}
             </>
             )}
           </>
@@ -1563,7 +1589,9 @@ function StageView({ fest, userEmail, onBack, onEditFest, onOpenStage, onOpenMon
 }
 
 /* ---------- fest view ---------- */
-function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, checks, toggleCheck, slots, setSlots, onEditFest, onBack, onRefresh, lastSync }) {
+function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, setNotes, checks, toggleCheck, slots, setSlots, onEditFest, onBack, onRefresh, lastSync }) {
+  const canEdit = userRole !== "viewer";    // editor + owner
+  const isOwner = userRole === "owner";     // solo owner puede tocar estructura
   const [selectedId, setSelectedId] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -1796,13 +1824,13 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             <button onClick={confirmAddDay} style={{ background: "#C94A2A", border: "none", borderRadius: 2, color: "#fff", fontSize: 12, padding: "3px 8px", cursor: "pointer" }}>✓</button>
             <button onClick={() => { setShowAddDay(false); setNewDayLabel(""); setNewDayDate(""); }} style={{ background: "transparent", border: "none", color: "#7A6652", fontSize: 14, cursor: "pointer", padding: "2px 4px" }}>×</button>
           </div>
-        ) : (
+        ) : isOwner ? (
           <button onClick={() => setShowAddDay(true)} style={{
             flexShrink: 0, padding: "10px 14px", fontSize: 14,
             fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
             border: "none", background: "none", color: "#7A6652",
           }}>+</button>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -1854,11 +1882,9 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
                       boxShadow: "0 4px 16px rgba(0,0,0,0.12)", border: "1px solid #e2e8f0",
                       zIndex: 30, minWidth: 140, overflow: "hidden",
                     }}>
-                      <button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ Editar</button>
-                      <div style={{ height: 1, background: "#f1f5f9" }} />
+                      {isOwner && <><button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ Editar</button><div style={{ height: 1, background: "#f1f5f9" }} /></>}
                       <button onClick={() => { setArtGearOpen(false); printHandoverPDF([art], { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id }); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>🖨 Exportar PDF</button>
-                      <div style={{ height: 1, background: "#f1f5f9" }} />
-                      <button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 Borrar</button>
+                      {isOwner && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 Borrar</button></>}
                     </div>
                   )}
                 </div>
@@ -1868,24 +1894,24 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
               </div>
               {/* SC + SHOW pills */}
               <div style={{ display: "flex", flexDirection: "column", gap: 5, flexShrink: 0, paddingTop: 2, alignItems: "flex-end" }}>
-                <button onClick={() => toggleCheck(ckeysc)} style={{
+                <button onClick={() => canEdit && toggleCheck(ckeysc)} style={{
                   display: "inline-flex", alignItems: "center", gap: 4,
                   fontSize: 11, fontWeight: 500, padding: "3px 10px", borderRadius: 99,
                   background: scDone ? "#E1F5EE" : "#f8fafc",
                   color: scDone ? "#085041" : "#94a3b8",
                   border: `0.5px solid ${scDone ? "#1D9E7555" : "#e2e8f0"}`,
-                  cursor: "pointer", transition: "all 0.2s",
+                  cursor: canEdit ? "pointer" : "default", transition: "all 0.2s", opacity: canEdit ? 1 : 0.6,
                 }}>
                   {scDone && <span style={{ width: 5, height: 5, background: "#1D9E75", borderRadius: "50%", display: "inline-block" }} />}
                   SC
                 </button>
-                <button onClick={() => toggleCheck(ckeyshow)} style={{
+                <button onClick={() => canEdit && toggleCheck(ckeyshow)} style={{
                   display: "inline-flex", alignItems: "center", gap: 4,
                   fontSize: 11, fontWeight: 500, padding: "3px 10px", borderRadius: 99,
                   background: showDone ? "#E6F1FB" : "#f8fafc",
                   color: showDone ? "#0C447C" : "#94a3b8",
                   border: `0.5px solid ${showDone ? "#2563eb55" : "#e2e8f0"}`,
-                  cursor: "pointer", transition: "all 0.2s",
+                  cursor: canEdit ? "pointer" : "default", transition: "all 0.2s", opacity: canEdit ? 1 : 0.6,
                 }}>
                   {showDone && <span style={{ width: 5, height: 5, background: "#2563eb", borderRadius: "50%", display: "inline-block" }} />}
                   SHOW
@@ -1994,8 +2020,8 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             </div>
           )}
 
-          <ExtraSlots slots={mySlots} onAdd={addSlot} onDel={delSlot} onEdit={editSlot} />
-          <FohNotes notes={myNotes} onAdd={addNote} onDel={delNote} />
+          <ExtraSlots slots={mySlots} onAdd={canEdit ? addSlot : null} onDel={canEdit ? delSlot : null} onEdit={canEdit ? editSlot : null} />
+          <FohNotes notes={myNotes} onAdd={canEdit ? addNote : null} onDel={canEdit ? delNote : null} />
         </div>
       </div>
       {/* cierre menú gear al tocar fuera */}
@@ -2031,9 +2057,9 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             rulos={day.rulos || []}
             permRulos={stage.rulos || []}
             ruloOverrides={day.ruloOverrides || {}}
-            onAdd={(pos) => { setEditRuloId(null); setShowRuloForm(true); setPrefillPos(pos || null); }}
-            onEdit={(id) => { setEditRuloId(id); setShowRuloForm(true); setPrefillPos(null); }}
-            onDelete={deleteRulo}
+            onAdd={isOwner ? (pos) => { setEditRuloId(null); setShowRuloForm(true); setPrefillPos(pos || null); } : null}
+            onEdit={isOwner ? (id) => { setEditRuloId(id); setShowRuloForm(true); setPrefillPos(null); } : null}
+            onDelete={isOwner ? deleteRulo : null}
             onSaveOverride={(ruloId, desc) => {
               const newOverrides = { ...(day.ruloOverrides || {}), [ruloId]: { desc } };
               const newDays = stage.days.map((d, i) => i === dayIdx ? { ...d, ruloOverrides: newOverrides } : d);
@@ -2107,8 +2133,8 @@ function FestView({ fest, stage, userEmail, dayIdx, setDayIdx, notes, setNotes, 
             ))}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, flex: 1, marginTop: 0 }}>+ Añadir artista</button>
-            {artists.length > 0 && stage.days.length > 1 && (
+            {isOwner && <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, flex: 1, marginTop: 0 }}>+ Añadir artista</button>}
+            {isOwner && artists.length > 0 && stage.days.length > 1 && (
               <button onClick={() => { setShowCopy(true); setCopySelected({}); setCopyTargetDays({}); }} style={{ ...S.addBtn, flex: 1, marginTop: 0, color: "#7c3aed", borderColor: "#ddd6fe", background: "#f5f3ff" }}>
                 Copiar al día →
               </button>
@@ -2282,36 +2308,58 @@ function LogModal({ log, festName, onClose }) {
 }
 
 function ShareModal({ fest, onClose }) {
-  const url = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
+  const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
+  const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
+  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "viewer"
   const [copied, setCopied] = useState(false);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
+  const currentUrl = activeTab === "editor" ? editorUrl : viewerUrl;
+
   function copy() {
-    navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+    navigator.clipboard.writeText(currentUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   }
 
   async function share() {
     if (navigator.share) {
-      try { await navigator.share({ title: fest.name, text: `Festival ${fest.name}`, url }); return; } catch { /* cancelado */ }
+      try { await navigator.share({ title: fest.name, text: `Festival ${fest.name}`, url: currentUrl }); return; } catch { /* cancelado */ }
     }
     copy();
   }
 
+  const tabs = [
+    { key: "editor", label: "Editor", desc: "Puede editar notas, checks y slots en vivo" },
+    { key: "viewer", label: "Visor", desc: "Solo lectura — ideal para producción o promotora" },
+  ];
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "flex-end" }} onClick={onClose}>
       <div style={{ background: T.card, borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 480, margin: "0 auto" }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>COMPARTIR</div>
             <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{fest.name}</div>
           </div>
           <button onClick={onClose} style={S.iconBtn}>✕</button>
         </div>
-        <div style={{ textAlign: "center", marginBottom: 16, padding: "20px 16px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 14 }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🔗</div>
-          <div style={{ fontSize: 13, color: T.text2, fontFamily: "monospace", lineHeight: 1.5 }}>Comparte el enlace.<br/>Al abrirlo, el festival se importa automáticamente.</div>
+        {/* Tab selector */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 16, background: T.card2, borderRadius: 10, padding: 4 }}>
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => { setActiveTab(t.key); setCopied(false); }} style={{
+              flex: 1, padding: "8px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "'DM Mono',monospace",
+              fontSize: 12, fontWeight: 700, transition: "all 0.15s",
+              background: activeTab === t.key ? T.card : "transparent",
+              color: activeTab === t.key ? T.text : T.text4,
+              boxShadow: activeTab === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+            }}>{t.label}</button>
+          ))}
         </div>
-        <div style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, wordBreak: "break-all", fontSize: 10, color: T.text3, maxHeight: 60, overflow: "hidden" }}>{url.slice(0, 120)}…</div>
+        <div style={{ padding: "12px 14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace" }}>
+            {tabs.find(t => t.key === activeTab)?.desc}
+          </div>
+        </div>
+        <div style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, wordBreak: "break-all", fontSize: 10, color: T.text3, maxHeight: 60, overflow: "hidden" }}>{currentUrl.slice(0, 120)}{currentUrl.length > 120 ? "…" : ""}</div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={share} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: dark ? "#334155" : "#0f172a" }}>Compartir</button>
           <button onClick={copy} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: copied ? "#16a34a" : T.card2, color: copied ? "#fff" : T.text2, border: `1px solid ${T.border}` }}>
