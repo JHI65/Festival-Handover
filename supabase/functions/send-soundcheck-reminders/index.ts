@@ -20,12 +20,22 @@ webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-// Mismo criterio que src/lib/utils.js festTimeToMin: horas 00-05 se tratan
-// como "después de medianoche" para que el orden/comparación tenga sentido.
-function festTimeToMin(t?: string | null) {
-  if (!t) return Infinity;
+// Minuto real del día (0-1439), sin el ajuste "+24h" que usa el cliente para
+// ordenar horarios de madrugada — aquí necesitamos comparar contra la hora
+// real del reloj (nowMin, siempre 0-1439), así que ese ajuste rompería la
+// comparación para Load In / Soundcheck de madrugada (00:00-05:59).
+function minutesOfDay(t?: string | null) {
+  if (!t) return null;
   const [h, m] = t.split(":").map(Number);
-  return (h < 6 ? h + 24 : h) * 60 + (m || 0);
+  return h * 60 + (m || 0);
+}
+
+// Minuto objetivo del aviso (30 min antes), con wraparound correcto si la
+// hora de referencia está cerca de medianoche (ej. 00:10 - 30 -> 23:40).
+function reminderMinuteFor(t?: string | null) {
+  const mins = minutesOfDay(t);
+  if (mins === null) return null;
+  return ((mins - 30) % 1440 + 1440) % 1440;
 }
 
 function madridNow() {
@@ -72,8 +82,8 @@ Deno.serve(async (req) => {
           const isLoadIn = !!artist.scLoadIn;
           const refTime = artist.scLoadIn || artist.scStart;
           if (!refTime) continue;
-          const reminderMin = festTimeToMin(refTime) - 30;
-          if (reminderMin !== nowMin) continue;
+          const reminderMin = reminderMinuteFor(refTime);
+          if (reminderMin === null || reminderMin !== nowMin) continue;
           const key = `${fest.id}__${stage.id}__${day.id}__${artist.id}`;
           dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key, isLoadIn, refTime });
         }
