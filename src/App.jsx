@@ -334,7 +334,8 @@ async function saveUserData(userId, notes, checks, slots) {
 
 /* ============================================================ */
 export default function App() {
-  const [session, setSession] = useState(undefined); // undefined = loading
+  const [session, setSession] = useState(undefined);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -342,9 +343,25 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, []);
+
   if (session === undefined) return <Splash />;
-  if (!session) return <LoginScreen />;
-  return <Main session={session} />;
+  return (
+    <>
+      {!isOnline && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999, background: "#7C3A1A", color: "#F5EFE0", fontFamily: "'DM Mono',monospace", fontSize: 12, textAlign: "center", padding: "8px 16px", letterSpacing: "0.08em" }}>
+          SIN CONEXIÓN — mostrando últimos datos guardados
+        </div>
+      )}
+      {!session ? <LoginScreen /> : <Main session={session} offlineBannerOffset={!isOnline} />}
+    </>
+  );
 }
 
 /* ---------- login ---------- */
@@ -481,8 +498,9 @@ function GoogleIcon() {
 }
 
 /* ---------- main app (autenticado) ---------- */
-function Main({ session }) {
+function Main({ session, offlineBannerOffset }) {
   const userId = session.user.id;
+  const isOnline = () => navigator.onLine;
 
   const [fests, setFests] = useState(null);
   const [festId, setFestId] = useState(null);
@@ -640,6 +658,7 @@ function Main({ session }) {
   async function updateNotes(n) {
     const changedKeys = Object.keys(n).filter(k => JSON.stringify(n[k]) !== JSON.stringify(notesRef.current[k]));
     setNotes(n);
+    if (!navigator.onLine) return;
     const fids = new Set([...Object.keys(n), ...Object.keys(notes)].map(pickFestId));
     for (const fid of fids) if (fid) {
       const fChangedKeys = changedKeys.filter(k => pickFestId(k) === fid);
@@ -650,6 +669,7 @@ function Main({ session }) {
   async function toggleCheck(ckey) {
     const next = { ...checks, [ckey]: !checks[ckey] };
     setChecks(next);
+    if (!navigator.onLine) return;
     const fid = pickFestId(ckey);
     if (fid) await saveFestShared(fid, notes, next, slots, [], []);
   }
@@ -657,6 +677,7 @@ function Main({ session }) {
   async function updateSlots(sl) {
     const changedKeys = Object.keys(sl).filter(k => JSON.stringify(sl[k]) !== JSON.stringify(slotsRef.current[k]));
     setSlots(sl);
+    if (!navigator.onLine) return;
     const fids = new Set([...Object.keys(sl), ...Object.keys(slots)].map(pickFestId));
     for (const fid of fids) if (fid) {
       const fChangedKeys = changedKeys.filter(k => pickFestId(k) === fid);
@@ -692,7 +713,7 @@ function Main({ session }) {
   return (
     <ThemeCtx.Provider value={{ dark: darkMode, toggle: toggleDark }}>
       <Style dark={darkMode} />
-      <div style={S.app}>
+      <div style={{ ...S.app, paddingTop: offlineBannerOffset ? 33 : undefined }}>
         {screen === "home" && (
           <Home
             fests={fests}
