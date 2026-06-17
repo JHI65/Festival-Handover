@@ -653,7 +653,7 @@ function Main({ session, offlineBannerOffset }) {
           // Registrar rol + email del que se une (para que el owner pueda gestionarlo)
           const joined = f.find(x => x.id === joinId);
           if (joined && joined.user_id !== userId) {
-            const role = joinRole === "viewer" ? "viewer" : "editor";
+            const role = joinRole === "viewer" ? "viewer" : joinRole === "owner" ? "owner" : "editor";
             const updatedRoles = { ...joined.roles, [userId]: role };
             const updatedInfo = { ...joined.memberInfo, [userId]: { email: userEmail } };
             await updateFestRow({ ...joined, roles: updatedRoles, memberInfo: updatedInfo });
@@ -1456,8 +1456,10 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
   const [showDayAdd, setShowDayAdd] = useState(false);
   const [newDayLabel, setNewDayLabel] = useState("");
   const [newDayDate, setNewDayDate] = useState("");
+  const [confirmPending, setConfirmPending] = useState(null);
   const dayLabelRefs = useRef([]);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
+  const askConfirm = (label, action) => setConfirmPending({ label, action });
 
   function addMonPosition() {
     const existing = activeStage.monPositions || [];
@@ -1578,7 +1580,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                     </div>
                   </button>
                   {editMode && (
-                    <button onClick={() => deleteMonPosition(mp.id)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+                    <button onClick={() => askConfirm(`¿Eliminar posición de monitores "${mp.name}"?`, () => deleteMonPosition(mp.id))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
                   )}
                 </div>
               ))}
@@ -1604,7 +1606,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                   </div>
                 </button>
                 {editMode && (
-                  <button onClick={() => deleteEscenario()} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+                  <button onClick={() => askConfirm("¿Eliminar la posición de escenario?", () => deleteEscenario())} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
                 )}
                 </div>
               )}
@@ -1726,7 +1728,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                             </div>
                             <div style={{ fontSize: 10, color: T.text4, flexShrink: 0 }}>{d.artists.length} art.</div>
                             {st.days.length > 1 && (
-                              <button onClick={() => deleteDayFromStage(st.id, d.id)}
+                              <button onClick={() => askConfirm(`¿Eliminar ${d.label || "este día"}? Se perderán todos sus artistas.`, () => deleteDayFromStage(st.id, d.id))}
                                 style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
                             )}
                           </div>
@@ -1777,14 +1779,13 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                     <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>FOH</div>
                                     <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{totalForStage(st)} artistas</div>
                                   </div>
-                                  <button onClick={() => {
-                                    if (!window.confirm(`¿Eliminar todos los artistas de FOH en ${st.name}?`)) return;
+                                  <button onClick={() => askConfirm(`¿Eliminar todos los artistas de FOH en ${st.name}?`, () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, days: s.days.map(d => ({ ...d, artists: [] })) }
                                       : s
                                     );
                                     onEditFest({ ...fest, stages: newStages });
-                                  }} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                  })} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
                                 </div>
                               )}
                               {(st.monPositions || []).map(mp => (
@@ -1805,13 +1806,13 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                     />
                                     <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{(mp.inputs || []).length} inputs · {(mp.rfEntries || []).length} RF</div>
                                   </div>
-                                  <button onClick={() => {
+                                  <button onClick={() => askConfirm(`¿Eliminar la posición "${mp.name}"?`, () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, monPositions: (s.monPositions || []).filter(p => p.id !== mp.id) }
                                       : s
                                     );
                                     onEditFest({ ...fest, stages: newStages });
-                                  }} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                  })} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
                                 </div>
                               ))}
                               {stHasEscenario && (
@@ -1821,13 +1822,13 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                     <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>ESCENARIO</div>
                                     <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{(st.escenario?.inputs || []).length} inputs · {(st.escenario?.power || []).length} grupos corriente</div>
                                   </div>
-                                  <button onClick={() => {
+                                  <button onClick={() => askConfirm("¿Eliminar la posición de escenario?", () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, escenario: undefined }
                                       : s
                                     );
                                     onEditFest({ ...fest, stages: newStages });
-                                  }} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                  })} style={{ width: 24, height: 24, borderRadius: "50%", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
                                 </div>
                               )}
                             </div>
@@ -1842,7 +1843,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                     onClick={() => { if (!editMode) setSelectedStage(st.id); }}
                     style={{ background: T.card, border: `1px solid ${editMode ? "#fecaca" : T.border}`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 4px rgba(0,0,0,0.05)", cursor: editMode ? "default" : "pointer" }}>
                     {editMode && (
-                      <button onClick={e => { e.stopPropagation(); deleteStage(st.id); }}
+                      <button onClick={e => { e.stopPropagation(); askConfirm(`¿Eliminar el stage "${st.name}"? Se perderán todos sus días y artistas.`, () => deleteStage(st.id)); }}
                         style={{ width: 26, height: 26, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>−</button>
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1878,6 +1879,20 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
         )}
       </div>
       {showShare && <ShareModal fest={fest} isOwner={isOwner} ownerId={userId} onManageMembers={onManageMembers} onClose={() => setShowShare(false)} />}
+      {confirmPending && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+          onClick={() => setConfirmPending(null)}>
+          <div style={{ background: T.card, borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontSize: 14, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>{confirmPending.label}</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setConfirmPending(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
+              <button onClick={() => { confirmPending.action(); setConfirmPending(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Sí, eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2604,6 +2619,7 @@ function LogModal({ log, festName, onClose }) {
 function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
   const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
+  const ownerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=owner`;
   const [step, setStep] = useState(null); // null | "picking"
   const [copied, setCopied] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
@@ -2616,8 +2632,8 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   function startAction(action) { setPendingAction(action); setStep("picking"); setCopied(false); }
 
   function pickRole(role) {
-    const url = role === "viewer" ? viewerUrl : editorUrl;
-    const label = role === "viewer" ? "Visor" : "Editor";
+    const url = role === "viewer" ? viewerUrl : role === "owner" ? ownerUrl : editorUrl;
+    const label = role === "viewer" ? "Visor" : role === "owner" ? "Owner" : "Editor";
     if (pendingAction === "share" && navigator.share) {
       navigator.share({ title: fest.name, text: `Te invito a ${fest.name} como ${label}`, url }).catch(() => {});
       setStep(null); setPendingAction(null);
@@ -2661,6 +2677,7 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
+                { key: "owner",  label: "OWNER",  icon: "👑", accent: "#d97706" },
                 { key: "editor", label: "EDITOR", icon: "✏️", accent: "#16a34a" },
                 { key: "viewer", label: "VISOR",  icon: "👁",  accent: "#6366f1" },
               ].map(r => (
@@ -2742,7 +2759,7 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 11, color: T.text, fontFamily: "monospace", wordBreak: "break-all" }}>{email}</div>
-                          <div style={{ fontSize: 10, color: role === "viewer" ? "#6366f1" : "#16a34a", fontFamily: "monospace", fontWeight: 700, marginTop: 2 }}>{role === "viewer" ? "VISOR" : "EDITOR"}</div>
+                          <div style={{ fontSize: 10, color: role === "viewer" ? "#6366f1" : role === "owner" ? "#d97706" : "#16a34a", fontFamily: "monospace", fontWeight: 700, marginTop: 2 }}>{role === "viewer" ? "VISOR" : role === "owner" ? "OWNER" : "EDITOR"}</div>
                         </div>
                         {confirmRemove === mid ? (
                           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
@@ -2754,13 +2771,13 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
                         )}
                       </div>
                       <div style={{ display: "flex", gap: 6 }}>
-                        {["editor", "viewer"].map(r => (
+                        {["owner", "editor", "viewer"].map(r => (
                           <button key={r} onClick={() => setRole(mid, r)} style={{
                             flex: 1, padding: "7px", borderRadius: 7, cursor: "pointer", fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700,
                             border: role === r ? "none" : `1px solid ${T.border}`,
-                            background: role === r ? (r === "viewer" ? "#6366f1" : "#16a34a") : "transparent",
+                            background: role === r ? (r === "viewer" ? "#6366f1" : r === "owner" ? "#d97706" : "#16a34a") : "transparent",
                             color: role === r ? "#fff" : T.text4,
-                          }}>{r === "viewer" ? "Visor" : "Editor"}</button>
+                          }}>{r === "viewer" ? "Visor" : r === "owner" ? "Owner" : "Editor"}</button>
                         ))}
                       </div>
                     </div>
@@ -2989,7 +3006,9 @@ function EtapasView({ etapas, onSave }) {
   const [grupoName, setGrupoName] = useState("");
   const [grupoRows, setGrupoRows] = useState([]); // [{ id, amp, ampId }]
   const [expandedId, setExpandedId] = useState(null);
+  const [confirmPending, setConfirmPending] = useState(null);
   const rowAmpRefs = useRef([]);
+  const askConfirm = (label, action) => setConfirmPending({ label, action });
 
   function openNew() {
     setEditGrupoId("new");
@@ -3100,7 +3119,7 @@ function EtapasView({ etapas, onSave }) {
                 <button onClick={e => { e.stopPropagation(); duplicateGrupo(g); }}
                   title="Duplicar grupo"
                   style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>⎘</button>
-                <button onClick={e => { e.stopPropagation(); deleteGrupo(g.id); }}
+                <button onClick={e => { e.stopPropagation(); askConfirm(`¿Eliminar el grupo "${g.name}"?`, () => deleteGrupo(g.id)); }}
                   style={{ background: "none", border: "none", color: "#C94A2A", fontSize: 14, cursor: "pointer", padding: "0 4px" }}>×</button>
                 <span style={{ color: T.text4, fontSize: 14, marginLeft: 4 }}>{isExpanded ? "▾" : "▸"}</span>
               </div>
@@ -3130,6 +3149,20 @@ function EtapasView({ etapas, onSave }) {
         })}
       </div>
       <button onClick={openNew} style={{ ...S.bigBtn, marginTop: 0 }}>+ AÑADIR GRUPO</button>
+      {confirmPending && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+          onClick={() => setConfirmPending(null)}>
+          <div style={{ background: T.card, borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontSize: 14, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>{confirmPending.label}</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setConfirmPending(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
+              <button onClick={() => { confirmPending.action(); setConfirmPending(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Sí, eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
