@@ -140,7 +140,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
   const sc = art ? sigColor(art.signal) : "#64748b";
 
   async function addArtistToDay(fields) {
-    const newArt = { id: uid(), artist: fields.artist || "", console: fields.console || "", connection: fields.connection || "", signal: fields.signal || "", preset: fields.preset || "INITIAL", presetOk: false, toLx: fields.toLx || "", toMon: fields.toMon || "", tecnico: fields.tecnico || "", corriente: fields.corriente || "", comments: [], extraSlots: [] };
+    const newArt = { id: uid(), artist: fields.artist || "", console: fields.console || "", connection: fields.connection || "", signal: fields.signal || "", preset: fields.preset || "INITIAL", presetOk: false, toLx: fields.toLx || "", toMon: fields.toMon || "", tecnico: fields.tecnico || "", corriente: fields.corriente || "", scLoadIn: fields.scLoadIn || "", scStart: fields.scStart || "", scEnd: fields.scEnd || "", showStart: fields.showStart || "", showEnd: fields.showEnd || "", comments: [], extraSlots: [] };
     const updatedDays = stage.days.map((d, i) => i === dayIdx ? { ...d, artists: [...d.artists, newArt] } : d);
     const addDetail = [newArt.artist, newArt.console, newArt.connection, newArt.signal].filter(Boolean).join(" · ");
     await onEditFest(withLog(updateStage(updatedDays), mkLog(userEmail, "ADD_ARTIST", addDetail)));

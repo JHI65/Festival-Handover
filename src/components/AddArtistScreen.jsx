@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
 
 function AddArtistScreen({ onAdd, onBack, initial }) {
-  const [f, setF] = useState(initial ? { artist: initial.artist || "", console: initial.console || "", connection: initial.connection || "", signal: initial.signal || "", preset: initial.preset || "INITIAL", toLx: initial.toLx || "", toMon: initial.toMon || "", tecnico: initial.tecnico || "", corriente: initial.corriente || "", escConsole: initial.escConsole || "", escSignal: initial.escSignal || "", escConnection: initial.escConnection || "", escTecnico: initial.escTecnico || "" } : { artist: "", console: "", connection: "", signal: "", preset: "INITIAL", toLx: "", toMon: "", tecnico: "", corriente: "", escConsole: "", escSignal: "", escConnection: "", escTecnico: "" });
+  const [f, setF] = useState(initial ? { artist: initial.artist || "", console: initial.console || "", connection: initial.connection || "", signal: initial.signal || "", preset: initial.preset || "INITIAL", toLx: initial.toLx || "", toMon: initial.toMon || "", tecnico: initial.tecnico || "", corriente: initial.corriente || "", scLoadIn: initial.scLoadIn || "", scStart: initial.scStart || "", scEnd: initial.scEnd || "", showStart: initial.showStart || "", showEnd: initial.showEnd || "" } : { artist: "", console: "", connection: "", signal: "", preset: "INITIAL", toLx: "", toMon: "", tecnico: "", corriente: "", scLoadIn: "", scStart: "", scEnd: "", showStart: "", showEnd: "" });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const isEdit = !!initial;
 
@@ -34,13 +34,31 @@ function AddArtistScreen({ onAdd, onBack, initial }) {
       </div>
       <input value={f.preset} onChange={e => set("preset", e.target.value)} placeholder="Preset" style={{ ...S.input, marginBottom: 8 }} />
       <textarea value={f.corriente} onChange={e => set("corriente", e.target.value)} placeholder="Corriente" rows={1} style={{ ...S.input, marginBottom: 14, resize: "vertical", fontFamily: "inherit", fontSize: 12 }} />
-      <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>ESCENARIO</div>
-      <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-        <input value={f.escConsole} onChange={e => set("escConsole", e.target.value)} placeholder="Consola escenario" style={S.input} />
-        <input value={f.escSignal} onChange={e => set("escSignal", e.target.value)} placeholder="Señal escenario" style={S.input} />
+      <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>HORARIOS</div>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>LOAD IN</div>
+        <input type="time" value={f.scLoadIn} onChange={e => set("scLoadIn", e.target.value)} style={S.input} />
       </div>
-      <input value={f.escConnection} onChange={e => set("escConnection", e.target.value)} placeholder="Conexión escenario" style={{ ...S.input, marginBottom: 8 }} />
-      <input value={f.escTecnico} onChange={e => set("escTecnico", e.target.value)} placeholder="Técnico escenario" style={{ ...S.input, marginBottom: 14 }} />
+      <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>SC INICIO</div>
+          <input type="time" value={f.scStart} onChange={e => set("scStart", e.target.value)} style={S.input} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>SC FIN</div>
+          <input type="time" value={f.scEnd} onChange={e => set("scEnd", e.target.value)} style={S.input} />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>SHOW INICIO</div>
+          <input type="time" value={f.showStart} onChange={e => set("showStart", e.target.value)} style={S.input} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.1em", marginBottom: 4 }}>SHOW FIN</div>
+          <input type="time" value={f.showEnd} onChange={e => set("showEnd", e.target.value)} style={S.input} />
+        </div>
+      </div>
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={confirm} disabled={!f.artist.trim()} style={{ ...S.bigBtn, flex: 1, padding: "13px", marginTop: 0, opacity: f.artist.trim() ? 1 : 0.4 }}>{isEdit ? "Guardar cambios" : "Guardar artista"}</button>
         <button onClick={onBack} style={{ ...S.navBtn, flex: 0.5 }}>‹ Volver</button>
