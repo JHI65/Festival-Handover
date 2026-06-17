@@ -1,6 +1,6 @@
 {
   "name": "Festival Handover",
-  "short_name": "FestHandover",
+  "short_name": "FH",
   "description": "Gestiona y sincroniza tus handovers de sonido en tiempo real",
   "start_url": "/Festival-Handover/",
   "scope": "/Festival-Handover/",
