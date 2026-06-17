@@ -25,6 +25,7 @@ function NotificationSettings({ userId, onClose }) {
       } else {
         await subscribeToPush(userId);
         setEnabled(true);
+        onClose();
       }
     } catch (err) {
       setError(err.message || "No se pudo actualizar la suscripción");
@@ -40,10 +41,10 @@ function NotificationSettings({ userId, onClose }) {
         onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🔔</div>
         <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>
-          Avisos de soundcheck
+          Avisos
         </div>
         <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Recibe una notificación 30 min antes del soundcheck de cada artista del escenario en el que estés trabajando.
+          Recibe notificaciones de los artistas del escenario en el que estés trabajando.
         </div>
 
         {!supported && (
