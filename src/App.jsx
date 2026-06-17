@@ -722,6 +722,39 @@ function Main({ session, offlineBannerOffset }) {
           }
         }
       }
+
+      // Backfill para el owner: consultar emails de miembros sin identificar via RPC
+      if (navigator.onLine) {
+        const missingIds = new Set();
+        for (const x of f) {
+          if (x.user_id === userId) {
+            for (const mid of (x.members || [])) {
+              if (mid !== userId && !x.memberInfo?.[mid]?.email) missingIds.add(mid);
+            }
+          }
+        }
+        if (missingIds.size) {
+          supabase.rpc('get_member_emails', { user_ids: [...missingIds] }).then(({ data: emailData }) => {
+            if (!emailData?.length) return;
+            const emailMap = Object.fromEntries(emailData.map(e => [e.id, e.email]));
+            let updatedF = festsRef.current;
+            let changed = false;
+            updatedF = updatedF.map(x => {
+              if (x.user_id !== userId) return x;
+              const needsUpdate = (x.members || []).some(mid => mid !== userId && emailMap[mid] && !x.memberInfo?.[mid]?.email);
+              if (!needsUpdate) return x;
+              const newInfo = { ...x.memberInfo };
+              for (const mid of (x.members || [])) {
+                if (emailMap[mid] && !newInfo[mid]?.email) newInfo[mid] = { email: emailMap[mid] };
+              }
+              updateFestRow({ ...x, memberInfo: newInfo }).catch(() => {});
+              changed = true;
+              return { ...x, memberInfo: newInfo };
+            });
+            if (changed) setFests(updatedF);
+          }).catch(() => { /* RPC no disponible o sin red */ });
+        }
+      }
       } catch (err) {
         setLoadError(err.message || "Error al cargar datos");
       }
