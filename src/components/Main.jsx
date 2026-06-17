@@ -9,6 +9,7 @@ import {
   joinFestAsMember, pickFestId, mergeSharedFromFests, mergeNoteArrays,
   saveFestShared,
 } from "../lib/api";
+import { isPushSupported } from "../lib/push";
 import Style from "./Style";
 import Splash from "./Splash";
 import Home from "./Home";
@@ -17,6 +18,7 @@ import StageView from "./StageView";
 import FestView from "./FestView";
 import MonView from "./MonView";
 import EscenarioView from "./EscenarioView";
+import NotificationSettings from "./NotificationSettings";
 
 function Main({ session, offlineBannerOffset }) {
   const userId = session.user.id;
@@ -45,6 +47,16 @@ function Main({ session, offlineBannerOffset }) {
   const [loadError, setLoadError] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const toggleDark = () => setDarkMode(d => { const n = !d; localStorage.setItem("theme", n ? "dark" : "light"); return n; });
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+
+  useEffect(() => {
+    const key = `pushPromptShown:${userId}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+    if (isPushSupported() && typeof Notification !== "undefined" && Notification.permission === "default") {
+      setShowNotifPrompt(true);
+    }
+  }, [userId]);
 
   function persistOffline() {
     saveOfflineCache(userId, festsRef.current || [], notesRef.current, checksRef.current, slotsRef.current, dirtyFestIds.current, sharedDirtyRef.current);
@@ -568,6 +580,7 @@ function Main({ session, offlineBannerOffset }) {
             }}
           />
         )}
+        {showNotifPrompt && <NotificationSettings userId={userId} onClose={() => setShowNotifPrompt(false)} />}
         {conflictToast && (
           <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: darkMode ? "#2A2420" : "#1A1410", color: "#D4A843", fontFamily: "'DM Mono',monospace", fontSize: 12, padding: "10px 18px", borderRadius: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", zIndex: 9999, pointerEvents: "none", animation: "lg-fade .25s ease both", letterSpacing: "0.05em" }}>
             ↕ Cambios recibidos de otro técnico
