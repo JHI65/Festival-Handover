@@ -1,6 +1,7 @@
-// Cron job (cada minuto vía pg_cron) que envía un push 30 min antes del
-// soundcheck de cada artista, solo a los miembros asignados a ese stage.
-// Deploy: supabase functions deploy send-soundcheck-reminders
+// Cron job (cada minuto vía pg_cron) que envía hasta 3 avisos push por
+// artista — Load In (-30 min), Soundcheck (-15 min) y Show (-15 min) —
+// solo a los miembros asignados a ese stage. Ver REMINDER_TYPES abajo.
+// Deploy: supabase functions deploy send-soundcheck-reminders --no-verify-jwt
 // Secrets requeridos (supabase secrets set ...):
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (ya disponibles por defecto en runtime)
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:tu@email.com)
@@ -30,13 +31,20 @@ function minutesOfDay(t?: string | null) {
   return h * 60 + (m || 0);
 }
 
-// Minuto objetivo del aviso (30 min antes), con wraparound correcto si la
-// hora de referencia está cerca de medianoche (ej. 00:10 - 30 -> 23:40).
-function reminderMinuteFor(t?: string | null) {
+// Minuto objetivo del aviso (offset min antes), con wraparound correcto si
+// la hora de referencia está cerca de medianoche (ej. 00:10 - 30 -> 23:40).
+function reminderMinuteFor(t: string | null | undefined, offset: number) {
   const mins = minutesOfDay(t);
   if (mins === null) return null;
-  return ((mins - 30) % 1440 + 1440) % 1440;
+  return ((mins - offset) % 1440 + 1440) % 1440;
 }
+
+// Un artista puede disparar hasta 3 avisos independientes.
+const REMINDER_TYPES = [
+  { field: "scLoadIn", type: "loadin", offset: 30, title: "Load In en 30 min" },
+  { field: "scStart", type: "soundcheck", offset: 15, title: "Soundcheck en 15 min" },
+  { field: "showStart", type: "show", offset: 15, title: "Show en 15 min" },
+] as const;
 
 function madridNow() {
   const now = new Date();
@@ -69,7 +77,7 @@ Deno.serve(async (req) => {
   }
 
   let sent = 0;
-  const dueReminders: { fest: any; stage: any; day: any; artist: any; key: string }[] = [];
+  const dueReminders: { fest: any; stage: any; day: any; artist: any; key: string; title: string; refTime: string }[] = [];
 
   for (const fest of festivals || []) {
     const stages = fest.days?._stages || [];
@@ -78,20 +86,20 @@ Deno.serve(async (req) => {
       for (const day of stage.days || []) {
         if (day.date !== todayStr) continue;
         for (const artist of day.artists || []) {
-          // Si hay Load In, el aviso se basa en eso; si no, en el soundcheck.
-          const isLoadIn = !!artist.scLoadIn;
-          const refTime = artist.scLoadIn || artist.scStart;
-          if (!refTime) continue;
-          const reminderMin = reminderMinuteFor(refTime);
-          if (reminderMin === null || reminderMin !== nowMin) continue;
-          const key = `${fest.id}__${stage.id}__${day.id}__${artist.id}`;
-          dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key, isLoadIn, refTime });
+          for (const rt of REMINDER_TYPES) {
+            const refTime = artist[rt.field];
+            if (!refTime) continue;
+            const reminderMin = reminderMinuteFor(refTime, rt.offset);
+            if (reminderMin === null || reminderMin !== nowMin) continue;
+            const key = `${fest.id}__${stage.id}__${day.id}__${artist.id}__${rt.type}`;
+            dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key, title: rt.title, refTime });
+          }
         }
       }
     }
   }
 
-  for (const { fest, stage, day, artist, key, isLoadIn, refTime } of dueReminders) {
+  for (const { fest, stage, day, artist, key, title, refTime } of dueReminders) {
     // Dedupe: si ya existe la key, ya se envió en una invocación anterior.
     const { error: insertErr } = await supabase
       .from("sent_soundcheck_reminders")
@@ -111,7 +119,7 @@ Deno.serve(async (req) => {
       .in("user_id", targetIds);
 
     const payload = JSON.stringify({
-      title: isLoadIn ? "Load In en 30 min" : "Soundcheck en 30 min",
+      title,
       body: `${artist.artist || "Artista"} · ${stage.name} · ${refTime}`,
       url: "/Festival-Handover/",
       tag: key,
