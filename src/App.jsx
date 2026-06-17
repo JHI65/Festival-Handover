@@ -265,14 +265,51 @@ function mergeSharedFromFests(fests) {
   }
   return { notes, checks, slots };
 }
-async function saveFestShared(festId, notes, checks, slots) {
+// Union de arrays de notas por ts — nunca se pierden notas de ningún técnico
+function mergeNoteArrays(remote, local) {
+  const remTs = new Set((remote || []).map(n => n.ts));
+  const combined = [...(remote || []), ...(local || []).filter(n => !remTs.has(n.ts))];
+  combined.sort((a, b) => a.ts - b.ts);
+  return combined;
+}
+// Merge de slots por id — los locales ganan, los remotos no presentes se conservan
+function mergeSlotArrays(remote, local) {
+  const locIds = new Set((local || []).map(s => s.id));
+  return [...(local || []), ...(remote || []).filter(s => !locIds.has(s.id))];
+}
+async function saveFestShared(festId, localNotes, localChecks, localSlots, changedNoteKeys = [], changedSlotKeys = []) {
+  const { data } = await supabase
+    .from("festivals")
+    .select("notes, checks, slots")
+    .eq("id", festId)
+    .maybeSingle();
+
+  const rN = data?.notes || {};
+  const rC = data?.checks || {};
+  const rS = data?.slots || {};
+
+  const lN = filterByFest(localNotes, festId);
+  const lC = filterByFest(localChecks, festId);
+  const lS = filterByFest(localSlots, festId);
+
+  // Notes: para keys que el usuario acaba de cambiar, hacer union por ts
+  const mergedN = { ...rN, ...lN };
+  for (const key of changedNoteKeys) {
+    if (lN[key] !== undefined) mergedN[key] = mergeNoteArrays(rN[key], lN[key]);
+  }
+
+  // Checks: local gana (sabemos exactamente qué toggle se hizo)
+  const mergedC = { ...rC, ...lC };
+
+  // Slots: para keys cambiadas, merge por id (local gana)
+  const mergedS = { ...rS, ...lS };
+  for (const key of changedSlotKeys) {
+    if (lS[key] !== undefined) mergedS[key] = mergeSlotArrays(rS[key], lS[key]);
+  }
+
   const { error } = await supabase
     .from("festivals")
-    .update({
-      notes: filterByFest(notes, festId),
-      checks: filterByFest(checks, festId),
-      slots: filterByFest(slots, festId),
-    })
+    .update({ notes: mergedN, checks: mergedC, slots: mergedS })
     .eq("id", festId);
   if (error) console.error("saveFestShared error:", error);
 }
@@ -456,11 +493,26 @@ function Main({ session }) {
   const [notes, setNotesState] = useState({});
   const [checks, setChecksState] = useState({});
   const [slots, setSlotsState] = useState({});
+  const notesRef = useRef({});
+  const checksRef = useRef({});
+  const slotsRef = useRef({});
+  const [conflictToast, setConflictToast] = useState(false);
+  const conflictTimerRef = useRef(null);
   const [screen, setScreen] = useState("home");
   const [lastSync, setLastSync] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const toggleDark = () => setDarkMode(d => { const n = !d; localStorage.setItem("theme", n ? "dark" : "light"); return n; });
+
+  function setNotes(n) { notesRef.current = n; setNotesState(n); }
+  function setChecks(c) { checksRef.current = c; setChecksState(c); }
+  function setSlots(s) { slotsRef.current = s; setSlotsState(s); }
+
+  function showConflictToast() {
+    setConflictToast(true);
+    if (conflictTimerRef.current) clearTimeout(conflictTimerRef.current);
+    conflictTimerRef.current = setTimeout(() => setConflictToast(false), 3000);
+  }
 
   useEffect(() => {
     (async () => {
@@ -509,9 +561,9 @@ function Main({ session }) {
 
       const sd = mergeSharedFromFests(f);
       setFests(f);
-      setNotesState(sd.notes);
-      setChecksState(sd.checks);
-      setSlotsState(sd.slots);
+      setNotes(sd.notes);
+      setChecks(sd.checks);
+      setSlots(sd.slots);
       setLastSync(new Date());
       } catch (err) {
         setLoadError(err.message || "Error al cargar datos");
@@ -530,9 +582,25 @@ function Main({ session }) {
           const f = await loadFests(userId);
           const sd = mergeSharedFromFests(f);
           setFests(prev => JSON.stringify(prev) === JSON.stringify(f) ? prev : f);
-          setNotesState(prev => JSON.stringify(prev) === JSON.stringify(sd.notes) ? prev : sd.notes);
-          setChecksState(prev => JSON.stringify(prev) === JSON.stringify(sd.checks) ? prev : sd.checks);
-          setSlotsState(prev => JSON.stringify(prev) === JSON.stringify(sd.slots) ? prev : sd.slots);
+
+          // Merge de notas: conservar notas locales no guardadas aún
+          const prevNotes = notesRef.current;
+          const mergedNotes = { ...sd.notes };
+          for (const key in prevNotes) {
+            if (Array.isArray(prevNotes[key]) && Array.isArray(sd.notes[key])) {
+              mergedNotes[key] = mergeNoteArrays(sd.notes[key], prevNotes[key]);
+            }
+          }
+
+          const notesChanged = JSON.stringify(mergedNotes) !== JSON.stringify(prevNotes);
+          const checksChanged = JSON.stringify(sd.checks) !== JSON.stringify(checksRef.current);
+          const slotsChanged = JSON.stringify(sd.slots) !== JSON.stringify(slotsRef.current);
+
+          if (notesChanged) setNotes(mergedNotes);
+          if (checksChanged) setChecks(sd.checks);
+          if (slotsChanged) setSlots(sd.slots);
+          if (notesChanged || checksChanged || slotsChanged) showConflictToast();
+          setLastSync(new Date());
         }
       )
       .subscribe();
@@ -543,9 +611,9 @@ function Main({ session }) {
     const f = await loadFests(userId);
     const sd = mergeSharedFromFests(f);
     setFests(f);
-    setNotesState(sd.notes);
-    setChecksState(sd.checks);
-    setSlotsState(sd.slots);
+    setNotes(sd.notes);
+    setChecks(sd.checks);
+    setSlots(sd.slots);
     setLastSync(new Date());
   }
 
@@ -570,23 +638,30 @@ function Main({ session }) {
   }
 
   async function updateNotes(n) {
-    setNotesState(n);
-    // Persistir en cada festival que tenga keys modificadas
+    const changedKeys = Object.keys(n).filter(k => JSON.stringify(n[k]) !== JSON.stringify(notesRef.current[k]));
+    setNotes(n);
     const fids = new Set([...Object.keys(n), ...Object.keys(notes)].map(pickFestId));
-    for (const fid of fids) if (fid) await saveFestShared(fid, n, checks, slots);
+    for (const fid of fids) if (fid) {
+      const fChangedKeys = changedKeys.filter(k => pickFestId(k) === fid);
+      await saveFestShared(fid, n, checks, slots, fChangedKeys, []);
+    }
   }
 
   async function toggleCheck(ckey) {
     const next = { ...checks, [ckey]: !checks[ckey] };
-    setChecksState(next);
+    setChecks(next);
     const fid = pickFestId(ckey);
-    if (fid) await saveFestShared(fid, notes, next, slots);
+    if (fid) await saveFestShared(fid, notes, next, slots, [], []);
   }
 
   async function updateSlots(sl) {
-    setSlotsState(sl);
+    const changedKeys = Object.keys(sl).filter(k => JSON.stringify(sl[k]) !== JSON.stringify(slotsRef.current[k]));
+    setSlots(sl);
     const fids = new Set([...Object.keys(sl), ...Object.keys(slots)].map(pickFestId));
-    for (const fid of fids) if (fid) await saveFestShared(fid, notes, checks, sl);
+    for (const fid of fids) if (fid) {
+      const fChangedKeys = changedKeys.filter(k => pickFestId(k) === fid);
+      await saveFestShared(fid, notes, checks, sl, [], fChangedKeys);
+    }
   }
 
   async function logout() {
@@ -687,6 +762,11 @@ function Main({ session }) {
               setScreen("stages");
             }}
           />
+        )}
+        {conflictToast && (
+          <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: darkMode ? "#2A2420" : "#1A1410", color: "#D4A843", fontFamily: "'DM Mono',monospace", fontSize: 12, padding: "10px 18px", borderRadius: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", zIndex: 9999, pointerEvents: "none", animation: "lg-fade .25s ease both", letterSpacing: "0.05em" }}>
+            ↕ Cambios recibidos de otro técnico
+          </div>
         )}
       </div>
     </ThemeCtx.Provider>
