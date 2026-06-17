@@ -74,7 +74,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
                 borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
                 textAlign: "left", fontFamily: "'DM Mono',monospace",
-              }}>🔔 Avisos de soundcheck</button>
+              }}>🔔 Avisos</button>
               <div style={{ height: 1, background: T.border2, margin: "2px 0" }} />
               <button onClick={onLogout} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
