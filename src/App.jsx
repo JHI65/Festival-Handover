@@ -136,7 +136,7 @@ function LoginScreen() {
       {showInstall && (
         <div onClick={() => setShowInstall(false)} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(10,7,5,0.30)", backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px", animation: "lg-fade .3s cubic-bezier(.2,.7,.3,1) both" }}>
           <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: "linear-gradient(160deg, #2E2318, #1E1610)", border: "1px solid rgba(245,239,224,0.14)", borderRadius: 28, padding: "30px 26px 26px", boxShadow: "0 24px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,239,224,0.08)", textAlign: "center" }}>
-            <div style={{ fontSize: 44, marginBottom: 14, lineHeight: 1 }}>📲</div>
+            <div style={{ fontSize: 44, marginBottom: 14, lineHeight: 1 }}>{isMobileOrTablet ? "📲" : "🖥️"}</div>
             <div style={{ fontSize: 11, color: "#C94A2A", letterSpacing: "0.25em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>INSTALAR APP</div>
             <div style={{ fontSize: 26, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 8 }}>Úsala como app nativa</div>
             <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
