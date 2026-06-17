@@ -2680,19 +2680,40 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
           <div style={{ display: "flex", gap: 8 }}>
             {navigator.share && (
               <button onClick={() => startAction("share")} style={{
-                flex: 1, padding: "13px 0", borderRadius: 10, border: "none", cursor: "pointer",
-                fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, letterSpacing: "0.05em",
+                flex: 1, padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer",
+                fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em",
                 background: dark ? "#334155" : "#0f172a", color: "#fff",
-              }}>COMPARTIR</button>
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                COMPARTIR
+              </button>
             )}
             <button onClick={() => startAction("copy")} style={{
-              flex: 1, padding: "13px 0", borderRadius: 10, cursor: "pointer",
-              fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, letterSpacing: "0.05em",
+              flex: 1, padding: "14px 0", borderRadius: 12, cursor: "pointer",
+              fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em",
               background: copied ? "#16a34a" : T.card2,
               color: copied ? "#fff" : T.text2,
               border: `1.5px solid ${copied ? "#16a34a" : T.border}`,
-              transition: "all 0.15s",
-            }}>{copied ? "✓ COPIADO" : "COPIAR URL"}</button>
+              transition: "all 0.2s",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+              {copied ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+              )}
+              {copied ? "COPIADO" : "COPIAR URL"}
+            </button>
           </div>
         )}
 
