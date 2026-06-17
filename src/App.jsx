@@ -22,7 +22,7 @@ const INSTALL_STEPS = {
     <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
   ],
   desktop: [
-    <>Icono de instalación <span style={{ color: "#D4A843" }}>⊞</span> en la barra de direcciones</>,
+    <>Icono de instalación <span style={{ color: "#D4A843" }}>🖥️⬇</span> a la derecha de la barra de direcciones</>,
     <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
   ],
 };
@@ -140,8 +140,8 @@ function LoginScreen() {
             <div style={{ fontSize: 26, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 8 }}>Úsala como app nativa</div>
             <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
               {isMobileOrTablet
-                ? "Añádela a tu pantalla de inicio para abrirla en pantalla completa, sin barras del navegador."
-                : "Añádela a tu escritorio para abrirla en pantalla completa, sin barras del navegador."}
+                ? "Instálala desde el navegador y ábrela como una app más, directamente desde tu pantalla de inicio."
+                : "Instálala desde el navegador y ábrela en su propia ventana, sin pestañas ni barra de direcciones."}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", marginBottom: 24 }}>
               {isMobileOrTablet ? (
