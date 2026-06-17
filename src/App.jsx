@@ -645,20 +645,36 @@ function Main({ session, offlineBannerOffset }) {
   // Sincronizar cambios offline cuando se vuelve online
   useEffect(() => {
     const handleOnline = async () => {
-      try {
-        const allFestIds = new Set();
-        [...Object.keys(notesRef.current), ...Object.keys(checksRef.current), ...Object.keys(slotsRef.current)]
-          .forEach(k => {
-            const fid = pickFestId(k);
-            if (fid) allFestIds.add(fid);
-          });
+      // Esperar 1.5s a que la conexión se estabilice completamente
+      await new Promise(r => setTimeout(r, 1500));
 
-        for (const fid of allFestIds) {
-          await saveFestShared(fid, notesRef.current, checksRef.current, slotsRef.current);
+      const allFestIds = new Set();
+      [...Object.keys(notesRef.current), ...Object.keys(checksRef.current), ...Object.keys(slotsRef.current)]
+        .forEach(k => {
+          const fid = pickFestId(k);
+          if (fid) allFestIds.add(fid);
+        });
+
+      // Reintentar sincronización hasta 3 veces si falla
+      let retries = 0;
+      const maxRetries = 3;
+      while (retries < maxRetries) {
+        try {
+          for (const fid of allFestIds) {
+            await saveFestShared(fid, notesRef.current, checksRef.current, slotsRef.current);
+          }
+          setLastSync(new Date());
+          console.log("✓ Cambios offline sincronizados");
+          return;
+        } catch (err) {
+          retries++;
+          if (retries < maxRetries) {
+            console.warn(`Reintentando sincronización (${retries}/${maxRetries})...`);
+            await new Promise(r => setTimeout(r, 1000));
+          } else {
+            console.error("Error sincronizando cambios offline después de 3 intentos:", err);
+          }
         }
-        setLastSync(new Date());
-      } catch (err) {
-        console.error("Error sincronizando cambios offline:", err);
       }
     };
 
