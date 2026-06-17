@@ -893,6 +893,26 @@ function Main({ session, offlineBannerOffset }) {
     setFests(next);
   }
 
+  async function duplicateFestByName(sourceFest, newName) {
+    const copy = {
+      id: uid(),
+      name: newName,
+      stages: (sourceFest.stages || []).map(s => ({
+        ...s,
+        id: uid(),
+        days: (s.days || []).map(d => ({
+          ...d,
+          id: uid(),
+          artists: (d.artists || []).map(a => ({ ...a, id: uid() })),
+        })),
+      })),
+      log: [],
+      roles: {},
+      memberInfo: {},
+    };
+    await addFest(copy);
+  }
+
   async function addFest(fest) {
     if (!navigator.onLine) {
       // Sin red: guardar local SIN user_id para que se haga INSERT al reconectar
@@ -1032,6 +1052,7 @@ function Main({ session, offlineBannerOffset }) {
             onNew={() => setScreen("builder")}
             onDelete={removeFest}
             onEdit={updateFest}
+            onDuplicate={duplicateFestByName}
             onLogout={logout}
           />
         )}
@@ -1119,7 +1140,7 @@ function Splash() {
 }
 
 /* ---------- home ---------- */
-function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onLogout }) {
+function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onDuplicate, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
@@ -1286,6 +1307,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onLogout }
           <FestEditModal
             fest={fest}
             onSave={updated => { onEdit(updated); setEditFestId(null); }}
+            onDuplicate={(newName) => { onDuplicate(fests.find(f => f.id === editFestId), newName); }}
             onClose={() => setEditFestId(null)}
           />
         );
@@ -2910,9 +2932,11 @@ function FohNotes({ notes, onAdd, onDel }) {
 }
 
 /* ---------- fest edit modal ---------- */
-function FestEditModal({ fest, onSave, onClose }) {
+function FestEditModal({ fest, onSave, onDuplicate, onClose }) {
   const [name, setName] = useState(fest.name);
   const [stages, setStages] = useState(() => (fest.stages || []).map(s => ({ ...s, days: (s.days || []).map(d => ({ ...d })) })));
+  const [dupMode, setDupMode] = useState(false);
+  const [dupName, setDupName] = useState(`${fest.name} (copia)`);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
   function updDay(stageId, dayId, patch) {
@@ -2994,6 +3018,36 @@ function FestEditModal({ fest, onSave, onClose }) {
             Guardar
           </button>
         </div>
+
+        {/* Duplicar festival */}
+        {!dupMode ? (
+          <button onClick={() => setDupMode(true)} style={{
+            width: "100%", marginTop: 12, padding: "12px", borderRadius: 12,
+            border: `1.5px dashed ${T.border}`, background: "transparent",
+            fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700,
+            color: T.text4, cursor: "pointer", letterSpacing: "0.06em",
+          }}>
+            📋 DUPLICAR FESTIVAL
+          </button>
+        ) : (
+          <div style={{ marginTop: 12, padding: "14px", borderRadius: 12, border: `1.5px solid ${T.border}`, background: T.card2 }}>
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>NOMBRE DE LA COPIA</div>
+            <input
+              value={dupName}
+              onChange={e => setDupName(e.target.value)}
+              autoFocus
+              style={{ ...S.input, marginBottom: 10 }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setDupMode(false)} style={{ flex: 1, padding: "10px", background: "transparent", border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text3 }}>
+                Cancelar
+              </button>
+              <button onClick={() => { if (dupName.trim()) { onDuplicate(dupName.trim()); onClose(); } }} disabled={!dupName.trim()} style={{ flex: 1, padding: "10px", background: "#D4A843", border: "none", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: dupName.trim() ? "pointer" : "not-allowed", fontFamily: "'DM Mono',monospace", color: "#fff", opacity: dupName.trim() ? 1 : 0.4 }}>
+                Duplicar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
