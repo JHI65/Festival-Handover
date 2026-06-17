@@ -2661,18 +2661,15 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { key: "editor", label: "EDITOR", icon: "✏️", desc: "Puede editar notas, checks y slots en tiempo real", accent: "#16a34a" },
-                { key: "viewer", label: "VISOR",  icon: "👁",  desc: "Solo lectura — ideal para producción o promotora",  accent: "#6366f1" },
+                { key: "editor", label: "EDITOR", icon: "✏️", accent: "#16a34a" },
+                { key: "viewer", label: "VISOR",  icon: "👁",  accent: "#6366f1" },
               ].map(r => (
                 <button key={r.key} onClick={() => pickRole(r.key)} style={{
                   width: "100%", padding: "16px 18px", borderRadius: 14, border: `1.5px solid ${T.border}`,
                   background: T.card2, cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
                 }}>
                   <span style={{ fontSize: 22 }}>{r.icon}</span>
-                  <div>
-                    <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 18, color: r.accent, letterSpacing: "0.08em", lineHeight: 1 }}>{r.label}</div>
-                    <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace", marginTop: 4, lineHeight: 1.4 }}>{r.desc}</div>
-                  </div>
+                  <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 18, color: r.accent, letterSpacing: "0.08em" }}>{r.label}</span>
                   {copied ? <span style={{ marginLeft: "auto", color: "#16a34a", fontSize: 13 }}>✓</span> : <span style={{ marginLeft: "auto", color: T.text4, fontSize: 18 }}>›</span>}
                 </button>
               ))}
