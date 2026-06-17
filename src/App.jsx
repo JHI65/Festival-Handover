@@ -642,6 +642,30 @@ function Main({ session, offlineBannerOffset }) {
     return () => supabase.removeChannel(channel);
   }, [userId]);
 
+  // Sincronizar cambios offline cuando se vuelve online
+  useEffect(() => {
+    const handleOnline = async () => {
+      try {
+        const allFestIds = new Set();
+        [...Object.keys(notesRef.current), ...Object.keys(checksRef.current), ...Object.keys(slotsRef.current)]
+          .forEach(k => {
+            const fid = pickFestId(k);
+            if (fid) allFestIds.add(fid);
+          });
+
+        for (const fid of allFestIds) {
+          await saveFestShared(fid, notesRef.current, checksRef.current, slotsRef.current);
+        }
+        setLastSync(new Date());
+      } catch (err) {
+        console.error("Error sincronizando cambios offline:", err);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
+
   async function refresh() {
     const f = await loadFests(userId);
     const sd = mergeSharedFromFests(f);
