@@ -2604,29 +2604,27 @@ function LogModal({ log, festName, onClose }) {
 function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
   const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
-  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "viewer" | "members"
-  const [copied, setCopied] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState(null); // userId pendiente de expulsar
+  const [copiedRole, setCopiedRole] = useState(null); // "editor" | "viewer"
+  const [showMembers, setShowMembers] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(null);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
-  const currentUrl = activeTab === "viewer" ? viewerUrl : editorUrl;
-
-  function copy() {
-    navigator.clipboard.writeText(currentUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  function copyUrl(role) {
+    const url = role === "viewer" ? viewerUrl : editorUrl;
+    navigator.clipboard.writeText(url).then(() => { setCopiedRole(role); setTimeout(() => setCopiedRole(null), 2000); });
   }
 
-  async function share() {
+  async function shareUrl(role) {
+    const url = role === "viewer" ? viewerUrl : editorUrl;
+    const label = role === "viewer" ? "Visor" : "Editor";
     if (navigator.share) {
-      try { await navigator.share({ title: fest.name, text: `Festival ${fest.name}`, url: currentUrl }); return; } catch { /* cancelado */ }
+      try { await navigator.share({ title: fest.name, text: `Te invito a ${fest.name} como ${label}`, url }); return; } catch { /* cancelado */ }
     }
-    copy();
+    copyUrl(role);
   }
 
-  // Miembros (excluye al owner)
   const members = (fest.members || []).filter(m => m !== ownerId && m !== fest.user_id);
-  function setRole(mid, role) {
-    onManageMembers({ ...fest, roles: { ...fest.roles, [mid]: role } });
-  }
+  function setRole(mid, role) { onManageMembers({ ...fest, roles: { ...fest.roles, [mid]: role } }); }
   function removeMember(mid) {
     const newMembers = (fest.members || []).filter(m => m !== mid);
     const newRoles = { ...fest.roles }; delete newRoles[mid];
@@ -2635,88 +2633,102 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
     setConfirmRemove(null);
   }
 
-  const tabs = [
-    { key: "editor", label: "Editor", desc: "Puede editar notas, checks y slots en vivo" },
-    { key: "viewer", label: "Visor", desc: "Solo lectura — ideal para producción o promotora" },
-    ...(isOwner ? [{ key: "members", label: "Miembros", desc: "" }] : []),
+  const roles = [
+    { key: "editor", label: "EDITOR", icon: "✏️", desc: "Puede editar notas, checks y slots en tiempo real", accent: "#16a34a" },
+    { key: "viewer", label: "VISOR", icon: "👁", desc: "Solo lectura — ideal para producción o promotora", accent: "#6366f1" },
   ];
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "flex-end" }} onClick={onClose}>
-      <div style={{ background: T.card, borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 480, margin: "0 auto" }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <div style={{ background: T.card, borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 480, margin: "0 auto", maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>COMPARTIR</div>
+            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>INVITAR AL FESTIVAL</div>
             <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{fest.name}</div>
           </div>
           <button onClick={onClose} style={S.iconBtn}>✕</button>
         </div>
-        {/* Tab selector */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 16, background: T.card2, borderRadius: 10, padding: 4 }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => { setActiveTab(t.key); setCopied(false); }} style={{
-              flex: 1, padding: "8px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "'DM Mono',monospace",
-              fontSize: 12, fontWeight: 700, transition: "all 0.15s",
-              background: activeTab === t.key ? T.card : "transparent",
-              color: activeTab === t.key ? T.text : T.text4,
-              boxShadow: activeTab === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-            }}>{t.label}</button>
-          ))}
-        </div>
 
-        {activeTab === "members" ? (
-          /* ---- Gestión de miembros ---- */
-          <div>
-            {members.length === 0 ? (
-              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 12, color: T.text4, fontFamily: "monospace" }}>
-                Aún no hay miembros. Comparte el enlace de Editor o Visor para invitar.
-              </div>
-            ) : members.map(mid => {
-              const email = fest.memberInfo?.[mid]?.email || `Usuario ${mid.slice(0, 6)}`;
-              const role = fest.roles?.[mid] || "editor";
-              return (
-                <div key={mid} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ fontSize: 12, color: T.text, fontFamily: "monospace", wordBreak: "break-all", flex: 1 }}>{email}</div>
-                    {confirmRemove === mid ? (
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={() => removeMember(mid)} style={{ padding: "5px 8px", borderRadius: 6, border: "none", background: "#ef4444", color: "#fff", fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Expulsar</button>
-                        <button onClick={() => setConfirmRemove(null)} style={{ padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, background: "transparent", color: T.text3, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Cancelar</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => setConfirmRemove(mid)} title="Expulsar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", color: T.text4, fontSize: 14, cursor: "pointer" }}>✕</button>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                    {["editor", "viewer"].map(r => (
-                      <button key={r} onClick={() => setRole(mid, r)} style={{
-                        flex: 1, padding: "7px", borderRadius: 7, cursor: "pointer", fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700,
-                        border: role === r ? "none" : `1px solid ${T.border}`,
-                        background: role === r ? (r === "viewer" ? "#6366f1" : "#16a34a") : "transparent",
-                        color: role === r ? "#fff" : T.text4,
-                      }}>{r === "viewer" ? "Visor" : "Editor"}</button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          /* ---- Compartir por enlace ---- */
-          <>
-            <div style={{ padding: "12px 14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace" }}>
-                {tabs.find(t => t.key === activeTab)?.desc}
-              </div>
+        {/* Role cards */}
+        {roles.map(r => (
+          <div key={r.key} style={{ background: T.card2, border: `1.5px solid ${T.border}`, borderRadius: 14, padding: "14px 14px 12px", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 14 }}>{r.icon}</span>
+              <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 16, color: r.accent, letterSpacing: "0.08em" }}>{r.label}</span>
             </div>
-            <div style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, wordBreak: "break-all", fontSize: 10, color: T.text3, maxHeight: 60, overflow: "hidden" }}>{currentUrl.slice(0, 120)}{currentUrl.length > 120 ? "…" : ""}</div>
+            <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace", marginBottom: 12, lineHeight: 1.5 }}>{r.desc}</div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={share} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: dark ? "#334155" : "#0f172a" }}>Compartir</button>
-              <button onClick={copy} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: copied ? "#16a34a" : T.card2, color: copied ? "#fff" : T.text2, border: `1px solid ${T.border}` }}>
-                {copied ? "✓ Copiado" : "Copiar URL"}
-              </button>
+              <button onClick={() => shareUrl(r.key)} style={{
+                flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer",
+                fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
+                background: r.accent, color: "#fff",
+              }}>Compartir enlace</button>
+              <button onClick={() => copyUrl(r.key)} style={{
+                flex: 1, padding: "9px 0", borderRadius: 8, cursor: "pointer",
+                fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
+                background: copiedRole === r.key ? r.accent : "transparent",
+                color: copiedRole === r.key ? "#fff" : T.text3,
+                border: `1.5px solid ${copiedRole === r.key ? r.accent : T.border}`,
+                transition: "all 0.15s",
+              }}>{copiedRole === r.key ? "✓ Copiado" : "Copiar URL"}</button>
             </div>
-          </>
+          </div>
+        ))}
+
+        {/* Miembros (solo owner) */}
+        {isOwner && (
+          <div style={{ marginTop: 6 }}>
+            <button onClick={() => setShowMembers(v => !v)} style={{
+              width: "100%", padding: "11px 14px", borderRadius: 10, border: `1px solid ${T.border}`,
+              background: "transparent", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
+              fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700, color: T.text3,
+            }}>
+              <span>Gestionar miembros{members.length > 0 ? ` (${members.length})` : ""}</span>
+              <span style={{ fontSize: 10, transition: "transform 0.15s", display: "inline-block", transform: showMembers ? "rotate(90deg)" : "rotate(0deg)" }}>›</span>
+            </button>
+            {showMembers && (
+              <div style={{ marginTop: 8 }}>
+                {members.length === 0 ? (
+                  <div style={{ padding: "16px 14px", textAlign: "center", fontSize: 11, color: T.text4, fontFamily: "monospace" }}>
+                    Aún no hay miembros. Comparte un enlace para invitar.
+                  </div>
+                ) : members.map(mid => {
+                  const email = fest.memberInfo?.[mid]?.email || `Usuario ${mid.slice(0, 6)}`;
+                  const role = fest.roles?.[mid] || "editor";
+                  const roleColor = role === "viewer" ? "#6366f1" : "#16a34a";
+                  return (
+                    <div key={mid} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 11, color: T.text, fontFamily: "monospace", wordBreak: "break-all" }}>{email}</div>
+                          <div style={{ fontSize: 10, color: roleColor, fontFamily: "monospace", fontWeight: 700, marginTop: 2 }}>{role === "viewer" ? "VISOR" : "EDITOR"}</div>
+                        </div>
+                        {confirmRemove === mid ? (
+                          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                            <button onClick={() => removeMember(mid)} style={{ padding: "5px 8px", borderRadius: 6, border: "none", background: "#ef4444", color: "#fff", fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Expulsar</button>
+                            <button onClick={() => setConfirmRemove(null)} style={{ padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, background: "transparent", color: T.text3, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Cancelar</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmRemove(mid)} title="Expulsar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", color: T.text4, fontSize: 14, cursor: "pointer", flexShrink: 0 }}>✕</button>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {["editor", "viewer"].map(r => (
+                          <button key={r} onClick={() => setRole(mid, r)} style={{
+                            flex: 1, padding: "7px", borderRadius: 7, cursor: "pointer", fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700,
+                            border: role === r ? "none" : `1px solid ${T.border}`,
+                            background: role === r ? (r === "viewer" ? "#6366f1" : "#16a34a") : "transparent",
+                            color: role === r ? "#fff" : T.text4,
+                          }}>{r === "viewer" ? "Visor" : "Editor"}</button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
