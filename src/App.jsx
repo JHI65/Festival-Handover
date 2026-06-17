@@ -16,7 +16,23 @@ const INSTALL_STEPS = {
     <>"<span style={{ color: "#D4A843" }}>Añadir a pantalla de inicio</span>"</>,
     <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
   ],
+  mac: [
+    <>Clic en "Compartir" <span style={{ color: "#D4A843" }}>⎙</span> en la barra superior</>,
+    <>"<span style={{ color: "#D4A843" }}>Añadir al Dock</span>"</>,
+    <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
+  ],
+  desktop: [
+    <>Menú <span style={{ color: "#D4A843" }}>⋮</span> arriba a la derecha</>,
+    <>"Más herramientas" → "<span style={{ color: "#D4A843" }}>Crear acceso directo...</span>"</>,
+    <>Marca "Abrir como ventana" y pulsa "<span style={{ color: "#D4A843" }}>Crear</span>"</>,
+  ],
 };
+
+function isMobileOrTabletDevice() {
+  const ua = navigator.userAgent;
+  const isTouchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1; // iPadOS reports as Mac
+  return /iPhone|iPad|iPod|Android/i.test(ua) || isTouchMac;
+}
 
 function InstallSteps({ icon, title, steps }) {
   return (
@@ -52,6 +68,7 @@ function LoginScreen() {
   const [showInstall, setShowInstall] = useState(
     () => !(window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches)
   );
+  const isMobileOrTablet = isMobileOrTabletDevice();
 
   useEffect(() => {
     const el = document.documentElement;
@@ -123,11 +140,22 @@ function LoginScreen() {
             <div style={{ fontSize: 11, color: "#C94A2A", letterSpacing: "0.25em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>INSTALAR APP</div>
             <div style={{ fontSize: 26, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 8 }}>Úsala como app nativa</div>
             <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
-              Añádela a tu pantalla de inicio para abrirla en pantalla completa, sin barras del navegador.
+              {isMobileOrTablet
+                ? "Añádela a tu pantalla de inicio para abrirla en pantalla completa, sin barras del navegador."
+                : "Añádela a tu escritorio para abrirla en pantalla completa, sin barras del navegador."}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", marginBottom: 24 }}>
-              <InstallSteps icon="🍎" title="iPhone / iPad — Safari" steps={INSTALL_STEPS.ios} />
-              <InstallSteps icon="🤖" title="Android — Chrome" steps={INSTALL_STEPS.android} />
+              {isMobileOrTablet ? (
+                <>
+                  <InstallSteps icon="🍎" title="iPhone / iPad — Safari" steps={INSTALL_STEPS.ios} />
+                  <InstallSteps icon="🤖" title="Android — Chrome" steps={INSTALL_STEPS.android} />
+                </>
+              ) : (
+                <>
+                  <InstallSteps icon="🍎" title="Mac — Safari" steps={INSTALL_STEPS.mac} />
+                  <InstallSteps icon="💻" title="Windows / Mac — Chrome" steps={INSTALL_STEPS.desktop} />
+                </>
+              )}
             </div>
             <button onClick={() => setShowInstall(false)} className="lg-btn" style={{ width: "100%", padding: "15px", borderRadius: 14, background: "#D4A843", border: "none", color: "#1A1410", fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.12em", boxShadow: "0 4px 18px rgba(212,168,67,0.3)" }}>¡ENTENDIDO!</button>
           </div>
