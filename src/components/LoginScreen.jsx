@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
-import { supabase } from "./supabase";
-import Style from "./components/Style";
-import Splash from "./components/Splash";
-import Main from "./components/Main";
+import { supabase } from "../supabase";
+import Style from "./Style";
 
-/* ---------- login screen ---------- */
 const INSTALL_STEPS = {
   ios: [
     <>"Compartir" <span style={{ color: "#D4A843" }}>⎙</span> en la barra inferior</>,
@@ -137,58 +134,4 @@ function LoginScreen() {
   );
 }
 
-/* ============================================================ */
-export default function App() {
-  const [session, setSession] = useState(undefined);
-  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const goOnline = () => setIsOnline(true);
-    const goOffline = () => setIsOnline(false);
-    window.addEventListener('online', goOnline);
-    window.addEventListener('offline', goOffline);
-    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
-  }, []);
-
-  // Mantener el Service Worker al día (clave en la app instalada de iOS/Android)
-  useEffect(() => {
-    if (!('serviceWorker' in navigator)) return;
-    let reloaded = false;
-    const onControllerChange = () => {
-      if (reloaded) return;
-      reloaded = true;
-      window.location.reload();
-    };
-    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-
-    const checkForUpdate = () => {
-      navigator.serviceWorker.getRegistration().then(reg => { if (reg) reg.update(); }).catch(() => {});
-    };
-    const onVisible = () => { if (document.visibilityState === 'visible') checkForUpdate(); };
-    document.addEventListener('visibilitychange', onVisible);
-    checkForUpdate();
-
-    return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, []);
-
-  if (session === undefined) return <Splash />;
-  return (
-    <>
-      {!isOnline && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999, background: "#7C3A1A", color: "#F5EFE0", fontFamily: "'DM Mono',monospace", fontSize: 12, textAlign: "center", padding: "8px 16px", letterSpacing: "0.08em" }}>
-          SIN CONEXIÓN — mostrando últimos datos guardados
-        </div>
-      )}
-      {!session ? <LoginScreen /> : <Main session={session} offlineBannerOffset={!isOnline} />}
-    </>
-  );
-}
+export default LoginScreen;
