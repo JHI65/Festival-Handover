@@ -30,12 +30,12 @@ const SEED = [{
 function normalizeFest(f) {
   // Nuevo formato: days es { _stages: [...] }
   if (f.days && !Array.isArray(f.days) && Array.isArray(f.days._stages)) {
-    return { ...f, stages: f.days._stages, log: f.days._log || [], roles: f.days._roles || {} };
+    return { ...f, stages: f.days._stages, log: f.days._log || [], roles: f.days._roles || {}, memberInfo: f.days._memberInfo || {} };
   }
   // Ya tiene stages (en memoria, tras normalizar)
-  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], roles: f.roles || {} };
+  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], roles: f.roles || {}, memberInfo: f.memberInfo || {} };
   // Legacy: days es array → migrar a un stage por defecto
-  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], roles: {} };
+  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], roles: {}, memberInfo: {} };
 }
 
 function getUserRole(fest, userId) {
@@ -230,7 +230,7 @@ async function loadFests(userId) {
 
 function festToDB(fest) {
   // Serializa stages en el campo days del schema existente
-  return { _stages: fest.stages || [], _log: fest.log || [], _roles: fest.roles || {} };
+  return { _stages: fest.stages || [], _log: fest.log || [], _roles: fest.roles || {}, _memberInfo: fest.memberInfo || {} };
 }
 
 async function insertFest(userId, fest) {
@@ -263,6 +263,15 @@ async function saveFest(userId, fest) {
 
 async function deleteFest(festId) {
   await supabase.from("festivals").delete().eq("id", festId);
+}
+
+// Actualiza también la columna members (para expulsar miembros). Solo lo usa el owner.
+async function updateFestMembers(fest) {
+  const { error } = await supabase
+    .from("festivals")
+    .update({ name: fest.name, days: festToDB(fest), members: fest.members || [] })
+    .eq("id", fest.id);
+  if (error) { console.error("updateFestMembers error:", error); throw error; }
 }
 
 async function joinFestAsMember(festId) {
@@ -553,6 +562,7 @@ function GoogleIcon() {
 /* ---------- main app (autenticado) ---------- */
 function Main({ session, offlineBannerOffset }) {
   const userId = session.user.id;
+  const userEmail = session.user.email;
   const isOnline = () => navigator.onLine;
 
   const [fests, setFestsState] = useState(null);
@@ -640,14 +650,14 @@ function Main({ session, offlineBannerOffset }) {
         const ok = await joinFestAsMember(joinId);
         if (ok) {
           f = await loadFests(userId);
-          // Guardar rol si es viewer (editor es el default, no hace falta escribirlo)
-          if (joinRole === "viewer") {
-            const joined = f.find(x => x.id === joinId);
-            if (joined && joined.user_id !== userId) {
-              const updatedRoles = { ...joined.roles, [userId]: "viewer" };
-              await updateFestRow({ ...joined, roles: updatedRoles });
-              f = f.map(x => x.id === joinId ? { ...x, roles: updatedRoles } : x);
-            }
+          // Registrar rol + email del que se une (para que el owner pueda gestionarlo)
+          const joined = f.find(x => x.id === joinId);
+          if (joined && joined.user_id !== userId) {
+            const role = joinRole === "viewer" ? "viewer" : "editor";
+            const updatedRoles = { ...joined.roles, [userId]: role };
+            const updatedInfo = { ...joined.memberInfo, [userId]: { email: userEmail } };
+            await updateFestRow({ ...joined, roles: updatedRoles, memberInfo: updatedInfo });
+            f = f.map(x => x.id === joinId ? { ...x, roles: updatedRoles, memberInfo: updatedInfo } : x);
           }
         } else console.error("No se pudo unir al festival compartido");
         window.history.replaceState({}, "", window.location.pathname);
@@ -701,6 +711,17 @@ function Main({ session, offlineBannerOffset }) {
 
       // Si quedaron cambios pendientes y hay red, intentar sincronizarlos ya
       if ((dirtyFestIds.current.size || sharedDirtyRef.current) && navigator.onLine) syncOfflineChanges();
+
+      // Backfill: registrar mi email en los festivales donde soy miembro (no owner)
+      // para que el owner pueda identificarme aunque entrara antes de esta función.
+      if (navigator.onLine && userEmail) {
+        for (const x of f) {
+          if (x.user_id !== userId && (x.members || []).includes(userId) && x.memberInfo?.[userId]?.email !== userEmail) {
+            const updatedInfo = { ...x.memberInfo, [userId]: { email: userEmail } };
+            updateFestRow({ ...x, memberInfo: updatedInfo }).catch(() => {});
+          }
+        }
+      }
       } catch (err) {
         setLoadError(err.message || "Error al cargar datos");
       }
@@ -885,6 +906,16 @@ function Main({ session, offlineBannerOffset }) {
     }
   }
 
+  // Gestión de miembros por el owner: actualiza roles/members/memberInfo a la vez.
+  async function manageMembers(updated) {
+    setFests(festsRef.current.map(f => f.id === updated.id ? updated : f));
+    try {
+      await updateFestMembers(updated);
+    } catch (err) {
+      console.warn("manageMembers falló:", err?.message || err);
+    }
+  }
+
   async function updateNotes(n) {
     const changedKeys = Object.keys(n).filter(k => JSON.stringify(n[k]) !== JSON.stringify(notesRef.current[k]));
     setNotes(n);
@@ -975,9 +1006,11 @@ function Main({ session, offlineBannerOffset }) {
           <StageView
             fest={fest}
             userEmail={session.user.email}
+            userId={userId}
             userRole={getUserRole(fest, userId)}
             onBack={() => setScreen("home")}
             onEditFest={updateFest}
+            onManageMembers={manageMembers}
             onOpenStage={(sid) => { setStageId(sid); setDayIdx(0); setScreen("view"); }}
             onOpenMon={(sid, mid) => { setStageId(sid); setMonId(mid); setDayIdx(0); setScreen("mon"); }}
             onOpenEscenario={(sid) => { setStageId(sid); setScreen("escenario"); }}
@@ -1377,7 +1410,7 @@ function Builder({ onCancel, onSave }) {
 }
 
 /* ---------- stage view ---------- */
-function StageView({ fest, userEmail, userRole, onBack, onEditFest, onOpenStage, onOpenMon, onOpenEscenario }) {
+function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onManageMembers, onOpenStage, onOpenMon, onOpenEscenario }) {
   const isOwner = userRole === "owner";
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
@@ -1811,7 +1844,7 @@ function StageView({ fest, userEmail, userRole, onBack, onEditFest, onOpenStage,
           </>
         )}
       </div>
-      {showShare && <ShareModal fest={fest} onClose={() => setShowShare(false)} />}
+      {showShare && <ShareModal fest={fest} isOwner={isOwner} ownerId={userId} onManageMembers={onManageMembers} onClose={() => setShowShare(false)} />}
     </div>
   );
 }
@@ -2535,14 +2568,15 @@ function LogModal({ log, festName, onClose }) {
   );
 }
 
-function ShareModal({ fest, onClose }) {
+function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
   const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
-  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "viewer"
+  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "viewer" | "members"
   const [copied, setCopied] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(null); // userId pendiente de expulsar
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
-  const currentUrl = activeTab === "editor" ? editorUrl : viewerUrl;
+  const currentUrl = activeTab === "viewer" ? viewerUrl : editorUrl;
 
   function copy() {
     navigator.clipboard.writeText(currentUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
@@ -2555,9 +2589,23 @@ function ShareModal({ fest, onClose }) {
     copy();
   }
 
+  // Miembros (excluye al owner)
+  const members = (fest.members || []).filter(m => m !== ownerId && m !== fest.user_id);
+  function setRole(mid, role) {
+    onManageMembers({ ...fest, roles: { ...fest.roles, [mid]: role } });
+  }
+  function removeMember(mid) {
+    const newMembers = (fest.members || []).filter(m => m !== mid);
+    const newRoles = { ...fest.roles }; delete newRoles[mid];
+    const newInfo = { ...fest.memberInfo }; delete newInfo[mid];
+    onManageMembers({ ...fest, members: newMembers, roles: newRoles, memberInfo: newInfo });
+    setConfirmRemove(null);
+  }
+
   const tabs = [
     { key: "editor", label: "Editor", desc: "Puede editar notas, checks y slots en vivo" },
     { key: "viewer", label: "Visor", desc: "Solo lectura — ideal para producción o promotora" },
+    ...(isOwner ? [{ key: "members", label: "Miembros", desc: "" }] : []),
   ];
 
   return (
@@ -2582,18 +2630,61 @@ function ShareModal({ fest, onClose }) {
             }}>{t.label}</button>
           ))}
         </div>
-        <div style={{ padding: "12px 14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, marginBottom: 12 }}>
-          <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace" }}>
-            {tabs.find(t => t.key === activeTab)?.desc}
+
+        {activeTab === "members" ? (
+          /* ---- Gestión de miembros ---- */
+          <div>
+            {members.length === 0 ? (
+              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 12, color: T.text4, fontFamily: "monospace" }}>
+                Aún no hay miembros. Comparte el enlace de Editor o Visor para invitar.
+              </div>
+            ) : members.map(mid => {
+              const email = fest.memberInfo?.[mid]?.email || `Usuario ${mid.slice(0, 6)}`;
+              const role = fest.roles?.[mid] || "editor";
+              return (
+                <div key={mid} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontSize: 12, color: T.text, fontFamily: "monospace", wordBreak: "break-all", flex: 1 }}>{email}</div>
+                    {confirmRemove === mid ? (
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => removeMember(mid)} style={{ padding: "5px 8px", borderRadius: 6, border: "none", background: "#ef4444", color: "#fff", fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Expulsar</button>
+                        <button onClick={() => setConfirmRemove(null)} style={{ padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, background: "transparent", color: T.text3, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Cancelar</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmRemove(mid)} title="Expulsar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", color: T.text4, fontSize: 14, cursor: "pointer" }}>✕</button>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    {["editor", "viewer"].map(r => (
+                      <button key={r} onClick={() => setRole(mid, r)} style={{
+                        flex: 1, padding: "7px", borderRadius: 7, cursor: "pointer", fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700,
+                        border: role === r ? "none" : `1px solid ${T.border}`,
+                        background: role === r ? (r === "viewer" ? "#6366f1" : "#16a34a") : "transparent",
+                        color: role === r ? "#fff" : T.text4,
+                      }}>{r === "viewer" ? "Visor" : "Editor"}</button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-        <div style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, wordBreak: "break-all", fontSize: 10, color: T.text3, maxHeight: 60, overflow: "hidden" }}>{currentUrl.slice(0, 120)}{currentUrl.length > 120 ? "…" : ""}</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={share} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: dark ? "#334155" : "#0f172a" }}>Compartir</button>
-          <button onClick={copy} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: copied ? "#16a34a" : T.card2, color: copied ? "#fff" : T.text2, border: `1px solid ${T.border}` }}>
-            {copied ? "✓ Copiado" : "Copiar URL"}
-          </button>
-        </div>
+        ) : (
+          /* ---- Compartir por enlace ---- */
+          <>
+            <div style={{ padding: "12px 14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, color: T.text3, fontFamily: "monospace" }}>
+                {tabs.find(t => t.key === activeTab)?.desc}
+              </div>
+            </div>
+            <div style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, wordBreak: "break-all", fontSize: 10, color: T.text3, maxHeight: 60, overflow: "hidden" }}>{currentUrl.slice(0, 120)}{currentUrl.length > 120 ? "…" : ""}</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={share} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: dark ? "#334155" : "#0f172a" }}>Compartir</button>
+              <button onClick={copy} style={{ ...S.bigBtn, marginTop: 0, flex: 1, background: copied ? "#16a34a" : T.card2, color: copied ? "#fff" : T.text2, border: `1px solid ${T.border}` }}>
+                {copied ? "✓ Copiado" : "Copiar URL"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
