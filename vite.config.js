@@ -10,44 +10,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       // manifest ya existe en public/manifest.json
       manifest: false,
-      workbox: {
-        // Activar el SW nuevo de inmediato y tomar control sin esperar
-        skipWaiting: true,
-        clientsClaim: true,
-        // Purgar precaché de versiones anteriores
-        cleanupOutdatedCaches: true,
-        // Precachear todo el app shell
+      // injectManifest (en vez de generateSW) para poder añadir a mano los
+      // listeners 'push' y 'notificationclick' en src/sw.js
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,ico,jpg,png,woff2}'],
-        // NetworkFirst para Supabase: datos frescos si hay red, caché si no
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/[^/]+\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api',
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 24 * 60 * 60,
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts-sheets' },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              expiration: { maxAgeSeconds: 365 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
     }),
   ],

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { getUserRole } from "../lib/utils";
 import FestEditModal from "./FestEditModal";
+import NotificationSettings from "./NotificationSettings";
 
 function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTemplate, onCreateFromTemplate, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [editFestId, setEditFestId] = useState(null);
@@ -68,6 +70,11 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                   color: dark ? "#94a3b8" : "#64748b",
                 }}>{dark ? "oscuro" : "claro"}</span>
               </button>
+              <button onClick={() => { setMenuOpen(false); setShowNotifSettings(true); }} style={{
+                width: "100%", padding: "10px 12px", background: "none", border: "none",
+                borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
+                textAlign: "left", fontFamily: "'DM Mono',monospace",
+              }}>🔔 Avisos de soundcheck</button>
               <div style={{ height: 1, background: T.border2, margin: "2px 0" }} />
               <button onClick={onLogout} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
@@ -246,6 +253,8 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
           />
         );
       })()}
+
+      {showNotifSettings && <NotificationSettings userId={userId} onClose={() => setShowNotifSettings(false)} />}
     </div>
   );
 }

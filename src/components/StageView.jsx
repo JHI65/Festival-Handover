@@ -3,6 +3,7 @@ import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { uid, mkLog, withLog, getUserRole } from "../lib/utils";
 import ShareModal from "./ShareModal";
 import GeneralScheduleView from "./GeneralScheduleView";
+import StageSelectModal from "./StageSelectModal";
 
 function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onManageMembers, onOpenStage, onOpenMon, onOpenEscenario }) {
   const isOwner = userRole === "owner";
@@ -13,6 +14,16 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
   const [renamingId, setRenamingId] = useState(null);
   const [renameVal, setRenameVal] = useState("");
   const [showShare, setShowShare] = useState(false);
+  // StageView se remonta cada vez que se abre un festival (Main controla `screen`/`fest`),
+  // así que el estado inicial perezoso equivale a "preguntar al entrar por primera vez"
+  const assignedStageId = fest.memberInfo?.[userId]?.assignedStageId;
+  const [showStageSelect, setShowStageSelect] = useState(() => assignedStageId === undefined && (fest.stages || []).length > 0);
+
+  function selectAssignedStage(stageId) {
+    const updatedInfo = { ...fest.memberInfo, [userId]: { ...fest.memberInfo?.[userId], assignedStageId: stageId } };
+    onEditFest({ ...fest, memberInfo: updatedInfo });
+    setShowStageSelect(false);
+  }
   const [viewTab, setViewTab] = useState("stages");
   const [showDayAdd, setShowDayAdd] = useState(false);
   const [newDayLabel, setNewDayLabel] = useState("");
@@ -103,6 +114,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
         <div style={{ flex: 1, textAlign: "center", fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>
           {activeStage ? activeStage.name : fest.name}
         </div>
+        <button onClick={() => setShowStageSelect(true)} title="Escenario asignado" style={{ ...S.syncBtn, marginRight: 6 }}>📍</button>
         <button onClick={() => setShowShare(true)} style={S.syncBtn}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" strokeWidth="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
@@ -438,6 +450,14 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
         )}
       </div>
       {showShare && <ShareModal fest={fest} isOwner={isOwner} ownerId={userId} onManageMembers={onManageMembers} onClose={() => setShowShare(false)} />}
+      {showStageSelect && (
+        <StageSelectModal
+          stages={fest.stages || []}
+          current={assignedStageId}
+          onSelect={selectAssignedStage}
+          onClose={() => setShowStageSelect(false)}
+        />
+      )}
       {confirmPending && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick={() => setConfirmPending(null)}>
