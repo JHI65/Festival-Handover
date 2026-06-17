@@ -379,6 +379,31 @@ export default function App() {
     return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
   }, []);
 
+  // Mantener el Service Worker al día (clave en la app instalada de iOS/Android):
+  // buscar versión nueva al volver a primer plano y recargar cuando tome control.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    let reloaded = false;
+    const onControllerChange = () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+    const checkForUpdate = () => {
+      navigator.serviceWorker.getRegistration().then(reg => { if (reg) reg.update(); }).catch(() => {});
+    };
+    const onVisible = () => { if (document.visibilityState === 'visible') checkForUpdate(); };
+    document.addEventListener('visibilitychange', onVisible);
+    checkForUpdate(); // comprobar también al arrancar
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+
   if (session === undefined) return <Splash />;
   return (
     <>

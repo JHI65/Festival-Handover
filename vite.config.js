@@ -11,6 +11,11 @@ export default defineConfig({
       // manifest ya existe en public/manifest.json
       manifest: false,
       workbox: {
+        // Activar el SW nuevo de inmediato y tomar control sin esperar
+        skipWaiting: true,
+        clientsClaim: true,
+        // Purgar precaché de versiones anteriores
+        cleanupOutdatedCaches: true,
         // Precachear todo el app shell
         globPatterns: ['**/*.{js,css,html,svg,ico,jpg,png,woff2}'],
         // NetworkFirst para Supabase: datos frescos si hay red, caché si no
