@@ -508,7 +508,7 @@ function Main({ session, offlineBannerOffset }) {
   const userId = session.user.id;
   const isOnline = () => navigator.onLine;
 
-  const [fests, setFests] = useState(null);
+  const [fests, setFestsState] = useState(null);
   const [festId, setFestId] = useState(null);
   const [stageId, setStageId] = useState(null);
   const [monId, setMonId] = useState(null);
@@ -520,6 +520,8 @@ function Main({ session, offlineBannerOffset }) {
   const notesRef = useRef({});
   const checksRef = useRef({});
   const slotsRef = useRef({});
+  const festsRef = useRef([]);
+  const dirtyFestIds = useRef(new Set());
   const [conflictToast, setConflictToast] = useState(false);
   const conflictTimerRef = useRef(null);
   const [screen, setScreen] = useState("home");
@@ -531,6 +533,7 @@ function Main({ session, offlineBannerOffset }) {
   function setNotes(n) { notesRef.current = n; setNotesState(n); }
   function setChecks(c) { checksRef.current = c; setChecksState(c); }
   function setSlots(s) { slotsRef.current = s; setSlotsState(s); }
+  function setFests(f) { festsRef.current = f; setFestsState(f); }
 
   function showConflictToast() {
     setConflictToast(true);
@@ -616,7 +619,14 @@ function Main({ session, offlineBannerOffset }) {
         async () => {
           const f = await loadFests(userId);
           const sd = mergeSharedFromFests(f);
-          setFests(prev => JSON.stringify(prev) === JSON.stringify(f) ? prev : f);
+          // No sobreescribir festivales con cambios locales pendientes
+          const merged = f.map(remote => {
+            if (dirtyFestIds.current.has(remote.id)) {
+              return festsRef.current.find(loc => loc.id === remote.id) || remote;
+            }
+            return remote;
+          });
+          setFests(merged);
 
           // Merge de notas: conservar notas locales no guardadas aún
           const prevNotes = notesRef.current;
@@ -648,39 +658,36 @@ function Main({ session, offlineBannerOffset }) {
       // Esperar 1.5s a que la conexión se estabilice completamente
       await new Promise(r => setTimeout(r, 1500));
 
-      const allFestIds = new Set();
-      [...Object.keys(notesRef.current), ...Object.keys(checksRef.current), ...Object.keys(slotsRef.current)]
-        .forEach(k => {
-          const fid = pickFestId(k);
-          if (fid) allFestIds.add(fid);
-        });
-
-      // Reintentar sincronización hasta 3 veces si falla
-      let retries = 0;
-      const maxRetries = 3;
-      while (retries < maxRetries) {
-        try {
-          for (const fid of allFestIds) {
-            await saveFestShared(fid, notesRef.current, checksRef.current, slotsRef.current);
-          }
-          setLastSync(new Date());
-          console.log("✓ Cambios offline sincronizados");
-          return;
-        } catch (err) {
-          retries++;
-          if (retries < maxRetries) {
-            console.warn(`Reintentando sincronización (${retries}/${maxRetries})...`);
-            await new Promise(r => setTimeout(r, 1000));
-          } else {
-            console.error("Error sincronizando cambios offline después de 3 intentos:", err);
-          }
+      try {
+        // 1. Primero guardar cambios estructurales (stages, artists)
+        for (const fid of dirtyFestIds.current) {
+          const fest = festsRef.current.find(f => f.id === fid);
+          if (fest) await saveFest(userId, fest);
         }
+        dirtyFestIds.current.clear();
+
+        // 2. Luego guardar notes/checks/slots
+        const allFestIds = new Set();
+        [...Object.keys(notesRef.current), ...Object.keys(checksRef.current), ...Object.keys(slotsRef.current)]
+          .forEach(k => {
+            const fid = pickFestId(k);
+            if (fid) allFestIds.add(fid);
+          });
+
+        for (const fid of allFestIds) {
+          await saveFestShared(fid, notesRef.current, checksRef.current, slotsRef.current);
+        }
+
+        setLastSync(new Date());
+        console.log("✓ Cambios offline sincronizados");
+      } catch (err) {
+        console.error("Error sincronizando cambios offline:", err);
       }
     };
 
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, []);
+  }, [userId]);
 
   async function refresh() {
     const f = await loadFests(userId);
@@ -699,16 +706,20 @@ function Main({ session, offlineBannerOffset }) {
   async function addFest(fest) {
     await saveFest(userId, fest);
     // Marcar user_id en el estado local para que próximas ediciones hagan UPDATE
-    setFests(prev => [...prev, { ...fest, user_id: userId, members: [] }]);
+    setFests([...festsRef.current, { ...fest, user_id: userId, members: [] }]);
   }
 
   async function removeFest(id) {
     await deleteFest(id);
-    setFests(prev => prev.filter(f => f.id !== id));
+    setFests(festsRef.current.filter(f => f.id !== id));
   }
 
   async function updateFest(updated) {
-    setFests(prev => prev.map(f => f.id === updated.id ? updated : f));
+    setFests(festsRef.current.map(f => f.id === updated.id ? updated : f));
+    if (!navigator.onLine) {
+      dirtyFestIds.current.add(updated.id);
+      return;
+    }
     await saveFest(userId, updated);
   }
 
