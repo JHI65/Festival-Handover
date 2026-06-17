@@ -30,12 +30,12 @@ const SEED = [{
 function normalizeFest(f) {
   // Nuevo formato: days es { _stages: [...] }
   if (f.days && !Array.isArray(f.days) && Array.isArray(f.days._stages)) {
-    return { ...f, stages: f.days._stages, log: f.days._log || [], roles: f.days._roles || {}, memberInfo: f.days._memberInfo || {} };
+    return { ...f, stages: f.days._stages, log: f.days._log || [], roles: f.days._roles || {}, memberInfo: f.days._memberInfo || {}, isTemplate: f.days._isTemplate || false };
   }
   // Ya tiene stages (en memoria, tras normalizar)
-  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], roles: f.roles || {}, memberInfo: f.memberInfo || {} };
+  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], roles: f.roles || {}, memberInfo: f.memberInfo || {}, isTemplate: f.isTemplate || false };
   // Legacy: days es array → migrar a un stage por defecto
-  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], roles: {}, memberInfo: {} };
+  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], roles: {}, memberInfo: {}, isTemplate: false };
 }
 
 function getUserRole(fest, userId) {
@@ -230,7 +230,7 @@ async function loadFests(userId) {
 
 function festToDB(fest) {
   // Serializa stages en el campo days del schema existente
-  return { _stages: fest.stages || [], _log: fest.log || [], _roles: fest.roles || {}, _memberInfo: fest.memberInfo || {} };
+  return { _stages: fest.stages || [], _log: fest.log || [], _roles: fest.roles || {}, _memberInfo: fest.memberInfo || {}, _isTemplate: fest.isTemplate || false };
 }
 
 async function insertFest(userId, fest) {
@@ -893,10 +893,9 @@ function Main({ session, offlineBannerOffset }) {
     setFests(next);
   }
 
-  async function duplicateFestByName(sourceFest, newName) {
-    const copy = {
+  function cloneStructure(sourceFest, overrides = {}) {
+    return {
       id: uid(),
-      name: newName,
       stages: (sourceFest.stages || []).map(s => ({
         ...s,
         id: uid(),
@@ -909,8 +908,19 @@ function Main({ session, offlineBannerOffset }) {
       log: [],
       roles: {},
       memberInfo: {},
+      isTemplate: false,
+      ...overrides,
     };
-    await addFest(copy);
+  }
+
+  async function saveAsTemplate(sourceFest, templateName) {
+    const tpl = cloneStructure(sourceFest, { name: templateName, isTemplate: true });
+    await addFest(tpl);
+  }
+
+  async function createFromTemplate(template, festName) {
+    const fest = cloneStructure(template, { name: festName, isTemplate: false });
+    await addFest(fest);
   }
 
   async function addFest(fest) {
@@ -1052,7 +1062,8 @@ function Main({ session, offlineBannerOffset }) {
             onNew={() => setScreen("builder")}
             onDelete={removeFest}
             onEdit={updateFest}
-            onDuplicate={duplicateFestByName}
+            onSaveAsTemplate={saveAsTemplate}
+            onCreateFromTemplate={createFromTemplate}
             onLogout={logout}
           />
         )}
@@ -1074,6 +1085,7 @@ function Main({ session, offlineBannerOffset }) {
           <Builder
             onCancel={() => setScreen("home")}
             onSave={async (obj) => { await addFest(obj); setScreen("home"); }}
+            onSaveAsTemplate={async (obj) => { await saveAsTemplate(obj, obj.name); setScreen("home"); }}
           />
         )}
         {screen === "view" && fest && stage && (
@@ -1140,14 +1152,20 @@ function Splash() {
 }
 
 /* ---------- home ---------- */
-function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onDuplicate, onLogout }) {
+function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTemplate, onCreateFromTemplate, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [editFestId, setEditFestId] = useState(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [useTemplate, setUseTemplate] = useState(null); // template object
+  const [festNameFromTpl, setFestNameFromTpl] = useState("");
   const { dark, toggle } = useTheme();
   const T = dark ? DK : LT;
   const S = makeS(T);
+
+  const myFests = (fests || []).filter(f => !f.isTemplate);
+  const templates = (fests || []).filter(f => f.isTemplate && getUserRole(f, userId) === "owner");
 
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", padding: "20px 20px 24px", overflow: "hidden", background: T.bg }}
@@ -1218,7 +1236,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onDuplicat
 
       {/* lista festivales */}
       <div style={{ flex: 1, overflowY: "auto", marginBottom: 14 }}>
-        {fests.map(f => {
+        {myFests.map(f => {
           const total = (f.stages || []).reduce((s, st) => s + st.days.reduce((a, d) => a + d.artists.length, 0), 0);
           const fRole = getUserRole(f, userId);
           const fIsOwner = fRole === "owner";
@@ -1270,11 +1288,47 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onDuplicat
         })}
       </div>
 
+      {/* sección plantillas */}
+      {templates.length > 0 && (
+        <div style={{ flexShrink: 0, marginBottom: 10 }}>
+          <button onClick={() => setShowTemplates(v => !v)} style={{
+            width: "100%", padding: "9px 14px", borderRadius: 10, border: `1px solid ${T.border}`,
+            background: "transparent", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
+            fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, color: T.text4,
+          }}>
+            <span>📋 Plantillas ({templates.length})</span>
+            <span style={{ display: "inline-block", transition: "transform 0.15s", transform: showTemplates ? "rotate(90deg)" : "rotate(0deg)" }}>›</span>
+          </button>
+          {showTemplates && (
+            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+              {templates.map(tpl => {
+                const total = (tpl.stages || []).reduce((s, st) => s + st.days.reduce((a, d) => a + d.artists.length, 0), 0);
+                return (
+                  <div key={tpl.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                    {editMode && (
+                      <button onClick={() => setConfirmId(tpl.id)} style={{ width: 26, height: 26, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tpl.name}</div>
+                      <div style={{ fontSize: 11, color: T.text4, marginTop: 1 }}>{(tpl.stages || []).length} stages · {total} artistas</div>
+                    </div>
+                    <button onClick={() => { setUseTemplate(tpl); setFestNameFromTpl(tpl.name); }} style={{
+                      padding: "6px 12px", borderRadius: 8, border: "none", background: dark ? "#334155" : "#0f172a",
+                      color: "#fff", fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0,
+                    }}>Usar</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       <button onClick={onNew} style={{ ...S.bigBtn, marginTop: 0, flexShrink: 0 }}>+ CREAR FESTIVAL</button>
 
       {/* popup confirmación borrado */}
       {confirmId && (() => {
-        const fest = fests.find(f => f.id === confirmId);
+        const item = [...myFests, ...templates].find(f => f.id === confirmId);
         return (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
             onClick={() => setConfirmId(null)}>
@@ -1282,10 +1336,10 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onDuplicat
               onClick={e => e.stopPropagation()}>
               <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
               <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>
-                ¿Borrar festival?
+                {item?.isTemplate ? "¿Borrar plantilla?" : "¿Borrar festival?"}
               </div>
               <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
-                Vas a borrar <strong style={{ color: T.text }}>{fest?.name}</strong>. Esta acción no se puede deshacer.
+                Vas a borrar <strong style={{ color: T.text }}>{item?.name}</strong>. Esta acción no se puede deshacer.
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
@@ -1300,14 +1354,46 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onDuplicat
         );
       })()}
 
+      {/* modal usar plantilla */}
+      {useTemplate && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+          onClick={() => setUseTemplate(null)}>
+          <div style={{ background: T.card, borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>📋</div>
+            <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 4 }}>USAR PLANTILLA</div>
+            <div style={{ fontSize: 12, color: T.text4, textAlign: "center", fontFamily: "monospace", marginBottom: 20 }}>{useTemplate.name}</div>
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>NOMBRE DEL FESTIVAL</div>
+            <input
+              value={festNameFromTpl}
+              onChange={e => setFestNameFromTpl(e.target.value)}
+              autoFocus
+              style={{ ...S.input, marginBottom: 20 }}
+              placeholder="Ej: Mad Cool 27"
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setUseTemplate(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
+                Cancelar
+              </button>
+              <button
+                onClick={() => { if (festNameFromTpl.trim()) { onCreateFromTemplate(useTemplate, festNameFromTpl.trim()); setUseTemplate(null); } }}
+                disabled={!festNameFromTpl.trim()}
+                style={{ flex: 1, padding: "14px", background: dark ? "#334155" : "#0f172a", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: festNameFromTpl.trim() ? "pointer" : "not-allowed", fontFamily: "'DM Mono',monospace", color: "#fff", opacity: festNameFromTpl.trim() ? 1 : 0.4 }}>
+                Crear festival
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* modal editar festival */}
       {editFestId && (() => {
-        const fest = fests.find(f => f.id === editFestId);
+        const fest = myFests.find(f => f.id === editFestId);
         return (
           <FestEditModal
             fest={fest}
             onSave={updated => { onEdit(updated); setEditFestId(null); }}
-            onDuplicate={(newName) => { onDuplicate(fests.find(f => f.id === editFestId), newName); }}
+            onSaveAsTemplate={(tplName) => { onSaveAsTemplate(myFests.find(f => f.id === editFestId), tplName); }}
             onClose={() => setEditFestId(null)}
           />
         );
@@ -1340,7 +1426,7 @@ function BuilderNotes({ comments, onAdd, onDel }) {
 }
 
 /* ---------- builder ---------- */
-function Builder({ onCancel, onSave }) {
+function Builder({ onCancel, onSave, onSaveAsTemplate }) {
   const [name, setName] = useState("");
   const [days, setDays] = useState([{ id: uid(), label: "DÍA 1", artists: [] }]);
   const [expDay, setExpDay] = useState(0);
@@ -1460,6 +1546,12 @@ function Builder({ onCancel, onSave }) {
         style={{ ...S.bigBtn, marginTop: 24, opacity: valid ? 1 : 0.4 }}>
         GUARDAR FESTIVAL
       </button>
+      {onSaveAsTemplate && (
+        <button onClick={() => valid && onSaveAsTemplate({ id: uid(), name: name.trim(), stages: [{ id: uid(), name: "ESCENARIO PRINCIPAL", days }] })} disabled={!valid}
+          style={{ width: "100%", marginTop: 10, padding: "14px", borderRadius: 14, border: `1.5px dashed ${T.border}`, background: "transparent", fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, color: T.text4, cursor: valid ? "pointer" : "not-allowed", letterSpacing: "0.06em", opacity: valid ? 1 : 0.4 }}>
+          📋 GUARDAR COMO PLANTILLA
+        </button>
+      )}
     </div>
   );
 }
@@ -2932,11 +3024,11 @@ function FohNotes({ notes, onAdd, onDel }) {
 }
 
 /* ---------- fest edit modal ---------- */
-function FestEditModal({ fest, onSave, onDuplicate, onClose }) {
+function FestEditModal({ fest, onSave, onSaveAsTemplate, onClose }) {
   const [name, setName] = useState(fest.name);
   const [stages, setStages] = useState(() => (fest.stages || []).map(s => ({ ...s, days: (s.days || []).map(d => ({ ...d })) })));
-  const [dupMode, setDupMode] = useState(false);
-  const [dupName, setDupName] = useState(`${fest.name} (copia)`);
+  const [tplMode, setTplMode] = useState(false);
+  const [tplName, setTplName] = useState(fest.name);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
   function updDay(stageId, dayId, patch) {
@@ -3019,31 +3111,31 @@ function FestEditModal({ fest, onSave, onDuplicate, onClose }) {
           </button>
         </div>
 
-        {/* Duplicar festival */}
-        {!dupMode ? (
-          <button onClick={() => setDupMode(true)} style={{
+        {/* Guardar como plantilla */}
+        {!tplMode ? (
+          <button onClick={() => setTplMode(true)} style={{
             width: "100%", marginTop: 12, padding: "12px", borderRadius: 12,
             border: `1.5px dashed ${T.border}`, background: "transparent",
             fontFamily: "'DM Mono',monospace", fontSize: 12, fontWeight: 700,
             color: T.text4, cursor: "pointer", letterSpacing: "0.06em",
           }}>
-            📋 DUPLICAR FESTIVAL
+            📋 GUARDAR COMO PLANTILLA
           </button>
         ) : (
           <div style={{ marginTop: 12, padding: "14px", borderRadius: 12, border: `1.5px solid ${T.border}`, background: T.card2 }}>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>NOMBRE DE LA COPIA</div>
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>NOMBRE DE LA PLANTILLA</div>
             <input
-              value={dupName}
-              onChange={e => setDupName(e.target.value)}
+              value={tplName}
+              onChange={e => setTplName(e.target.value)}
               autoFocus
               style={{ ...S.input, marginBottom: 10 }}
             />
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setDupMode(false)} style={{ flex: 1, padding: "10px", background: "transparent", border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text3 }}>
+              <button onClick={() => setTplMode(false)} style={{ flex: 1, padding: "10px", background: "transparent", border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text3 }}>
                 Cancelar
               </button>
-              <button onClick={() => { if (dupName.trim()) { onDuplicate(dupName.trim()); onClose(); } }} disabled={!dupName.trim()} style={{ flex: 1, padding: "10px", background: "#D4A843", border: "none", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: dupName.trim() ? "pointer" : "not-allowed", fontFamily: "'DM Mono',monospace", color: "#fff", opacity: dupName.trim() ? 1 : 0.4 }}>
-                Duplicar
+              <button onClick={() => { if (tplName.trim()) { onSaveAsTemplate(tplName.trim()); onClose(); } }} disabled={!tplName.trim()} style={{ flex: 1, padding: "10px", background: "#D4A843", border: "none", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: tplName.trim() ? "pointer" : "not-allowed", fontFamily: "'DM Mono',monospace", color: "#fff", opacity: tplName.trim() ? 1 : 0.4 }}>
+                Guardar
               </button>
             </div>
           </div>
