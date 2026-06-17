@@ -68,17 +68,20 @@ Deno.serve(async (req) => {
       for (const day of stage.days || []) {
         if (day.date !== todayStr) continue;
         for (const artist of day.artists || []) {
-          if (!artist.scStart) continue;
-          const reminderMin = festTimeToMin(artist.scStart) - 30;
+          // Si hay Load In, el aviso se basa en eso; si no, en el soundcheck.
+          const isLoadIn = !!artist.scLoadIn;
+          const refTime = artist.scLoadIn || artist.scStart;
+          if (!refTime) continue;
+          const reminderMin = festTimeToMin(refTime) - 30;
           if (reminderMin !== nowMin) continue;
           const key = `${fest.id}__${stage.id}__${day.id}__${artist.id}`;
-          dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key });
+          dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key, isLoadIn, refTime });
         }
       }
     }
   }
 
-  for (const { fest, stage, day, artist, key } of dueReminders) {
+  for (const { fest, stage, day, artist, key, isLoadIn, refTime } of dueReminders) {
     // Dedupe: si ya existe la key, ya se envió en una invocación anterior.
     const { error: insertErr } = await supabase
       .from("sent_soundcheck_reminders")
@@ -98,8 +101,8 @@ Deno.serve(async (req) => {
       .in("user_id", targetIds);
 
     const payload = JSON.stringify({
-      title: "Soundcheck en 30 min",
-      body: `${artist.artist || "Artista"} · ${stage.name} · ${artist.scStart}`,
+      title: isLoadIn ? "Load In en 30 min" : "Soundcheck en 30 min",
+      body: `${artist.artist || "Artista"} · ${stage.name} · ${refTime}`,
       url: "/Festival-Handover/",
       tag: key,
     });
