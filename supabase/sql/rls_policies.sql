@@ -27,18 +27,56 @@
 -- ya no usa ?join=<id> ni join_festival). La RPC redeem espeja la pertenencia en la
 -- fila festivals, así que las Edge Functions (reminders, delete-account) NO requieren
 -- cambios. Pasos recomendados:
---   1. Pruébalo PRIMERO en un proyecto Supabase de staging.
---   2. Ejecuta este archivo entero (secciones 1-5).
---   3. Ejecuta el backfill (sección 6) UNA vez.
---   4. Despliega el cliente nuevo (build de este repo).
---   5. Cuando confirmes que todo va, ejecuta la limpieza (sección 7): drop join_festival.
+--   1. Pruébalo PRIMERO en un proyecto Supabase de staging (o asume el riesgo).
+--   2. Ejecuta este archivo entero (secciones 0-7).
+--   3. Ejecuta el backfill (sección 8) UNA vez.
+--   4. Despliega el cliente nuevo (build de este repo) → gh-pages.
+--   5. Cuando confirmes que todo va, ejecuta la limpieza (sección 9): drop join_festival.
 -- Nota: los enlaces de invitación ANTIGUOS (?join=<id>) dejarán de funcionar; hay que
 -- regenerarlos desde el botón Compartir (ahora generan ?invite=<token>).
+--
+-- El archivo es idempotente: puedes re-ejecutarlo sin romper nada.
 -- ============================================================================
 
 
 -- ----------------------------------------------------------------------------
--- 1) Funciones auxiliares (SECURITY DEFINER para evitar recursión de RLS)
+-- 0) Extensión necesaria para gen_random_bytes / gen_random_uuid
+-- ----------------------------------------------------------------------------
+create extension if not exists pgcrypto;
+
+
+-- ----------------------------------------------------------------------------
+-- 1) Tablas (deben existir ANTES que las funciones que las referencian)
+-- ----------------------------------------------------------------------------
+
+-- 1a) Pertenencia + rol (fuente de verdad de permisos)
+create table if not exists public.festival_members (
+  festival_id text not null references festivals(id) on delete cascade,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  role        text not null default 'editor' check (role in ('viewer','editor','owner')),
+  email       text,
+  added_at    timestamptz not null default now(),
+  primary key (festival_id, user_id)
+);
+alter table public.festival_members enable row level security;
+
+-- 1b) Invitaciones revocables (sustituyen a join_festival)
+create table if not exists public.festival_invites (
+  token        text primary key default encode(gen_random_bytes(18), 'hex'),
+  festival_id  text not null references festivals(id) on delete cascade,
+  role         text not null default 'editor' check (role in ('viewer','editor','owner')),
+  created_by   uuid not null default auth.uid() references auth.users(id),
+  expires_at   timestamptz not null default now() + interval '14 days',
+  max_uses     int,                         -- null = ilimitado
+  uses         int not null default 0,
+  revoked      boolean not null default false,
+  created_at   timestamptz not null default now()
+);
+alter table public.festival_invites enable row level security;
+
+
+-- ----------------------------------------------------------------------------
+-- 2) Funciones auxiliares (SECURITY DEFINER para evitar recursión de RLS)
 -- ----------------------------------------------------------------------------
 -- Se consultan desde las policies; al ser SECURITY DEFINER no re-disparan RLS y
 -- evitan recursión infinita al referenciar las mismas tablas.
@@ -65,27 +103,16 @@ $$;
 
 
 -- ----------------------------------------------------------------------------
--- 2) Tabla de pertenencia + rol (fuente de verdad de permisos)
+-- 3) Políticas de festival_members
 -- ----------------------------------------------------------------------------
-create table if not exists public.festival_members (
-  festival_id text not null references festivals(id) on delete cascade,
-  user_id     uuid not null references auth.users(id) on delete cascade,
-  role        text not null default 'editor' check (role in ('viewer','editor','owner')),
-  email       text,
-  added_at    timestamptz not null default now(),
-  primary key (festival_id, user_id)
-);
-
-alter table public.festival_members enable row level security;
-
 -- Ver miembros: cualquier miembro del festival ve a sus compañeros.
 drop policy if exists fm_select on public.festival_members;
 create policy fm_select on public.festival_members
   for select using (is_festival_member(festival_id));
 
 -- Crear/editar/borrar pertenencia y roles: SOLO el owner.
--- (La auto-unión vía invitación se hace con SECURITY DEFINER, ver sección 4,
---  así que no necesita una policy de INSERT para el invitado.)
+-- (La auto-unión vía invitación se hace con SECURITY DEFINER en la sección 5,
+--  así que el invitado no necesita policy de INSERT.)
 drop policy if exists fm_owner_write on public.festival_members;
 create policy fm_owner_write on public.festival_members
   for all using (is_festival_owner(festival_id))
@@ -93,7 +120,7 @@ create policy fm_owner_write on public.festival_members
 
 
 -- ----------------------------------------------------------------------------
--- 3) RLS de `festivals` con roles aplicados en BD
+-- 4) RLS de `festivals` con roles aplicados en BD
 -- ----------------------------------------------------------------------------
 alter table public.festivals enable row level security;
 
@@ -137,32 +164,9 @@ create trigger festivals_guard_trg before update on public.festivals
 
 
 -- ----------------------------------------------------------------------------
--- 4) Invitaciones revocables (sustituyen a join_festival)
+-- 5) RPC de invitaciones
 -- ----------------------------------------------------------------------------
--- Token largo (no adivinable), con rol fijo elegido por el owner, caducidad,
--- límite de usos opcional y flag de revocación.
-create table if not exists public.festival_invites (
-  token        text primary key default encode(gen_random_bytes(18), 'hex'),
-  festival_id  text not null references festivals(id) on delete cascade,
-  role         text not null default 'editor' check (role in ('viewer','editor','owner')),
-  created_by   uuid not null default auth.uid() references auth.users(id),
-  expires_at   timestamptz not null default now() + interval '14 days',
-  max_uses     int,                         -- null = ilimitado
-  uses         int not null default 0,
-  revoked      boolean not null default false,
-  created_at   timestamptz not null default now()
-);
-
-alter table public.festival_invites enable row level security;
-
--- Solo el owner ve/gestiona las invitaciones de su festival.
--- (El invitado NUNCA lee esta tabla directamente: canjea con la RPC de la sección 4b.)
-drop policy if exists inv_owner_all on public.festival_invites;
-create policy inv_owner_all on public.festival_invites
-  for all using (is_festival_owner(festival_id))
-  with check (is_festival_owner(festival_id));
-
--- 4a) Crear invitación (solo owner). Devuelve el token a poner en la URL: ?invite=<token>
+-- 5a) Crear invitación (solo owner). Devuelve el token para la URL: ?invite=<token>
 create or replace function public.create_festival_invite(
   fid text,
   invite_role text default 'editor',
@@ -180,7 +184,7 @@ begin
 end;
 $$;
 
--- 4b) Canjear invitación (cualquier usuario autenticado). Une al usuario con el
+-- 5b) Canjear invitación (cualquier usuario autenticado). Une al usuario con el
 --     rol DEL TOKEN (no uno elegido por él). Reemplaza a join_festival.
 --     Al ser SECURITY DEFINER, además ESPEJA la pertenencia en la fila festivals
 --     (members[], days._roles, days._memberInfo) para que las Edge Functions
@@ -232,7 +236,18 @@ $$;
 
 
 -- ----------------------------------------------------------------------------
--- 5) Endurecer el resto de tablas
+-- 6) Políticas de festival_invites
+-- ----------------------------------------------------------------------------
+-- Solo el owner ve/gestiona las invitaciones de su festival.
+-- (El invitado NUNCA lee esta tabla directamente: canjea con redeem_festival_invite.)
+drop policy if exists inv_owner_all on public.festival_invites;
+create policy inv_owner_all on public.festival_invites
+  for all using (is_festival_owner(festival_id))
+  with check (is_festival_owner(festival_id));
+
+
+-- ----------------------------------------------------------------------------
+-- 7) Endurecer el resto de tablas
 -- ----------------------------------------------------------------------------
 -- user_data: cada usuario solo accede a su propia fila.
 alter table public.user_data enable row level security;
@@ -244,9 +259,9 @@ create policy ud_own on public.user_data
 
 
 -- ----------------------------------------------------------------------------
--- 6) Backfill — migrar pertenencia/roles existentes a festival_members
+-- 8) Backfill — migrar pertenencia/roles existentes a festival_members
 -- ----------------------------------------------------------------------------
--- Ejecutar UNA vez, después de crear las tablas y ANTES de desplegar el cliente nuevo.
+-- Ejecutar UNA vez. Idempotente (on conflict do nothing).
 insert into public.festival_members (festival_id, user_id, role, email)
 select f.id,
        m::uuid,
@@ -258,7 +273,7 @@ on conflict (festival_id, user_id) do nothing;
 
 
 -- ----------------------------------------------------------------------------
--- 7) Limpieza final (ejecutar SOLO cuando el cliente nuevo esté en producción)
+-- 9) Limpieza final (ejecutar SOLO cuando el cliente nuevo esté en producción)
 -- ----------------------------------------------------------------------------
 -- Retirar la auto-unión insegura por id:
 --   drop function if exists public.join_festival(text);
