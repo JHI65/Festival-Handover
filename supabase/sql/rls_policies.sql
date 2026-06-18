@@ -49,6 +49,24 @@ create extension if not exists pgcrypto;
 -- 1) Tablas (deben existir ANTES que las funciones que las referencian)
 -- ----------------------------------------------------------------------------
 
+-- 1·pre) Asegurar que festivals.id tiene una restricción UNIQUE/PK. Es requisito
+-- para poder referenciarla con FOREIGN KEY desde festival_members/festival_invites.
+-- (En este proyecto la tabla festivals no la tenía declarada.) Idempotente.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint c
+    join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
+    where c.conrelid = 'public.festivals'::regclass
+      and c.contype in ('p','u')
+      and array_length(c.conkey, 1) = 1
+      and a.attname = 'id'
+  ) then
+    alter table public.festivals add constraint festivals_id_key unique (id);
+  end if;
+end $$;
+
 -- 1a) Pertenencia + rol (fuente de verdad de permisos)
 create table if not exists public.festival_members (
   festival_id text not null references festivals(id) on delete cascade,
