@@ -17,8 +17,8 @@ const INSTALL_STEPS = {
     <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
   ],
   mac: [
-    <>Clic en "Compartir" <span style={{ color: "#D4A843" }}>⎙</span> en la barra superior</>,
-    <>"<span style={{ color: "#D4A843" }}>Añadir al Dock</span>"</>,
+    <>Menú "<span style={{ color: "#D4A843" }}>Archivo</span>" en la barra superior</>,
+    <>"<span style={{ color: "#D4A843" }}>Añadir al Dock...</span>"</>,
     <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
   ],
   desktop: [
