@@ -303,7 +303,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                               />
                             </div>
                             <div style={{ fontSize: 10, color: T.text4, flexShrink: 0 }}>{t("{n} art.", { n: d.artists.length })}</div>
-                            {st.days.length > 1 && (
+                            {isOwner && st.days.length > 1 && (
                               <button onClick={() => askConfirm(t("¿Eliminar {d}? Se perderán todos sus artistas.", { d: d.label || t("este día") }), () => deleteDayFromStage(st.id, d.id))}
                                 style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
                             )}
@@ -355,13 +355,13 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                     <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>FOH</div>
                                     <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{t("{n} artistas", { n: totalForStage(st) })}</div>
                                   </div>
-                                  <button onClick={() => askConfirm(t("¿Eliminar todos los artistas de FOH en {n}?", { n: st.name }), () => {
+                                  {isOwner && <button onClick={() => askConfirm(t("¿Eliminar todos los artistas de FOH en {n}?", { n: st.name }), () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, days: s.days.map(d => ({ ...d, artists: [] })) }
                                       : s
                                     );
                                     onEditFest({ ...fest, stages: newStages });
-                                  })} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
+                                  })} style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>}
                                 </div>
                               )}
                               {(st.monPositions || []).map(mp => (
@@ -418,7 +418,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                   <div key={st.id}
                     onClick={() => { if (!editMode) setSelectedStage(st.id); }}
                     style={{ background: T.card, border: `1px solid ${editMode ? "#fecaca" : T.border}`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 4px rgba(0,0,0,0.05)", cursor: editMode ? "default" : "pointer" }}>
-                    {editMode && (
+                    {editMode && isOwner && (
                       <button onClick={e => { e.stopPropagation(); askConfirm(t('¿Eliminar el stage "{n}"? Se perderán todos sus días y artistas.', { n: st.name }), () => deleteStage(st.id)); }}
                         style={{ width: 26, height: 26, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>−</button>
                     )}

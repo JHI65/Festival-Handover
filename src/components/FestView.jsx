@@ -17,6 +17,7 @@ import CompactArtistCard from "./CompactArtistCard";
 
 function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, setNotes, checks, toggleCheck, slots, setSlots, onEditFest, onBack, onRefresh, lastSync }) {
   const canEdit = userRole !== "viewer";
+  const isOwner = userRole === "owner";   // borrar artistas/días queda solo para owner/co-owner
   const [selectedId, setSelectedId] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -323,7 +324,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
                     }}>
                       {canEdit && <><button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ {t("Editar")}</button><div style={{ height: 1, background: "#f1f5f9" }} /></>}
                       <button onClick={() => { setArtGearOpen(false); printHandoverPDF([art], { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id }, t, lang); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>🖨 {t("Exportar PDF")}</button>
-                      {canEdit && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 {t("Borrar")}</button></>}
+                      {isOwner && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 {t("Borrar")}</button></>}
                     </div>
                   )}
                 </div>
