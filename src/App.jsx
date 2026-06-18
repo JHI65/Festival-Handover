@@ -80,11 +80,16 @@ function LoginScreen() {
     el.style.backgroundSize = "cover";
     el.style.backgroundPosition = "center 30%";
     el.style.backgroundRepeat = "no-repeat";
+    // El login es a pantalla completa: el fondo debe cubrir también el safe zone
+    // (notch / status bar). El resto de la app restaura su fondo vía <Style dark>.
+    const prevBodyBg = document.body.style.background;
+    document.body.style.background = "#0A0705";
     return () => {
       el.style.backgroundImage = "";
       el.style.backgroundSize = "";
       el.style.backgroundPosition = "";
       el.style.backgroundRepeat = "";
+      document.body.style.background = prevBodyBg;
     };
   }, []);
 
@@ -102,10 +107,10 @@ function LoginScreen() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: "100dvh", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'DM Sans',sans-serif" }}>
       <Style />
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "url('./bg-login.jpg')", backgroundSize: "cover", backgroundPosition: "center 30%", zIndex: 0 }} />
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(10,7,5,0.45) 0%, rgba(15,10,7,0.55) 100%)", zIndex: 0 }} />
+      <div style={{ position: "fixed", inset: 0, backgroundImage: "url('./bg-login.jpg')", backgroundSize: "cover", backgroundPosition: "center 30%", zIndex: 0 }} />
+      <div style={{ position: "fixed", inset: 0, background: "linear-gradient(160deg, rgba(10,7,5,0.45) 0%, rgba(15,10,7,0.55) 100%)", zIndex: 0 }} />
 
       <div className="lg-card" style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 380, background: "rgba(28,22,17,0.10)", border: "1px solid rgba(245,239,224,0.15)", borderRadius: 20, padding: "44px 34px 30px", boxShadow: "0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(245,239,224,0.05)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", textAlign: "center" }}>
         <div style={{ width: 72, height: 72, margin: "0 auto 22px", borderRadius: 18, background: "linear-gradient(145deg, #221A14, #14100B)", border: "1px solid rgba(245,239,224,0.10)", boxShadow: "0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,239,224,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
