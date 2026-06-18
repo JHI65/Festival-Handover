@@ -3,7 +3,7 @@ import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { useLang } from "../lib/i18n";
 import { uid } from "../lib/utils";
 
-function EtapasView({ etapas, onSave }) {
+function EtapasView({ etapas, onSave, canEdit = true }) {
   const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [editGrupoId, setEditGrupoId] = useState(null); // id del grupo en edición, o "new"
@@ -118,6 +118,7 @@ function EtapasView({ etapas, onSave }) {
                 onClick={() => setExpandedId(isExpanded ? null : g.id)}>
                 <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 15, letterSpacing: "0.08em", color: T.text, flex: 1 }}>{g.name}</span>
                 <span style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginRight: 10 }}>{t("{n} filas", { n: g.rows.length })}</span>
+                {canEdit && <>
                 <button onClick={e => { e.stopPropagation(); openEdit(g); }}
                   style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>✏️</button>
                 <button onClick={e => { e.stopPropagation(); duplicateGrupo(g); }}
@@ -125,6 +126,7 @@ function EtapasView({ etapas, onSave }) {
                   style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>⎘</button>
                 <button onClick={e => { e.stopPropagation(); askConfirm(t('¿Eliminar el grupo "{n}"?', { n: g.name }), () => deleteGrupo(g.id)); }}
                   style={{ background: "none", border: "none", color: "#C94A2A", fontSize: 14, cursor: "pointer", padding: "0 4px" }}>×</button>
+                </>}
                 <span style={{ color: T.text4, fontSize: 14, marginLeft: 4 }}>{isExpanded ? "▾" : "▸"}</span>
               </div>
               {/* filas */}
@@ -152,7 +154,7 @@ function EtapasView({ etapas, onSave }) {
           );
         })}
       </div>
-      <button onClick={openNew} style={{ ...S.bigBtn, marginTop: 0 }}>{t("+ AÑADIR GRUPO")}</button>
+      {canEdit && <button onClick={openNew} style={{ ...S.bigBtn, marginTop: 0 }}>{t("+ AÑADIR GRUPO")}</button>}
       {confirmPending && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick={() => setConfirmPending(null)}>

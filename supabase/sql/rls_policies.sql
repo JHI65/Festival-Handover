@@ -134,6 +134,15 @@ returns text language sql security definer stable set search_path = public as $$
   end;
 $$;
 
+-- ¿Puede ADMINISTRAR el festival? = es el creador (festivals.user_id) O es un
+-- miembro con rol 'owner' (co-propietario). Da los mismos poderes de admin que
+-- el creador: gestionar miembros, invitar y borrar el festival.
+create or replace function public.can_admin_festival(fid text)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (select 1 from festivals where id = fid and user_id = auth.uid())
+      or exists (select 1 from festival_members where festival_id = fid and user_id = auth.uid() and role = 'owner');
+$$;
+
 
 -- ----------------------------------------------------------------------------
 -- 3) Políticas de festival_members
@@ -143,13 +152,13 @@ drop policy if exists fm_select on public.festival_members;
 create policy fm_select on public.festival_members
   for select using (is_festival_member(festival_id));
 
--- Crear/editar/borrar pertenencia y roles: SOLO el owner.
+-- Crear/editar/borrar pertenencia y roles: el creador o un co-owner.
 -- (La auto-unión vía invitación se hace con SECURITY DEFINER en la sección 5,
 --  así que el invitado no necesita policy de INSERT.)
 drop policy if exists fm_owner_write on public.festival_members;
 create policy fm_owner_write on public.festival_members
-  for all using (is_festival_owner(festival_id))
-  with check (is_festival_owner(festival_id));
+  for all using (can_admin_festival(festival_id))
+  with check (can_admin_festival(festival_id));
 
 
 -- ----------------------------------------------------------------------------
@@ -175,9 +184,9 @@ create policy fest_update on public.festivals
   for update using (my_festival_role(id) in ('owner','editor'))
   with check  (my_festival_role(id) in ('owner','editor'));
 
--- DELETE: SOLO el owner (antes podía cualquier miembro).
+-- DELETE: el creador o un co-owner (antes podía cualquier miembro).
 create policy fest_delete on public.festivals
-  for delete using (user_id = auth.uid());
+  for delete using (can_admin_festival(id));
 
 -- Trigger: blindar la columna de propietario. Ni un editor ni nadie puede
 -- robar la titularidad cambiando user_id vía un UPDATE normal.
@@ -208,7 +217,7 @@ create or replace function public.create_festival_invite(
 ) returns text language plpgsql security definer set search_path = public as $$
 declare tok text;
 begin
-  if not is_festival_owner(fid) then raise exception 'solo el owner puede invitar'; end if;
+  if not can_admin_festival(fid) then raise exception 'solo el owner puede invitar'; end if;
   if invite_role not in ('viewer','editor','owner') then raise exception 'rol inválido'; end if;
   -- 64 hex chars (256 bits) sin depender de pgcrypto/gen_random_bytes
   tok := replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '');
@@ -272,12 +281,12 @@ $$;
 -- ----------------------------------------------------------------------------
 -- 6) Políticas de festival_invites
 -- ----------------------------------------------------------------------------
--- Solo el owner ve/gestiona las invitaciones de su festival.
+-- El creador o un co-owner ve/gestiona las invitaciones de su festival.
 -- (El invitado NUNCA lee esta tabla directamente: canjea con redeem_festival_invite.)
 drop policy if exists inv_owner_all on public.festival_invites;
 create policy inv_owner_all on public.festival_invites
-  for all using (is_festival_owner(festival_id))
-  with check (is_festival_owner(festival_id));
+  for all using (can_admin_festival(festival_id))
+  with check (can_admin_festival(festival_id));
 
 
 -- ----------------------------------------------------------------------------

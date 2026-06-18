@@ -18,10 +18,10 @@ function FohNotes({ notes, onAdd, onDel }) {
       {notes.map((n, i) => (
         <div key={i} style={{ display: "flex", gap: 6, alignItems: "flex-start", marginBottom: 5 }}>
           <div style={{ flex: 1, fontSize: 12, color: noteText, lineHeight: 1.5, padding: "7px 10px", background: noteBg, borderLeft: `2px solid ${noteBorder}`, borderRadius: "0 6px 6px 0" }}>{n.text}</div>
-          <button onClick={() => onDel(i)} style={S.iconBtn}>×</button>
+          {onDel && <button onClick={() => onDel(i)} style={S.iconBtn}>×</button>}
         </div>
       ))}
-      {editing ? (
+      {!onAdd ? null : editing ? (
         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
           <textarea value={draft} onChange={e => setDraft(e.target.value)} rows={2} autoFocus
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onAdd(draft); setDraft(""); setEditing(false); } }}

@@ -31,17 +31,17 @@ function ExtraSlots({ slots, onAdd, onDel, onEdit }) {
               <button onClick={() => setEditId(null)} style={S.smBtn}>{t("Hecho")}</button>
             </div>
           ) : (
-            <div onClick={() => setEditId(s.id)} style={{ display: "flex", alignItems: "center", gap: 10, background: slotBg, border: `1px solid ${slotBorder}`, borderRadius: 10, padding: "9px 12px", cursor: "pointer" }}>
+            <div onClick={() => onEdit && setEditId(s.id)} style={{ display: "flex", alignItems: "center", gap: 10, background: slotBg, border: `1px solid ${slotBorder}`, borderRadius: 10, padding: "9px 12px", cursor: onEdit ? "pointer" : "default" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 8, color: slotLabel, letterSpacing: "0.15em", fontWeight: 700 }}>{s.label}</div>
                 <div style={{ fontSize: 13, color: slotText, fontFamily: "monospace", marginTop: 2, wordBreak: "break-word" }}>{s.value || "—"}</div>
               </div>
-              <button onClick={e => { e.stopPropagation(); onDel(s.id); }} style={S.iconBtn}>×</button>
+              {onDel && <button onClick={e => { e.stopPropagation(); onDel(s.id); }} style={S.iconBtn}>×</button>}
             </div>
           )}
         </div>
       ))}
-      {adding ? (
+      {!onAdd ? null : adding ? (
         <div style={{ background: slotBg, border: `1px solid ${slotBorder}`, borderRadius: 10, padding: 10 }}>
           <input value={newLabel} onChange={e => setNL(e.target.value)} placeholder={t("Etiqueta (RF, Backline…)")} autoFocus style={{ ...S.input, marginBottom: 6, fontWeight: 700 }} />
           <input value={newValue} onChange={e => setNV(e.target.value)} placeholder={t("Valor")} onKeyDown={e => { if (e.key === "Enter") confirmAdd(); }} style={{ ...S.input, marginBottom: 8 }} />

@@ -17,7 +17,6 @@ import CompactArtistCard from "./CompactArtistCard";
 
 function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, setNotes, checks, toggleCheck, slots, setSlots, onEditFest, onBack, onRefresh, lastSync }) {
   const canEdit = userRole !== "viewer";
-  const isOwner = userRole === "owner";
   const [selectedId, setSelectedId] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -265,7 +264,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             <button onClick={confirmAddDay} style={{ background: "#C94A2A", border: "none", borderRadius: 2, color: "#fff", fontSize: 12, padding: "3px 8px", cursor: "pointer" }}>✓</button>
             <button onClick={() => { setShowAddDay(false); setNewDayLabel(""); setNewDayDate(""); }} style={{ background: "transparent", border: "none", color: "#7A6652", fontSize: 14, cursor: "pointer", padding: "2px 4px" }}>×</button>
           </div>
-        ) : isOwner ? (
+        ) : canEdit ? (
           <button onClick={() => setShowAddDay(true)} style={{
             flexShrink: 0, padding: "10px 14px", fontSize: 14,
             fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
@@ -322,9 +321,9 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
                       boxShadow: "0 4px 16px rgba(0,0,0,0.12)", border: "1px solid #e2e8f0",
                       zIndex: 30, minWidth: 140, overflow: "hidden",
                     }}>
-                      {isOwner && <><button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ {t("Editar")}</button><div style={{ height: 1, background: "#f1f5f9" }} /></>}
+                      {canEdit && <><button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ {t("Editar")}</button><div style={{ height: 1, background: "#f1f5f9" }} /></>}
                       <button onClick={() => { setArtGearOpen(false); printHandoverPDF([art], { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id }, t, lang); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>🖨 {t("Exportar PDF")}</button>
-                      {isOwner && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 {t("Borrar")}</button></>}
+                      {canEdit && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 {t("Borrar")}</button></>}
                     </div>
                   )}
                 </div>
@@ -497,16 +496,16 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             rulos={day.rulos || []}
             permRulos={stage.rulos || []}
             ruloOverrides={day.ruloOverrides || {}}
-            onAdd={isOwner ? (pos) => { setEditRuloId(null); setShowRuloForm(true); setPrefillPos(pos || null); } : null}
-            onEdit={isOwner ? (id) => { setEditRuloId(id); setShowRuloForm(true); setPrefillPos(null); } : null}
-            onDelete={isOwner ? deleteRulo : null}
-            onSaveOverride={(ruloId, desc) => {
+            onAdd={canEdit ? (pos) => { setEditRuloId(null); setShowRuloForm(true); setPrefillPos(pos || null); } : null}
+            onEdit={canEdit ? (id) => { setEditRuloId(id); setShowRuloForm(true); setPrefillPos(null); } : null}
+            onDelete={canEdit ? deleteRulo : null}
+            onSaveOverride={!canEdit ? null : (ruloId, desc) => {
               const newOverrides = { ...(day.ruloOverrides || {}), [ruloId]: { desc } };
               const newDays = stage.days.map((d, i) => i === dayIdx ? { ...d, ruloOverrides: newOverrides } : d);
               const newStages = (fest.stages || []).map(s => s.id === stage.id ? { ...s, days: newDays } : s);
               onEditFest({ ...fest, stages: newStages });
             }}
-            onClearOverride={(ruloId) => {
+            onClearOverride={!canEdit ? null : (ruloId) => {
               const newOverrides = { ...(day.ruloOverrides || {}) };
               delete newOverrides[ruloId];
               const newDays = stage.days.map((d, i) => i === dayIdx ? { ...d, ruloOverrides: newOverrides } : d);
@@ -521,6 +520,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           <HorariosView
             artists={artists}
             day={day}
+            canEdit={canEdit}
             onSaveTime={saveArtistTime}
           />
         </div>
@@ -528,6 +528,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
         <div style={{ flex: 1, background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
           <EtapasView
             etapas={stage.etapas || []}
+            canEdit={canEdit}
             onSave={(newEtapas) => {
               const newStages = (fest.stages || []).map(s => s.id === stage.id ? { ...s, etapas: newEtapas } : s);
               onEditFest({ ...fest, stages: newStages });
@@ -543,6 +544,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             dayColor={PALETTE[dayIdx % PALETTE.length]}
             notes={notes}
             setNotes={setNotes}
+            canEdit={canEdit}
           />
         </div>
       ) : (
@@ -573,8 +575,8 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             ))}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            {isOwner && <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, flex: 1, marginTop: 0 }}>{t("+ Añadir artista")}</button>}
-            {isOwner && artists.length > 0 && stage.days.length > 1 && (
+            {canEdit && <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, flex: 1, marginTop: 0 }}>{t("+ Añadir artista")}</button>}
+            {canEdit && artists.length > 0 && stage.days.length > 1 && (
               <button onClick={() => { setShowCopy(true); setCopySelected({}); setCopyTargetDays({}); }} style={{ ...S.addBtn, flex: 1, marginTop: 0, color: "#7c3aed", borderColor: "#ddd6fe", background: "#f5f3ff" }}>
                 {t("Copiar al día →")}
               </button>

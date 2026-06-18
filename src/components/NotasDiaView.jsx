@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useTheme, LT, DK } from "../lib/theme";
 import { useLang, localeOf } from "../lib/i18n";
 
-function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes }) {
+function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes, canEdit = true }) {
   const [draft, setDraft] = useState("");
   const textareaRef = useRef(null);
   const { t, lang } = useLang();
@@ -30,7 +30,8 @@ function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes }) {
         <span style={{ fontSize: 11, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.1em" }}>{t("NOTAS DEL DÍA")}</span>
       </div>
 
-      {/* input nueva nota */}
+      {/* input nueva nota (solo si puede editar) */}
+      {canEdit && (
       <div style={{ marginBottom: 20 }}>
         <textarea
           ref={textareaRef}
@@ -59,6 +60,7 @@ function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes }) {
           }}
         >{t("+ AÑADIR NOTA")}</button>
       </div>
+      )}
 
       {/* lista de notas */}
       {dayNotes.length === 0 ? (
@@ -80,6 +82,7 @@ function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes }) {
               }}>
                 <div style={{ fontSize: 9, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", marginBottom: 6 }}>{time}</div>
                 <div style={{ fontSize: 14, color: T.text, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word", paddingRight: 28 }}>{n.text}</div>
+                {canEdit && (
                 <button
                   onClick={() => delNota(i)}
                   style={{
@@ -91,6 +94,7 @@ function NotasDiaView({ festId, stageId, day, dayColor, notes, setNotes }) {
                     lineHeight: 1,
                   }}
                 >×</button>
+                )}
               </div>
             );
           })}

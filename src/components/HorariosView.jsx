@@ -25,7 +25,7 @@ function HorarioPill({ label, start, end, color, bg, border, T }) {
   );
 }
 
-function HorariosView({ artists, day, onSaveTime }) {
+function HorariosView({ artists, day, onSaveTime, canEdit = true }) {
   const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [editId, setEditId] = useState(null);
@@ -142,7 +142,7 @@ function HorariosView({ artists, day, onSaveTime }) {
                   </div>
                 </div>
               ) : (
-                <div style={{ cursor: "pointer" }} onClick={() => openEdit(a)}>
+                <div style={{ cursor: canEdit ? "pointer" : "default" }} onClick={() => canEdit && openEdit(a)}>
                   {/* header */}
                   <div style={{ padding: "14px 18px 10px", borderBottom: `1px solid ${T.border}`, background: T.card2 }}>
                     <div style={{ fontSize: 20, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{a.artist || "—"}</div>
@@ -159,9 +159,11 @@ function HorariosView({ artists, day, onSaveTime }) {
                         </div>
                       </div>
                     )}
+                    {canEdit && (
                     <div style={{ textAlign: "center", marginTop: 8 }}>
                       <span style={{ color: T.text4, fontSize: 11 }}>✏️</span>
                     </div>
+                    )}
                   </div>
                 </div>
               )}

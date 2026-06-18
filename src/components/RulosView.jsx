@@ -108,14 +108,14 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
                 {r.position && <span style={{ fontSize: 11, color: T.text4, fontFamily: "'DM Mono',monospace", marginLeft: "auto" }}>{r.position}</span>}
               </div>
 
-              {/* Descripción editable por día — solo para rulos permanentes */}
-              {r._perm ? (
+              {/* Descripción editable por día — solo para rulos permanentes y si puede editar */}
+              {r._perm && onSaveOverride ? (
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                     <span style={{ fontSize: 9, color: "#D4A843", fontFamily: "'DM Mono',monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                       {t("Descripción · {d}", { d: dayLabel })}
                     </span>
-                    {hasOverride && (
+                    {hasOverride && onClearOverride && (
                       <button onClick={() => { onClearOverride(r.id); setOverrideDraft(null); }}
                         style={{ background: "none", border: "none", fontSize: 10, color: T.text4, cursor: "pointer", fontFamily: "'DM Mono',monospace", padding: 0 }}>
                         {t("Usar global ↩")}
@@ -139,6 +139,9 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
                     <div style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginTop: 5 }}>{t("Global:")} {baseDesc}</div>
                   )}
                 </div>
+              ) : r._perm ? (
+                /* solo lectura: descripción efectiva del día */
+                (ruloOverrides[r.id]?.desc ?? baseDesc) && <div style={{ fontSize: 15, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.4, marginBottom: 14 }}>{ruloOverrides[r.id]?.desc ?? baseDesc}</div>
               ) : (
                 r.desc && <div style={{ fontSize: 15, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.4, marginBottom: 14 }}>{r.desc}</div>
               )}

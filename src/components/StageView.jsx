@@ -8,6 +8,7 @@ import StageSelectModal from "./StageSelectModal";
 
 function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onManageMembers, onOpenStage, onOpenMon, onOpenEscenario }) {
   const isOwner = userRole === "owner";
+  const canEdit = userRole !== "viewer";
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [selectedStage, setSelectedStage] = useState(null);
@@ -117,9 +118,11 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
           {activeStage ? activeStage.name : fest.name}
         </div>
         <button onClick={() => setShowStageSelect(true)} title={t("Escenario asignado")} style={{ ...S.syncBtn, marginRight: 6 }}>📍</button>
+        {isOwner && (
         <button onClick={() => setShowShare(true)} style={S.syncBtn}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" strokeWidth="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
+        )}
       </div>
 
       <div style={{ flex: 1, padding: "16px 14px", background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
@@ -243,7 +246,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
             ) : (
             <>
             <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              {isOwner && <button onClick={() => { setEditMode(m => !m); setRenamingId(null); }} style={{
+              {canEdit && <button onClick={() => { setEditMode(m => !m); setRenamingId(null); }} style={{
                 background: editMode ? "#fef2f2" : T.card2, border: `1px solid ${editMode ? "#fecaca" : T.border}`,
                 borderRadius: 8, padding: "4px 8px", cursor: "pointer", fontSize: 14, color: editMode ? "#ef4444" : T.text3, lineHeight: 1,
               }}>⚙️</button>}
@@ -433,7 +436,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
               })}
             </div>
 
-            {isOwner && (showAdd ? (
+            {canEdit && (showAdd ? (
               <div style={{ marginTop: 12, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px" }}>
                 <input value={newName} onChange={e => setNewName(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && addStage()}
