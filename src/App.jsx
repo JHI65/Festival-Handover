@@ -216,7 +216,7 @@ export default function App() {
   return (
     <>
       {!isOnline && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999, background: "#7C3A1A", color: "#F5EFE0", fontFamily: "'DM Mono',monospace", fontSize: 12, textAlign: "center", padding: "8px 16px", letterSpacing: "0.08em" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999, background: "#7C3A1A", color: "#F5EFE0", fontFamily: "'DM Mono',monospace", fontSize: 12, textAlign: "center", padding: "8px 16px", paddingTop: "calc(8px + env(safe-area-inset-top, 0px))", letterSpacing: "0.08em" }}>
           SIN CONEXIÓN — mostrando últimos datos guardados
         </div>
       )}

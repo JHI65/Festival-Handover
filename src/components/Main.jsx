@@ -501,7 +501,7 @@ function Main({ session, offlineBannerOffset }) {
   return (
     <ThemeCtx.Provider value={{ dark: darkMode, toggle: toggleDark }}>
       <Style dark={darkMode} />
-      <div style={{ ...S.app, paddingTop: offlineBannerOffset ? 33 : undefined }}>
+      <div style={{ ...S.app, paddingTop: `calc(env(safe-area-inset-top, 0px) + ${offlineBannerOffset ? 33 : 0}px)` }}>
         {screen === "home" && (
           <Home
             fests={fests}
