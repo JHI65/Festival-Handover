@@ -40,11 +40,11 @@
 
 
 -- ----------------------------------------------------------------------------
--- 0) Extensión necesaria para gen_random_bytes
+-- 0) Sin dependencias de extensiones
 -- ----------------------------------------------------------------------------
--- En Supabase pgcrypto vive en el esquema `extensions` (no en `public`), por eso
--- gen_random_bytes se cualifica como extensions.gen_random_bytes más abajo.
-create extension if not exists pgcrypto with schema extensions;
+-- Los tokens e ids se generan con gen_random_uuid(), que está en el core de
+-- Postgres (pg_catalog) desde la v13, así que no hace falta pgcrypto. Esto evita
+-- el problema de en qué esquema (public vs extensions) vive gen_random_bytes.
 
 
 -- ----------------------------------------------------------------------------
@@ -95,7 +95,7 @@ alter table public.festival_members enable row level security;
 
 -- 1b) Invitaciones revocables (sustituyen a join_festival)
 create table if not exists public.festival_invites (
-  token        text primary key default encode(extensions.gen_random_bytes(18), 'hex'),
+  token        text primary key default (replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')),
   festival_id  text not null references festivals(id) on delete cascade,
   role         text not null default 'editor' check (role in ('viewer','editor','owner')),
   created_by   uuid not null default auth.uid() references auth.users(id),
@@ -210,7 +210,8 @@ declare tok text;
 begin
   if not is_festival_owner(fid) then raise exception 'solo el owner puede invitar'; end if;
   if invite_role not in ('viewer','editor','owner') then raise exception 'rol inválido'; end if;
-  tok := encode(extensions.gen_random_bytes(18), 'hex');
+  -- 64 hex chars (256 bits) sin depender de pgcrypto/gen_random_bytes
+  tok := replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '');
   insert into festival_invites (token, festival_id, role, expires_at, max_uses)
     values (tok, fid, invite_role, now() + make_interval(days => greatest(ttl_days, 1)), uses_limit);
   return tok;
