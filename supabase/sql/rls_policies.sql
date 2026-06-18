@@ -40,9 +40,11 @@
 
 
 -- ----------------------------------------------------------------------------
--- 0) Extensión necesaria para gen_random_bytes / gen_random_uuid
+-- 0) Extensión necesaria para gen_random_bytes
 -- ----------------------------------------------------------------------------
-create extension if not exists pgcrypto;
+-- En Supabase pgcrypto vive en el esquema `extensions` (no en `public`), por eso
+-- gen_random_bytes se cualifica como extensions.gen_random_bytes más abajo.
+create extension if not exists pgcrypto with schema extensions;
 
 
 -- ----------------------------------------------------------------------------
@@ -93,7 +95,7 @@ alter table public.festival_members enable row level security;
 
 -- 1b) Invitaciones revocables (sustituyen a join_festival)
 create table if not exists public.festival_invites (
-  token        text primary key default encode(gen_random_bytes(18), 'hex'),
+  token        text primary key default encode(extensions.gen_random_bytes(18), 'hex'),
   festival_id  text not null references festivals(id) on delete cascade,
   role         text not null default 'editor' check (role in ('viewer','editor','owner')),
   created_by   uuid not null default auth.uid() references auth.users(id),
@@ -208,7 +210,7 @@ declare tok text;
 begin
   if not is_festival_owner(fid) then raise exception 'solo el owner puede invitar'; end if;
   if invite_role not in ('viewer','editor','owner') then raise exception 'rol inválido'; end if;
-  tok := encode(gen_random_bytes(18), 'hex');
+  tok := encode(extensions.gen_random_bytes(18), 'hex');
   insert into festival_invites (token, festival_id, role, expires_at, max_uses)
     values (tok, fid, invite_role, now() + make_interval(days => greatest(ttl_days, 1)), uses_limit);
   return tok;
