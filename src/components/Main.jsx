@@ -116,7 +116,9 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
       }
 
       if (f.length === 0) {
-        for (const fest of SEED) await saveFest(userId, fest);
+        // id único por usuario: el SEED trae un id fijo ("ejemplo_fest") y, si se
+        // usara tal cual, todos los usuarios colisionarían en el mismo id.
+        for (const fest of SEED) await saveFest(userId, { ...fest, id: uid() });
         f = await loadFests(userId);
       }
 

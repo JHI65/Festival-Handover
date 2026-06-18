@@ -49,6 +49,19 @@ create extension if not exists pgcrypto;
 -- 1) Tablas (deben existir ANTES que las funciones que las referencian)
 -- ----------------------------------------------------------------------------
 
+-- 1·pre0) Deduplicar ids de festival. El festival de ejemplo (SEED) se insertaba
+-- con un id fijo ("ejemplo_fest"), así que cada usuario sembrado creó una fila con
+-- ese mismo id → ids no únicos. Damos un id nuevo y único a todas las filas
+-- duplicadas salvo la primera de cada grupo. Idempotente (tras correr, no quedan
+-- duplicados y el WHERE no casa nada). Nota: las notas/checks en vivo de esas filas
+-- (claves con prefijo del id antiguo) quedarán huérfanas; es dato de ejemplo.
+update festivals f
+set id = f.id || '_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)
+where exists (
+  select 1 from festivals f2
+  where f2.id = f.id and f2.ctid < f.ctid
+);
+
 -- 1·pre) Asegurar que festivals.id tiene una restricción UNIQUE/PK. Es requisito
 -- para poder referenciarla con FOREIGN KEY desde festival_members/festival_invites.
 -- (En este proyecto la tabla festivals no la tenía declarada.) Idempotente.
