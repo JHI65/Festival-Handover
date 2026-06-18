@@ -148,6 +148,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
           const total = (f.stages || []).reduce((s, st) => s + st.days.reduce((a, d) => a + d.artists.length, 0), 0);
           const fRole = getUserRole(f, userId);
           const fIsOwner = fRole === "owner";
+          const isCreator = f.user_id === userId;   // creador real (su festival) vs co-owner invitado
           return (
             <div key={f.id} style={{ ...S.festCard, background: T.card, border: `1px solid ${T.border}`, position: "relative", overflow: "visible" }}
               onClick={() => { if (!editMode) onOpen(f.id); }}>
@@ -169,7 +170,10 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                 <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 2 }}>
                   <span style={{ fontSize: 12, color: T.text4 }}>{t("{s} stages · {a} artistas", { s: (f.stages || []).length, a: total })}</span>
-                  {!fIsOwner && <span style={{ fontSize: 9, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", padding: "1px 6px", borderRadius: 4, background: fRole === "viewer" ? "#e0e7ff" : "#f0fdf4", color: fRole === "viewer" ? "#3730a3" : "#166534" }}>{fRole === "viewer" ? t("VISOR") : t("EDITOR")}</span>}
+                  {!isCreator && <span style={{ fontSize: 9, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", padding: "1px 6px", borderRadius: 4,
+                    background: fRole === "viewer" ? "#e0e7ff" : fRole === "owner" ? "#fef3c7" : "#f0fdf4",
+                    color: fRole === "viewer" ? "#3730a3" : fRole === "owner" ? "#92400e" : "#166534" }}>
+                    {fRole === "viewer" ? t("VISOR") : fRole === "owner" ? t("OWNER") : t("EDITOR")}</span>}
                 </div>
               </div>
               <div style={{ width: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
