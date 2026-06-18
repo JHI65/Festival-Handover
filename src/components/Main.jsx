@@ -7,7 +7,7 @@ import { SEED } from "../lib/constants";
 import { saveOfflineCache, loadOfflineCache } from "../lib/offline";
 import {
   loadFests, saveFest, deleteFest, updateFestRow, updateFestMembers,
-  joinFestAsMember, pickFestId, mergeSharedFromFests, mergeNoteArrays,
+  redeemInvite, syncMemberRoles, pickFestId, mergeSharedFromFests, mergeNoteArrays,
   saveFestShared,
 } from "../lib/api";
 import { isPushSupported } from "../lib/push";
@@ -21,7 +21,7 @@ import MonView from "./MonView";
 import EscenarioView from "./EscenarioView";
 import NotificationSettings from "./NotificationSettings";
 
-function Main({ session, offlineBannerOffset }) {
+function Main({ session, offlineBannerOffset, onOpenLegal }) {
   const { t } = useLang();
   const userId = session.user.id;
   const userEmail = session.user.email;
@@ -43,6 +43,7 @@ function Main({ session, offlineBannerOffset }) {
   const dirtyFestIds = useRef(new Set());
   const sharedDirtyRef = useRef(false);
   const [conflictToast, setConflictToast] = useState(false);
+  const [inviteToast, setInviteToast] = useState(null);
   const conflictTimerRef = useRef(null);
   const [screen, setScreen] = useState("home");
   const [lastSync, setLastSync] = useState(null);
@@ -80,9 +81,12 @@ function Main({ session, offlineBannerOffset }) {
       // Check URL for shared festival
       const searchParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#\??/, ""));
-      const joinId = searchParams.get("join") || hashParams.get("join");
-      const joinRole = searchParams.get("role") || hashParams.get("role") || "editor";
-      const legacyFest = searchParams.get("fest") || hashParams.get("fest");
+      // Nuevo flujo seguro: invitación con token (rol fijo, caducidad, revocable).
+      const inviteToken = searchParams.get("invite") || hashParams.get("invite");
+      // Enlaces antiguos (?join=<id> / ?fest=<base64>) eran auto-unión insegura por
+      // id; ya no se honran. Quien los abra simplemente carga su sesión normal.
+      const legacyJoin = searchParams.get("join") || searchParams.get("fest")
+        || hashParams.get("join") || hashParams.get("fest");
 
       let f;
       try {
@@ -116,31 +120,18 @@ function Main({ session, offlineBannerOffset }) {
         f = await loadFests(userId);
       }
 
-      if (joinId) {
-        const ok = await joinFestAsMember(joinId);
-        if (ok) {
-          f = await loadFests(userId);
-          const joined = f.find(x => x.id === joinId);
-          if (joined && joined.user_id !== userId) {
-            const role = joinRole === "viewer" ? "viewer" : joinRole === "owner" ? "owner" : "editor";
-            const updatedRoles = { ...joined.roles, [userId]: role };
-            const updatedInfo = { ...joined.memberInfo, [userId]: { email: userEmail } };
-            await updateFestRow({ ...joined, roles: updatedRoles, memberInfo: updatedInfo });
-            f = f.map(x => x.id === joinId ? { ...x, roles: updatedRoles, memberInfo: updatedInfo } : x);
-          }
-        } else console.error("No se pudo unir al festival compartido");
-        window.history.replaceState({}, "", window.location.pathname);
-      } else if (legacyFest) {
-        try {
-          const imported = JSON.parse(decodeURIComponent(escape(atob(legacyFest))));
-          if (imported && imported.id) {
-            const ok = await joinFestAsMember(imported.id);
-            if (ok) f = await loadFests(userId);
-            else console.error("No se pudo unir al festival compartido");
-          }
-        } catch (err) {
-          console.error("Error importando festival compartido:", err);
+      if (inviteToken) {
+        const res = await redeemInvite(inviteToken);
+        if (res?.festival_id) {
+          f = await loadFests(userId);   // la RPC ya espejó members/roles en la fila
+        } else {
+          setInviteToast(t("La invitación no es válida, ha caducado o ha sido revocada. Pide un enlace nuevo."));
+          setTimeout(() => setInviteToast(null), 5000);
         }
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (legacyJoin) {
+        // Enlace antiguo inseguro: lo ignoramos y limpiamos la URL.
+        console.warn("Enlace de invitación antiguo ignorado; pide una invitación nueva.");
         window.history.replaceState({}, "", window.location.pathname);
       }
 
@@ -439,7 +430,8 @@ function Main({ session, offlineBannerOffset }) {
   async function manageMembers(updated) {
     setFests(festsRef.current.map(f => f.id === updated.id ? updated : f));
     try {
-      await updateFestMembers(updated);
+      await updateFestMembers(updated);       // espejo (members[]/_roles/_memberInfo)
+      await syncMemberRoles(updated);          // fuente de verdad (festival_members)
     } catch (err) {
       console.warn("manageMembers falló:", err?.message || err);
     }
@@ -531,6 +523,7 @@ function Main({ session, offlineBannerOffset }) {
             onSaveAsTemplate={saveAsTemplate}
             onCreateFromTemplate={createFromTemplate}
             onLogout={logout}
+            onOpenLegal={onOpenLegal}
           />
         )}
         {screen === "stages" && fest && (
@@ -601,6 +594,11 @@ function Main({ session, offlineBannerOffset }) {
         {conflictToast && (
           <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: darkMode ? "#2A2420" : "#1A1410", color: "#D4A843", fontFamily: "'DM Mono',monospace", fontSize: 12, padding: "10px 18px", borderRadius: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", zIndex: 9999, pointerEvents: "none", animation: "lg-fade .25s ease both", letterSpacing: "0.05em" }}>
             {t("↕ Cambios recibidos de otro técnico")}
+          </div>
+        )}
+        {inviteToast && (
+          <div onClick={() => setInviteToast(null)} style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", maxWidth: 340, background: "#7C2D12", color: "#FFE4D6", fontFamily: "'DM Mono',monospace", fontSize: 12, padding: "12px 18px", borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", zIndex: 9999, animation: "lg-fade .25s ease both", letterSpacing: "0.03em", textAlign: "center" }}>
+            {inviteToast}
           </div>
         )}
       </div>

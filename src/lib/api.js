@@ -73,12 +73,46 @@ export async function updateFestMembers(fest) {
   if (error) { console.error("updateFestMembers error:", error); throw error; }
 }
 
-export async function joinFestAsMember(festId) {
-  // SECURITY DEFINER function bypasea RLS para que el usuario se pueda añadir
-  // aunque aún no esté en members
-  const { data, error } = await supabase.rpc("join_festival", { festival_id: festId });
-  if (error) console.error("join_festival error:", error);
-  return !error;
+// ── Invitaciones (sustituyen a la auto-unión por id) ──
+// El owner genera un token con rol fijo y caducidad; el invitado lo canjea.
+
+// Crea una invitación (solo el owner puede). Devuelve el token o null.
+export async function createInvite(festId, role = "editor", ttlDays = 14, maxUses = null) {
+  const { data, error } = await supabase.rpc("create_festival_invite", {
+    fid: festId, invite_role: role, ttl_days: ttlDays, uses_limit: maxUses,
+  });
+  if (error) { console.error("create_festival_invite error:", error); return null; }
+  return data; // token
+}
+
+// Canjea una invitación: une al usuario con el rol del token. Devuelve { festival_id, role } o null.
+export async function redeemInvite(token) {
+  const { data, error } = await supabase.rpc("redeem_festival_invite", { invite_token: token });
+  if (error) { console.error("redeem_festival_invite error:", error); return null; }
+  return data;
+}
+
+// Reconcilia la tabla festival_members (fuente de verdad de permisos) a partir
+// del estado de miembros/roles que gestiona el owner en la UI. Solo el owner
+// pasa la RLS de festival_members, así que para no-owners es un no-op silencioso.
+export async function syncMemberRoles(fest) {
+  const members = fest.members || [];
+  const roles = fest.roles || {};
+  const info = fest.memberInfo || {};
+  if (members.length) {
+    const rows = members.map(uid => ({
+      festival_id: fest.id, user_id: uid,
+      role: roles[uid] || "editor", email: info[uid]?.email || null,
+    }));
+    const { error } = await supabase.from("festival_members")
+      .upsert(rows, { onConflict: "festival_id,user_id" });
+    if (error) { console.warn("syncMemberRoles upsert:", error.message); return; }
+  }
+  // Borrar de festival_members los que ya no están en members[]
+  let q = supabase.from("festival_members").delete().eq("festival_id", fest.id);
+  if (members.length) q = q.not("user_id", "in", `(${members.join(",")})`);
+  const { error: delErr } = await q;
+  if (delErr) console.warn("syncMemberRoles delete:", delErr.message);
 }
 
 // Helpers para notes/checks/slots compartidos en la fila del festival

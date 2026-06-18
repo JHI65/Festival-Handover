@@ -3,7 +3,28 @@ import { supabase } from "./supabase";
 import Style from "./components/Style";
 import Splash from "./components/Splash";
 import Main from "./components/Main";
+import LegalView from "./components/LegalView";
+import CookieConsent from "./components/CookieConsent";
+import { hasDecided } from "./lib/consent";
 import { LangCtx, useLang, makeT, detectLang } from "./lib/i18n";
+
+// Enlaces legales reutilizables (pie de login y de la app).
+function LegalLinks({ onOpen, color = "#9A8772" }) {
+  const items = [
+    ["privacy", "Privacidad"], ["legal", "Aviso legal"],
+    ["cookies", "Cookies"], ["terms", "Términos"],
+  ];
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 10px", marginTop: 18 }}>
+      {items.map(([key, label], i) => (
+        <span key={key} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button onClick={() => onOpen(key)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color, fontFamily: "'DM Mono',monospace", fontSize: 10.5, letterSpacing: "0.04em", opacity: 0.85 }}>{label}</button>
+          {i < items.length - 1 && <span style={{ color, opacity: 0.4, fontSize: 10 }}>·</span>}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 /* ---------- login screen ---------- */
 const installSteps = (t) => ({
@@ -62,7 +83,7 @@ function GoogleIcon() {
   );
 }
 
-function LoginScreen() {
+function LoginScreen({ onOpenLegal }) {
   const { t } = useLang();
   const STEPS = installSteps(t);
   const [loading, setLoading] = useState(false);
@@ -100,8 +121,8 @@ function LoginScreen() {
     setLoading(true);
     setError(null);
     const sp = new URLSearchParams(window.location.search);
-    const joinParam = sp.get("join") || sp.get("fest");
-    const redirectTo = window.location.origin + "/Festival-Handover/" + (joinParam ? `?join=${encodeURIComponent(joinParam)}` : "");
+    const inviteParam = sp.get("invite");
+    const redirectTo = window.location.origin + "/Festival-Handover/" + (inviteParam ? `?invite=${encodeURIComponent(inviteParam)}` : "");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
@@ -143,6 +164,7 @@ function LoginScreen() {
         {error && (
           <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "rgba(201,74,42,0.12)", border: "1px solid rgba(201,74,42,0.3)", color: "#E58A6E", fontSize: 12, textAlign: "center", fontFamily: "'DM Mono',monospace" }}>{error}</div>
         )}
+        <LegalLinks onOpen={onOpenLegal} color="#B0A090" />
       </div>
 
       {showInstall && (
@@ -184,6 +206,8 @@ export default function App() {
   const [lang, setLangState] = useState(detectLang);
   const setLang = (l) => { try { localStorage.setItem("lang", l); } catch { /* noop */ } setLangState(l); };
   const t = makeT(lang);
+  const [legalPage, setLegalPage] = useState(null);   // null | "privacy" | "legal" | "cookies" | "terms"
+  const [consentDone, setConsentDone] = useState(() => hasDecided());
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -231,7 +255,20 @@ export default function App() {
           {t("SIN CONEXIÓN — mostrando últimos datos guardados")}
         </div>
       )}
-      {!session ? <LoginScreen /> : <Main session={session} offlineBannerOffset={!isOnline} />}
+      {!session
+        ? <LoginScreen onOpenLegal={setLegalPage} />
+        : <Main session={session} offlineBannerOffset={!isOnline} onOpenLegal={setLegalPage} />}
+
+      {!consentDone && (
+        <CookieConsent
+          onDecide={() => setConsentDone(true)}
+          onOpenCookies={() => setLegalPage("cookies")}
+        />
+      )}
+
+      {legalPage && (
+        <LegalView page={legalPage} onClose={() => setLegalPage(null)} onNavigate={setLegalPage} />
+      )}
     </LangCtx.Provider>
   );
 }

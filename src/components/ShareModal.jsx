@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { useLang } from "../lib/i18n";
+import { createInvite } from "../lib/api";
 
 function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   const { t } = useLang();
-  const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
-  const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
-  const ownerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=owner`;
   const [step, setStep] = useState(null); // null | "picking"
   const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
@@ -16,10 +16,16 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
   // step: null = botones iniciales | "share" | "copy" = eligiendo rol para esa acción
   const [pendingAction, setPendingAction] = useState(null); // "share" | "copy"
 
-  function startAction(action) { setPendingAction(action); setStep("picking"); setCopied(false); }
+  function startAction(action) { setPendingAction(action); setStep("picking"); setCopied(false); setGenError(false); }
 
-  function pickRole(role) {
-    const url = role === "viewer" ? viewerUrl : role === "owner" ? ownerUrl : editorUrl;
+  // Genera una invitación con token (rol fijo, caduca a 14 días) y comparte/copia el enlace.
+  async function pickRole(role) {
+    if (generating) return;
+    setGenerating(true); setGenError(false);
+    const token = await createInvite(fest.id, role, 14, null);
+    setGenerating(false);
+    if (!token) { setGenError(true); return; }
+    const url = `${window.location.origin}/Festival-Handover/?invite=${token}`;
     const label = role === "viewer" ? t("Visor") : role === "owner" ? t("Owner") : t("Editor");
     if (pendingAction === "share" && navigator.share) {
       navigator.share({ title: fest.name, text: t("Te invito a {n} como {r}", { n: fest.name, r: label }), url }).catch(() => {});
@@ -59,18 +65,26 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
             <button onClick={() => { setStep(null); setPendingAction(null); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: T.text4, fontFamily: "monospace", fontSize: 11, marginBottom: 16, padding: 0 }}>
               {t("‹ Volver")}
             </button>
-            <div style={{ fontSize: 13, color: T.text3, fontFamily: "monospace", marginBottom: 14, textAlign: "center" }}>
-              {t("¿Con qué acceso?")}
+            <div style={{ fontSize: 13, color: T.text3, fontFamily: "monospace", marginBottom: 6, textAlign: "center" }}>
+              {generating ? t("Generando enlace…") : t("¿Con qué acceso?")}
             </div>
+            <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace", marginBottom: 14, textAlign: "center" }}>
+              {t("El enlace caduca en 14 días")}
+            </div>
+            {genError && (
+              <div style={{ fontSize: 11, color: "#e58a6e", fontFamily: "monospace", marginBottom: 12, textAlign: "center" }}>
+                {t("No se pudo generar el enlace. Solo el owner puede invitar.")}
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 { key: "owner",  label: "OWNER",  icon: "👑", accent: "#d97706" },
                 { key: "editor", label: "EDITOR", icon: "✏️", accent: "#16a34a" },
                 { key: "viewer", label: t("VISOR"),  icon: "👁",  accent: "#6366f1" },
               ].map(r => (
-                <button key={r.key} onClick={() => pickRole(r.key)} style={{
+                <button key={r.key} onClick={() => pickRole(r.key)} disabled={generating} style={{
                   width: "100%", padding: "16px 18px", borderRadius: 14, border: `1.5px solid ${T.border}`,
-                  background: T.card2, cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
+                  background: T.card2, cursor: generating ? "wait" : "pointer", opacity: generating ? 0.5 : 1, textAlign: "left", display: "flex", alignItems: "center", gap: 14,
                 }}>
                   <span style={{ fontSize: 22 }}>{r.icon}</span>
                   <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 18, color: r.accent, letterSpacing: "0.08em" }}>{r.label}</span>

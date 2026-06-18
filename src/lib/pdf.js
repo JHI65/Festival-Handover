@@ -1,8 +1,17 @@
+// Escapa HTML para evitar XSS: los festivales son colaborativos, así que cualquier
+// campo (nombre de artista, notas, comentarios…) puede contener marcado malicioso
+// inyectado por otro miembro. Sin esto, document.write ejecutaría ese marcado en el
+// origen de la app y podría robar la sesión de Supabase.
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+));
+
 export function printHandoverPDF(artists, { festName, stageName, dayLabel, dayDate, notes, checks, slots, festId, dayId }, t = (s) => s, lang = "es") {
   const locale = ({ es: "es", en: "en-GB", fr: "fr" })[lang] || "es";
   const dateStr = dayDate ? new Date(dayDate + "T12:00").toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" }) : "";
+  // label proviene de t() (texto estático de traducción, seguro); value es dato de usuario → escapar.
   const field = (label, value) => value
-    ? `<div class="field"><span class="label">${label}</span><span class="value">${value}</span></div>`
+    ? `<div class="field"><span class="label">${label}</span><span class="value">${esc(value)}</span></div>`
     : `<div class="field"><span class="label">${label}</span><span class="value empty">${t("Sin confirmar")}</span></div>`;
 
   const artistBlocks = artists.map(art => {
@@ -17,7 +26,7 @@ export function printHandoverPDF(artists, { festName, stageName, dayLabel, dayDa
     return `
       <div class="artist-block">
         <div class="artist-header">
-          <div class="artist-name">${art.artist || "—"}</div>
+          <div class="artist-name">${esc(art.artist) || "—"}</div>
           <div class="pills">
             <span class="pill ${scDone ? "pill-ok" : ""}">SC${scDone ? " ✓" : ""}</span>
             <span class="pill ${showDone ? "pill-show" : ""}">SHOW${showDone ? " ✓" : ""}</span>
@@ -30,7 +39,7 @@ export function printHandoverPDF(artists, { festName, stageName, dayLabel, dayDa
           ${field(t("Técnico"), art.tecnico)}
           <div class="field full-width">
             <span class="label">${t("Preset")}</span>
-            <span class="value ${art.presetOk ? "preset-ok" : ""}">${art.preset || t("Sin confirmar")}${art.presetOk ? " ✓" : ""}</span>
+            <span class="value ${art.presetOk ? "preset-ok" : ""}">${esc(art.preset) || t("Sin confirmar")}${art.presetOk ? " ✓" : ""}</span>
           </div>
         </div>
 
@@ -40,39 +49,39 @@ export function printHandoverPDF(artists, { festName, stageName, dayLabel, dayDa
           ${field(t("Conexión"), art.connection)}
         </div>
 
-        ${art.corriente ? `<div class="section-title">${t("Corriente")}</div><div class="note-block">${art.corriente}</div>` : ""}
+        ${art.corriente ? `<div class="section-title">${t("Corriente")}</div><div class="note-block">${esc(art.corriente)}</div>` : ""}
 
         ${(art.toLx || art.toMon) ? `
           <div class="section-title">${t("Rutas")}</div>
           <div class="grid2">
-            ${art.toLx ? `<div class="route-chip">💡 TO LX &nbsp;<strong>${art.toLx}</strong></div>` : ""}
-            ${art.toMon ? `<div class="route-chip">🎧 TO MON &nbsp;<strong>${art.toMon}</strong></div>` : ""}
+            ${art.toLx ? `<div class="route-chip">💡 TO LX &nbsp;<strong>${esc(art.toLx)}</strong></div>` : ""}
+            ${art.toMon ? `<div class="route-chip">🎧 TO MON &nbsp;<strong>${esc(art.toMon)}</strong></div>` : ""}
           </div>` : ""}
 
         ${extraStatic.length ? `
           <div class="section-title">${t("Campos extra")}</div>
           <div class="grid2">
-            ${extraStatic.map(s => `<div class="route-chip">📋 ${s.label} &nbsp;<strong>${s.value || "—"}</strong></div>`).join("")}
+            ${extraStatic.map(s => `<div class="route-chip">📋 ${esc(s.label)} &nbsp;<strong>${esc(s.value) || "—"}</strong></div>`).join("")}
           </div>` : ""}
 
         ${comments.length ? `
           <div class="section-title">${t("Notas previas")}</div>
-          ${comments.map(c => `<div class="note-block">${c}</div>`).join("")}` : ""}
+          ${comments.map(c => `<div class="note-block">${esc(c)}</div>`).join("")}` : ""}
 
         ${mySlots.length ? `
           <div class="section-title">${t("Slots en directo")}</div>
           <div class="grid2">
-            ${mySlots.map(s => `<div class="route-chip">📋 ${s.label} &nbsp;<strong>${s.value || "—"}</strong></div>`).join("")}
+            ${mySlots.map(s => `<div class="route-chip">📋 ${esc(s.label)} &nbsp;<strong>${esc(s.value) || "—"}</strong></div>`).join("")}
           </div>` : ""}
 
         ${myNotes.length ? `
           <div class="section-title">${t("Notas FOH")}</div>
-          ${myNotes.map(n => `<div class="note-block">${n.text}</div>`).join("")}` : ""}
+          ${myNotes.map(n => `<div class="note-block">${esc(n.text)}</div>`).join("")}` : ""}
       </div>`;
   }).join('<div class="page-break"></div>');
 
   const html = `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8">
-  <title>Handover – ${festName} · ${stageName} · ${dayLabel}</title>
+  <title>Handover – ${esc(festName)} · ${esc(stageName)} · ${esc(dayLabel)}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; padding: 24px; }
@@ -104,8 +113,8 @@ export function printHandoverPDF(artists, { festName, stageName, dayLabel, dayDa
     }
   </style></head><body>
   <div class="doc-header">
-    <div class="doc-title">${festName}</div>
-    <div class="doc-sub">${stageName} · ${dayLabel}${dateStr ? " · " + dateStr : ""}</div>
+    <div class="doc-title">${esc(festName)}</div>
+    <div class="doc-sub">${esc(stageName)} · ${esc(dayLabel)}${dateStr ? " · " + dateStr : ""}</div>
   </div>
   ${artistBlocks}
   <div class="footer">${t("Generado:")} ${new Date().toLocaleString(locale)}</div>

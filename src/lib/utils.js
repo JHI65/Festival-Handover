@@ -1,4 +1,18 @@
-export const uid = () => Math.random().toString(36).slice(2, 9);
+// IDs no adivinables: en HTTPS (siempre en la PWA) usa crypto.randomUUID(),
+// que es criptográficamente seguro. Fallback con getRandomValues para navegadores
+// antiguos. NUNCA Math.random() — era predecible y los ids de festival viajan en
+// los enlaces de invitación, así que un id corto/adivinable era un riesgo de acceso.
+export const uid = () => {
+  try {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+    const b = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(b);
+    return Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+  } catch {
+    // Último recurso (entorno sin Web Crypto): mantener el formato previo
+    return Math.random().toString(36).slice(2, 9) + Math.random().toString(36).slice(2, 9);
+  }
+};
 
 // Nº máximo de cambios que se pueden deshacer (pila de rollback)
 export const UNDO_LIMIT = 10;

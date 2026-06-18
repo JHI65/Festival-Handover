@@ -6,7 +6,7 @@ import FestEditModal from "./FestEditModal";
 import NotificationSettings from "./NotificationSettings";
 import DeleteAccountModal from "./DeleteAccountModal";
 
-function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTemplate, onCreateFromTemplate, onLogout }) {
+function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTemplate, onCreateFromTemplate, onLogout, onOpenLegal }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
@@ -115,6 +115,11 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                 borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
                 textAlign: "left", fontFamily: "'DM Mono',monospace",
               }}>🔔 {t("Avisos")}</button>
+              <button onClick={() => { setMenuOpen(false); onOpenLegal?.("privacy"); }} style={{
+                width: "100%", padding: "10px 12px", background: "none", border: "none",
+                borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
+                textAlign: "left", fontFamily: "'DM Mono',monospace",
+              }}>📄 {t("Legal y privacidad")}</button>
               <div style={{ height: 1, background: T.border2, margin: "2px 0" }} />
               <button onClick={onLogout} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
