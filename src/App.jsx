@@ -65,7 +65,12 @@ function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showInstall, setShowInstall] = useState(
-    () => !(window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches)
+    () => !(
+      window.navigator.standalone
+      || window.matchMedia("(display-mode: standalone)").matches
+      || window.matchMedia("(display-mode: window-controls-overlay)").matches
+      || window.matchMedia("(display-mode: minimal-ui)").matches
+    )
   );
   const isMobileOrTablet = isMobileOrTabletDevice();
 
