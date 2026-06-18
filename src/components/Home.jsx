@@ -4,10 +4,12 @@ import { useLang, LANGS } from "../lib/i18n";
 import { getUserRole } from "../lib/utils";
 import FestEditModal from "./FestEditModal";
 import NotificationSettings from "./NotificationSettings";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTemplate, onCreateFromTemplate, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [editFestId, setEditFestId] = useState(null);
@@ -119,6 +121,11 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                 borderRadius: 8, color: "#ef4444", fontSize: 13, cursor: "pointer",
                 textAlign: "left", fontFamily: "'DM Mono',monospace",
               }}>{t("Cerrar sesión")}</button>
+              <button onClick={() => { setMenuOpen(false); setShowDeleteAccount(true); }} style={{
+                width: "100%", padding: "10px 12px", background: "none", border: "none",
+                borderRadius: 8, color: T.text4, fontSize: 11, cursor: "pointer",
+                textAlign: "left", fontFamily: "'DM Mono',monospace",
+              }}>🗑 {t("Borrar mi cuenta y todos mis datos")}</button>
             </div>
           )}
         </div>
@@ -293,6 +300,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
       })()}
 
       {showNotifSettings && <NotificationSettings userId={userId} onClose={() => setShowNotifSettings(false)} />}
+      {showDeleteAccount && <DeleteAccountModal userEmail={user.email} onClose={() => setShowDeleteAccount(false)} />}
     </div>
   );
 }

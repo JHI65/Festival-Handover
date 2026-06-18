@@ -49,6 +49,21 @@ export async function deleteFest(festId) {
   await supabase.from("festivals").delete().eq("id", festId);
 }
 
+// GDPR: borra la cuenta del usuario y todos sus datos vía Edge Function
+// (requiere service role para eliminar la cuenta de auth). Tras el borrado,
+// cierra la sesión local.
+export async function deleteAccount() {
+  const { data, error } = await supabase.functions.invoke("delete-account", { body: {} });
+  if (error) {
+    // functions.invoke envuelve los errores HTTP; intentar extraer el mensaje real
+    let msg = error.message;
+    try { const ctx = await error.context?.json?.(); if (ctx?.error) msg = ctx.error; } catch { /* noop */ }
+    throw new Error(msg || "No se pudo borrar la cuenta");
+  }
+  await supabase.auth.signOut();
+  return data;
+}
+
 // Actualiza también la columna members (para expulsar miembros). Solo lo usa el owner.
 export async function updateFestMembers(fest) {
   const { error } = await supabase
