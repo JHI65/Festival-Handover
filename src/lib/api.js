@@ -14,7 +14,7 @@ export async function loadFests(userId) {
 
 export function festToDB(fest) {
   // Serializa stages en el campo days del schema existente
-  return { _stages: fest.stages || [], _log: fest.log || [], _roles: fest.roles || {}, _memberInfo: fest.memberInfo || {}, _isTemplate: fest.isTemplate || false };
+  return { _stages: fest.stages || [], _log: fest.log || [], _undo: fest.undo || [], _roles: fest.roles || {}, _memberInfo: fest.memberInfo || {}, _isTemplate: fest.isTemplate || false };
 }
 
 export async function insertFest(userId, fest) {

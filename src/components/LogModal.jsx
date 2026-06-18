@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useTheme, LT, DK } from "../lib/theme";
 
-function LogModal({ log, festName, onClose }) {
+function LogModal({ log, undo = [], canEdit = false, onUndo, festName, onClose }) {
   const entries = [...(log || [])].reverse();
   const { dark } = useTheme(); const T = dark ? DK : LT;
+  const [confirming, setConfirming] = useState(false);
   const fmtTs = (iso) => {
     try {
       const d = new Date(iso);
@@ -13,8 +15,18 @@ function LogModal({ log, festName, onClose }) {
     if (a.startsWith("ADD")) return { label: a, color: "#16a34a" };
     if (a.startsWith("DEL")) return { label: a, color: "#dc2626" };
     if (a.startsWith("EDIT")) return { label: a, color: "#d97706" };
+    if (a.startsWith("UNDO")) return { label: a, color: "#2563eb" };
     return { label: a, color: T.text3 };
   };
+
+  const nextUndo = undo.length ? undo[undo.length - 1] : null;
+  const undoLabel = nextUndo ? `${nextUndo.action}${nextUndo.detail ? " · " + nextUndo.detail.split("\n")[0] : ""}` : "";
+
+  function handleUndo() {
+    if (!confirming) { setConfirming(true); return; }
+    setConfirming(false);
+    onUndo && onUndo();
+  }
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
@@ -47,9 +59,22 @@ function LogModal({ log, festName, onClose }) {
             })
           )}
         </div>
+        {/* undo bar */}
+        {canEdit && nextUndo && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", background: T.card, borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4, display: "block" }}>{confirming ? "¿Seguro? Toca de nuevo para confirmar" : "↩ Deshacer último cambio"}</span>
+              <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text3, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{undoLabel}</span>
+            </div>
+            {confirming && (
+              <button onClick={() => setConfirming(false)} style={{ background: "none", border: `1px solid ${T.border}`, color: T.text3, fontFamily: "monospace", fontSize: 11, padding: "7px 12px", borderRadius: 8, cursor: "pointer", flexShrink: 0 }}>Cancelar</button>
+            )}
+            <button onClick={handleUndo} style={{ background: confirming ? "#dc2626" : T.card2, border: `1px solid ${confirming ? "#dc2626" : T.border}`, color: confirming ? "#fff" : "#2563eb", fontFamily: "monospace", fontSize: 11, fontWeight: 700, padding: "7px 14px", borderRadius: 8, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{confirming ? "Deshacer" : "↩ Deshacer"}</button>
+          </div>
+        )}
         {/* footer */}
         <div style={{ padding: "8px 16px", background: T.card2, borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
-          <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4 }}>{entries.length} entradas · últimos 1000 cambios</span>
+          <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4 }}>{entries.length} entradas · últimos 1000 cambios{undo.length ? ` · ${undo.length} deshacer disponibles` : ""}</span>
         </div>
       </div>
     </div>

@@ -1,14 +1,17 @@
 export const uid = () => Math.random().toString(36).slice(2, 9);
 
+// Nº máximo de cambios que se pueden deshacer (pila de rollback)
+export const UNDO_LIMIT = 10;
+
 export function normalizeFest(f) {
   // Nuevo formato: days es { _stages: [...] }
   if (f.days && !Array.isArray(f.days) && Array.isArray(f.days._stages)) {
-    return { ...f, stages: f.days._stages, log: f.days._log || [], roles: f.days._roles || {}, memberInfo: f.days._memberInfo || {}, isTemplate: f.days._isTemplate || false };
+    return { ...f, stages: f.days._stages, log: f.days._log || [], undo: f.days._undo || [], roles: f.days._roles || {}, memberInfo: f.days._memberInfo || {}, isTemplate: f.days._isTemplate || false };
   }
   // Ya tiene stages (en memoria, tras normalizar)
-  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], roles: f.roles || {}, memberInfo: f.memberInfo || {}, isTemplate: f.isTemplate || false };
+  if (Array.isArray(f.stages)) return { ...f, log: f.log || [], undo: f.undo || [], roles: f.roles || {}, memberInfo: f.memberInfo || {}, isTemplate: f.isTemplate || false };
   // Legacy: days es array → migrar a un stage por defecto
-  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], roles: {}, memberInfo: {}, isTemplate: false };
+  return { ...f, stages: [{ id: "stage_default", name: "ESCENARIO PRINCIPAL", days: Array.isArray(f.days) ? f.days : [] }], log: [], undo: [], roles: {}, memberInfo: {}, isTemplate: false };
 }
 
 export function getUserRole(fest, userId) {

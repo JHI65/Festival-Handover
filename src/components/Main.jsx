@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { ThemeCtx, LT, DK, makeS } from "../lib/theme";
-import { uid, getUserRole } from "../lib/utils";
+import { uid, getUserRole, UNDO_LIMIT } from "../lib/utils";
 import { SEED } from "../lib/constants";
 import { saveOfflineCache, loadOfflineCache } from "../lib/offline";
 import {
@@ -404,17 +404,32 @@ function Main({ session, offlineBannerOffset }) {
   }
 
   async function updateFest(updated) {
-    setFests(festsRef.current.map(f => f.id === updated.id ? updated : f));
+    // Rollback: si este cambio añadió una entrada al log (y no es un UNDO),
+    // guardamos una instantánea de los stages PREVIOS en la pila de deshacer (máx UNDO_LIMIT).
+    const prev = festsRef.current.find(f => f.id === updated.id);
+    let next = updated;
+    if (prev) {
+      const prevLogLen = prev.log?.length || 0;
+      const newLogLen = updated.log?.length || 0;
+      if (newLogLen > prevLogLen) {
+        const entry = updated.log[newLogLen - 1];
+        if (entry.action !== "UNDO") {
+          const snapshot = { ts: entry.ts, action: entry.action, detail: entry.detail, user: entry.user, stages: prev.stages };
+          next = { ...updated, undo: [...(updated.undo || []).slice(-(UNDO_LIMIT - 1)), snapshot] };
+        }
+      }
+    }
+    setFests(festsRef.current.map(f => f.id === next.id ? next : f));
     if (!navigator.onLine) {
-      dirtyFestIds.current.add(updated.id);
+      dirtyFestIds.current.add(next.id);
       persistOffline();
       return;
     }
     try {
-      await saveFest(userId, updated);
+      await saveFest(userId, next);
     } catch (err) {
       console.warn("updateFest falló, se reintentará al reconectar:", err?.message || err);
-      dirtyFestIds.current.add(updated.id);
+      dirtyFestIds.current.add(next.id);
       persistOffline();
     }
   }

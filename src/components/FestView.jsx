@@ -52,6 +52,20 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
     return { ...fest, stages: newStages };
   }
 
+  // Rollback: revierte el último cambio registrado restaurando la instantánea de stages
+  function doUndo() {
+    const stack = fest.undo || [];
+    if (!stack.length) return;
+    const top = stack[stack.length - 1];
+    const detail = `${top.action}${top.detail ? " · " + top.detail : ""}`;
+    onEditFest({
+      ...fest,
+      stages: top.stages,
+      undo: stack.slice(0, -1),
+      log: [...(fest.log || []).slice(-999), mkLog(userEmail, "UNDO", detail)],
+    });
+  }
+
   async function copyArtistsTodays() {
     const artsToCopy = artists.filter(a => copySelected[a.id]);
     if (!artsToCopy.length) return;
@@ -620,7 +634,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           onClose={() => { setShowRuloForm(false); setEditRuloId(null); setPrefillPos(null); }}
         />
       )}
-      {showLog && <LogModal log={fest.log || []} festName={fest.name} onClose={() => setShowLog(false)} />}
+      {showLog && <LogModal log={fest.log || []} undo={fest.undo || []} canEdit={canEdit} onUndo={doUndo} festName={fest.name} onClose={() => setShowLog(false)} />}
     </div>
   );
 }
