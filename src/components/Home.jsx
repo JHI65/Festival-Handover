@@ -12,6 +12,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
   const [confirmId, setConfirmId] = useState(null);
   const [editFestId, setEditFestId] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const [useTemplate, setUseTemplate] = useState(null);
   const [festNameFromTpl, setFestNameFromTpl] = useState("");
   const { dark, toggle } = useTheme();
@@ -72,25 +73,41 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                   color: dark ? "#94a3b8" : "#64748b",
                 }}>{dark ? t("oscuro") : t("claro")}</span>
               </button>
-              {/* selector de idioma */}
-              <div style={{ padding: "8px 12px 6px" }}>
-                <div style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", marginBottom: 6 }}>🌐 {t("Idioma")}</div>
-                <div style={{ display: "flex", gap: 4 }}>
-                  {LANGS.map(l => (
-                    <button key={l.code} onClick={() => setLang(l.code)} style={{
-                      flex: 1, padding: "7px 4px", borderRadius: 8, cursor: "pointer",
-                      border: `1px solid ${lang === l.code ? "#D4A843" : T.border}`,
-                      background: lang === l.code ? "rgba(212,168,67,0.15)" : "transparent",
-                      color: lang === l.code ? T.text : T.text4, fontFamily: "'DM Mono',monospace",
-                      fontSize: 11, fontWeight: lang === l.code ? 700 : 400,
-                      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                    }}>
-                      <span style={{ fontSize: 14 }}>{l.flag}</span>
-                      <span>{l.code.toUpperCase()}</span>
-                    </button>
-                  ))}
+              {/* selector de idioma — se despliega al pulsar "Idioma" */}
+              <button onClick={() => setLangOpen(o => !o)} style={{
+                width: "100%", padding: "10px 12px", background: "none", border: "none",
+                borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
+                textAlign: "left", fontFamily: "'DM Mono',monospace",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+              }}>
+                <span>🌐 {t("Idioma")}</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{
+                    fontSize: 11, padding: "2px 8px", borderRadius: 99,
+                    background: dark ? "#334155" : "#f1f5f9", color: dark ? "#94a3b8" : "#64748b",
+                  }}>{(LANGS.find(l => l.code === lang) || LANGS[0]).flag} {lang.toUpperCase()}</span>
+                  <span style={{ display: "inline-block", transition: "transform 0.15s", transform: langOpen ? "rotate(90deg)" : "rotate(0deg)", color: T.text4 }}>›</span>
+                </span>
+              </button>
+              {langOpen && (
+                <div style={{ padding: "2px 12px 8px" }}>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {LANGS.map(l => (
+                      <button key={l.code} onClick={() => { setLang(l.code); setLangOpen(false); }} style={{
+                        flex: 1, padding: "7px 4px", borderRadius: 8, cursor: "pointer",
+                        border: `1px solid ${lang === l.code ? "#D4A843" : T.border}`,
+                        background: lang === l.code ? "rgba(212,168,67,0.15)" : "transparent",
+                        color: lang === l.code ? T.text : T.text4, fontFamily: "'DM Mono',monospace",
+                        fontSize: 11, fontWeight: lang === l.code ? 700 : 400,
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                      }}>
+                        <span style={{ fontSize: 14 }}>{l.flag}</span>
+                        <span>{l.code.toUpperCase()}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               <button onClick={() => { setMenuOpen(false); setShowNotifSettings(true); }} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
                 borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
