@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useTheme, LT, DK } from "../lib/theme";
+import { useLang, localeOf } from "../lib/i18n";
 
 function LogModal({ log, undo = [], canEdit = false, onUndo, festName, onClose }) {
   const entries = [...(log || [])].reverse();
   const { dark } = useTheme(); const T = dark ? DK : LT;
+  const { t, lang } = useLang();
   const [confirming, setConfirming] = useState(false);
   const fmtTs = (iso) => {
     try {
       const d = new Date(iso);
-      return d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " " + d.toLocaleDateString("es", { day: "2-digit", month: "2-digit" });
+      return d.toLocaleTimeString(localeOf(lang), { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " " + d.toLocaleDateString(localeOf(lang), { day: "2-digit", month: "2-digit" });
     } catch { return iso; }
   };
   const actionMeta = (a) => {
@@ -40,7 +42,7 @@ function LogModal({ log, undo = [], canEdit = false, onUndo, festName, onClose }
         {/* log entries */}
         <div style={{ flex: 1, overflowY: "auto", padding: "6px 0 20px", background: T.bg }}>
           {entries.length === 0 ? (
-            <div style={{ fontFamily: "monospace", fontSize: 11, color: T.text4, padding: "20px 16px" }}>// sin entradas</div>
+            <div style={{ fontFamily: "monospace", fontSize: 11, color: T.text4, padding: "20px 16px" }}>// {t("sin entradas")}</div>
           ) : (
             entries.map((e, i) => {
               const { label, color } = actionMeta(e.action);
@@ -63,18 +65,18 @@ function LogModal({ log, undo = [], canEdit = false, onUndo, festName, onClose }
         {canEdit && nextUndo && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", background: T.card, borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4, display: "block" }}>{confirming ? "¿Seguro? Toca de nuevo para confirmar" : "↩ Deshacer último cambio"}</span>
+              <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4, display: "block" }}>{confirming ? t("¿Seguro? Toca de nuevo para confirmar") : t("↩ Deshacer último cambio")}</span>
               <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text3, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{undoLabel}</span>
             </div>
             {confirming && (
-              <button onClick={() => setConfirming(false)} style={{ background: "none", border: `1px solid ${T.border}`, color: T.text3, fontFamily: "monospace", fontSize: 11, padding: "7px 12px", borderRadius: 8, cursor: "pointer", flexShrink: 0 }}>Cancelar</button>
+              <button onClick={() => setConfirming(false)} style={{ background: "none", border: `1px solid ${T.border}`, color: T.text3, fontFamily: "monospace", fontSize: 11, padding: "7px 12px", borderRadius: 8, cursor: "pointer", flexShrink: 0 }}>{t("Cancelar")}</button>
             )}
-            <button onClick={handleUndo} style={{ background: confirming ? "#dc2626" : T.card2, border: `1px solid ${confirming ? "#dc2626" : T.border}`, color: confirming ? "#fff" : "#2563eb", fontFamily: "monospace", fontSize: 11, fontWeight: 700, padding: "7px 14px", borderRadius: 8, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{confirming ? "Deshacer" : "↩ Deshacer"}</button>
+            <button onClick={handleUndo} style={{ background: confirming ? "#dc2626" : T.card2, border: `1px solid ${confirming ? "#dc2626" : T.border}`, color: confirming ? "#fff" : "#2563eb", fontFamily: "monospace", fontSize: 11, fontWeight: 700, padding: "7px 14px", borderRadius: 8, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{confirming ? t("Deshacer") : t("↩ Deshacer")}</button>
           </div>
         )}
         {/* footer */}
         <div style={{ padding: "8px 16px", background: T.card2, borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
-          <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4 }}>{entries.length} entradas · últimos 1000 cambios{undo.length ? ` · ${undo.length} deshacer disponibles` : ""}</span>
+          <span style={{ fontFamily: "monospace", fontSize: 10, color: T.text4 }}>{t("{n} entradas · últimos 1000 cambios", { n: entries.length })}{undo.length ? t(" · {n} deshacer disponibles", { n: undo.length }) : ""}</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang, LANGS } from "../lib/i18n";
 import { getUserRole } from "../lib/utils";
 import FestEditModal from "./FestEditModal";
 import NotificationSettings from "./NotificationSettings";
@@ -14,6 +15,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
   const [useTemplate, setUseTemplate] = useState(null);
   const [festNameFromTpl, setFestNameFromTpl] = useState("");
   const { dark, toggle } = useTheme();
+  const { t, lang, setLang } = useLang();
   const T = dark ? DK : LT;
   const S = makeS(T);
 
@@ -63,31 +65,50 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                 textAlign: "left", fontFamily: "'DM Mono',monospace",
                 display: "flex", alignItems: "center", justifyContent: "space-between",
               }}>
-                <span>{dark ? "☀️ Modo claro" : "🌙 Modo oscuro"}</span>
+                <span>{dark ? t("☀️ Modo claro") : t("🌙 Modo oscuro")}</span>
                 <span style={{
                   fontSize: 11, padding: "2px 8px", borderRadius: 99,
                   background: dark ? "#334155" : "#f1f5f9",
                   color: dark ? "#94a3b8" : "#64748b",
-                }}>{dark ? "oscuro" : "claro"}</span>
+                }}>{dark ? t("oscuro") : t("claro")}</span>
               </button>
+              {/* selector de idioma */}
+              <div style={{ padding: "8px 12px 6px" }}>
+                <div style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", marginBottom: 6 }}>🌐 {t("Idioma")}</div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {LANGS.map(l => (
+                    <button key={l.code} onClick={() => setLang(l.code)} style={{
+                      flex: 1, padding: "7px 4px", borderRadius: 8, cursor: "pointer",
+                      border: `1px solid ${lang === l.code ? "#D4A843" : T.border}`,
+                      background: lang === l.code ? "rgba(212,168,67,0.15)" : "transparent",
+                      color: lang === l.code ? T.text : T.text4, fontFamily: "'DM Mono',monospace",
+                      fontSize: 11, fontWeight: lang === l.code ? 700 : 400,
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    }}>
+                      <span style={{ fontSize: 14 }}>{l.flag}</span>
+                      <span>{l.code.toUpperCase()}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
               <button onClick={() => { setMenuOpen(false); setShowNotifSettings(true); }} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
                 borderRadius: 8, color: T.text3, fontSize: 13, cursor: "pointer",
                 textAlign: "left", fontFamily: "'DM Mono',monospace",
-              }}>🔔 Avisos</button>
+              }}>🔔 {t("Avisos")}</button>
               <div style={{ height: 1, background: T.border2, margin: "2px 0" }} />
               <button onClick={onLogout} style={{
                 width: "100%", padding: "10px 12px", background: "none", border: "none",
                 borderRadius: 8, color: "#ef4444", fontSize: 13, cursor: "pointer",
                 textAlign: "left", fontFamily: "'DM Mono',monospace",
-              }}>Cerrar sesión</button>
+              }}>{t("Cerrar sesión")}</button>
             </div>
           )}
         </div>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 11, color: T.text4, letterSpacing: "0.2em", marginBottom: 2 }}>FOH HANDOVER</div>
           <div style={{ fontSize: 32, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.05em", lineHeight: 1 }}>
-            TUS <span style={{ color: "#D4A843" }}>FESTIVALES</span>
+            {t("TUS")} <span style={{ color: "#D4A843" }}>{t("FESTIVALES")}</span>
           </div>
         </div>
       </div>
@@ -118,8 +139,8 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
               <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
                 <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 2 }}>
-                  <span style={{ fontSize: 12, color: T.text4 }}>{(f.stages || []).length} stages · {total} artistas</span>
-                  {!fIsOwner && <span style={{ fontSize: 9, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", padding: "1px 6px", borderRadius: 4, background: fRole === "viewer" ? "#e0e7ff" : "#f0fdf4", color: fRole === "viewer" ? "#3730a3" : "#166534" }}>{fRole === "viewer" ? "VISOR" : "EDITOR"}</span>}
+                  <span style={{ fontSize: 12, color: T.text4 }}>{t("{s} stages · {a} artistas", { s: (f.stages || []).length, a: total })}</span>
+                  {!fIsOwner && <span style={{ fontSize: 9, fontFamily: "'DM Mono',monospace", letterSpacing: "0.08em", padding: "1px 6px", borderRadius: 4, background: fRole === "viewer" ? "#e0e7ff" : "#f0fdf4", color: fRole === "viewer" ? "#3730a3" : "#166534" }}>{fRole === "viewer" ? t("VISOR") : t("EDITOR")}</span>}
                 </div>
               </div>
               <div style={{ width: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -151,7 +172,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
             background: "transparent", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
             fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, color: T.text4,
           }}>
-            <span>📋 Plantillas ({templates.length})</span>
+            <span>📋 {t("Plantillas")} ({templates.length})</span>
             <span style={{ display: "inline-block", transition: "transform 0.15s", transform: showTemplates ? "rotate(90deg)" : "rotate(0deg)" }}>›</span>
           </button>
           {showTemplates && (
@@ -165,12 +186,12 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tpl.name}</div>
-                      <div style={{ fontSize: 11, color: T.text4, marginTop: 1 }}>{(tpl.stages || []).length} stages · {total} artistas</div>
+                      <div style={{ fontSize: 11, color: T.text4, marginTop: 1 }}>{t("{s} stages · {a} artistas", { s: (tpl.stages || []).length, a: total })}</div>
                     </div>
                     <button onClick={() => { setUseTemplate(tpl); setFestNameFromTpl(tpl.name); }} style={{
                       padding: "6px 12px", borderRadius: 8, border: "none", background: dark ? "#334155" : "#0f172a",
                       color: "#fff", fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0,
-                    }}>Usar</button>
+                    }}>{t("Usar")}</button>
                   </div>
                 );
               })}
@@ -179,7 +200,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
         </div>
       )}
 
-      <button onClick={onNew} style={{ ...S.bigBtn, marginTop: 0, flexShrink: 0 }}>+ CREAR FESTIVAL</button>
+      <button onClick={onNew} style={{ ...S.bigBtn, marginTop: 0, flexShrink: 0 }}>{t("+ CREAR FESTIVAL")}</button>
 
       {/* popup confirmación borrado */}
       {confirmId && (() => {
@@ -191,17 +212,17 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
               onClick={e => e.stopPropagation()}>
               <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
               <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>
-                {item?.isTemplate ? "¿Borrar plantilla?" : "¿Borrar festival?"}
+                {item?.isTemplate ? t("¿Borrar plantilla?") : t("¿Borrar festival?")}
               </div>
               <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
-                Vas a borrar <strong style={{ color: T.text }}>{item?.name}</strong>. Esta acción no se puede deshacer.
+                {t("Vas a borrar")} <strong style={{ color: T.text }}>{item?.name}</strong>{t(". Esta acción no se puede deshacer.")}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
-                  Cancelar
+                  {t("Cancelar")}
                 </button>
                 <button onClick={() => { onDelete(confirmId); setConfirmId(null); setEditMode(false); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>
-                  Sí, borrar
+                  {t("Sí, borrar")}
                 </button>
               </div>
             </div>
@@ -216,25 +237,25 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
           <div style={{ background: T.card, borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>📋</div>
-            <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 4 }}>USAR PLANTILLA</div>
+            <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 4 }}>{t("USAR PLANTILLA")}</div>
             <div style={{ fontSize: 12, color: T.text4, textAlign: "center", fontFamily: "monospace", marginBottom: 20 }}>{useTemplate.name}</div>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>NOMBRE DEL FESTIVAL</div>
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>{t("NOMBRE DEL FESTIVAL")}</div>
             <input
               value={festNameFromTpl}
               onChange={e => setFestNameFromTpl(e.target.value)}
               autoFocus
               style={{ ...S.input, marginBottom: 20 }}
-              placeholder="Ej: Mad Cool 27"
+              placeholder={t("Ej: Mad Cool 27")}
             />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setUseTemplate(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
-                Cancelar
+                {t("Cancelar")}
               </button>
               <button
                 onClick={() => { if (festNameFromTpl.trim()) { onCreateFromTemplate(useTemplate, festNameFromTpl.trim()); setUseTemplate(null); } }}
                 disabled={!festNameFromTpl.trim()}
                 style={{ flex: 1, padding: "14px", background: dark ? "#334155" : "#0f172a", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: festNameFromTpl.trim() ? "pointer" : "not-allowed", fontFamily: "'DM Mono',monospace", color: "#fff", opacity: festNameFromTpl.trim() ? 1 : 0.4 }}>
-                Crear festival
+                {t("Crear festival")}
               </button>
             </div>
           </div>

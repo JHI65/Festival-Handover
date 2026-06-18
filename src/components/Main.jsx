@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { ThemeCtx, LT, DK, makeS } from "../lib/theme";
 import { uid, getUserRole, UNDO_LIMIT } from "../lib/utils";
+import { useLang } from "../lib/i18n";
 import { SEED } from "../lib/constants";
 import { saveOfflineCache, loadOfflineCache } from "../lib/offline";
 import {
@@ -21,6 +22,7 @@ import EscenarioView from "./EscenarioView";
 import NotificationSettings from "./NotificationSettings";
 
 function Main({ session, offlineBannerOffset }) {
+  const { t } = useLang();
   const userId = session.user.id;
   const userEmail = session.user.email;
   const isOnline = () => navigator.onLine;
@@ -497,14 +499,14 @@ function Main({ session, offlineBannerOffset }) {
       <Style />
       <div style={{ fontSize: 32 }}>⚠️</div>
       <div style={{ color: "#C94A2A", fontSize: 13, textAlign: "center", maxWidth: 340 }}>
-        <strong>Error al conectar con la base de datos</strong><br /><br />
+        <strong>{t("Error al conectar con la base de datos")}</strong><br /><br />
         {loadError}<br /><br />
         <span style={{ color: "#B0A090", fontSize: 11 }}>
-          Asegúrate de haber ejecutado el SQL en Supabase y de tener las tablas <code>festivals</code> y <code>user_data</code> creadas.
+          {t("Asegúrate de haber ejecutado el SQL en Supabase y de tener las tablas")} <code>festivals</code> {t("y")} <code>user_data</code> {t("creadas.")}
         </span>
       </div>
       <button onClick={() => supabase.auth.signOut()} style={{ marginTop: 8, background: "#F5EFE0", border: "none", borderRadius: 4, padding: "10px 20px", cursor: "pointer", fontSize: 13 }}>
-        Cerrar sesión
+        {t("Cerrar sesión")}
       </button>
     </div>
   );
@@ -598,7 +600,7 @@ function Main({ session, offlineBannerOffset }) {
         {showNotifPrompt && <NotificationSettings userId={userId} onClose={() => setShowNotifPrompt(false)} />}
         {conflictToast && (
           <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: darkMode ? "#2A2420" : "#1A1410", color: "#D4A843", fontFamily: "'DM Mono',monospace", fontSize: 12, padding: "10px 18px", borderRadius: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", zIndex: 9999, pointerEvents: "none", animation: "lg-fade .25s ease both", letterSpacing: "0.05em" }}>
-            ↕ Cambios recibidos de otro técnico
+            {t("↕ Cambios recibidos de otro técnico")}
           </div>
         )}
       </div>

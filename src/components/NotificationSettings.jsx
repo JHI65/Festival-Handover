@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTheme, LT, DK } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { isPushSupported, getPushSubscriptionStatus, subscribeToPush, unsubscribeFromPush } from "../lib/push";
 
 function NotificationSettings({ userId, onClose }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT;
   const [supported] = useState(isPushSupported());
   const [enabled, setEnabled] = useState(false);
@@ -28,7 +30,7 @@ function NotificationSettings({ userId, onClose }) {
         onClose();
       }
     } catch (err) {
-      setError(err.message || "No se pudo actualizar la suscripción");
+      setError(err.message || t("No se pudo actualizar la suscripción"));
     } finally {
       setBusy(false);
     }
@@ -41,15 +43,15 @@ function NotificationSettings({ userId, onClose }) {
         onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🔔</div>
         <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>
-          Avisos
+          {t("Avisos")}
         </div>
         <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Recibe notificaciones de los artistas del escenario en el que estés trabajando.
+          {t("Recibe notificaciones de los artistas del escenario en el que estés trabajando.")}
         </div>
 
         {!supported && (
           <div style={{ fontSize: 12, color: "#ef4444", textAlign: "center", marginBottom: 16 }}>
-            Este navegador no soporta notificaciones push, o falta configurar la clave VAPID.
+            {t("Este navegador no soporta notificaciones push, o falta configurar la clave VAPID.")}
           </div>
         )}
 
@@ -59,13 +61,13 @@ function NotificationSettings({ userId, onClose }) {
             cursor: busy ? "default" : "pointer", fontFamily: "'DM Mono',monospace", border: "none",
             background: enabled ? "#ef4444" : "#16a34a", color: "#fff", opacity: busy ? 0.6 : 1, marginBottom: 10,
           }}>
-            {busy ? "..." : enabled ? "Desactivar avisos" : "Activar avisos"}
+            {busy ? "..." : enabled ? t("Desactivar avisos") : t("Activar avisos")}
           </button>
         )}
         {error && <div style={{ fontSize: 12, color: "#ef4444", textAlign: "center", marginBottom: 10 }}>{error}</div>}
 
         <button onClick={onClose} style={{ width: "100%", padding: "12px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
-          Cerrar
+          {t("Cerrar")}
         </button>
       </div>
     </div>

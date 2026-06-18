@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { noInfo } from "../lib/utils";
 
 const RULO_TYPES = ["HMA OPTOCORE", "RJ / CAT6", "OPTICALCON", "MULTIPAR", "OTRO"];
@@ -17,6 +18,7 @@ function ruloColor(type) {
 const POSITIONS = ["SR", "SL"];
 
 function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDelete, onSaveOverride, onClearOverride, dayLabel }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [confirmId, setConfirmId] = useState(null);
   const [confirmIsPerm, setConfirmIsPerm] = useState(false);
@@ -57,7 +59,7 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
     <div>
       {/* Stage plot SR / SL */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", marginBottom: 8, fontFamily: "'DM Mono',monospace", textAlign: "center", textTransform: "uppercase" }}>Escenario</div>
+        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", marginBottom: 8, fontFamily: "'DM Mono',monospace", textAlign: "center", textTransform: "uppercase" }}>{t("Escenario")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {POSITIONS.map(pos => {
             const posRulos = byPos(pos);
@@ -82,7 +84,7 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
       {/* Sin posición — chips compactos */}
       {noPos.length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", marginBottom: 8, fontFamily: "'DM Mono',monospace", textTransform: "uppercase" }}>General</div>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", marginBottom: 8, fontFamily: "'DM Mono',monospace", textTransform: "uppercase" }}>{t("General")}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {noPos.map(r => <RuloChip key={r.id} r={r} />)}
           </div>
@@ -111,12 +113,12 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                     <span style={{ fontSize: 9, color: "#D4A843", fontFamily: "'DM Mono',monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                      Descripción · {dayLabel}
+                      {t("Descripción · {d}", { d: dayLabel })}
                     </span>
                     {hasOverride && (
                       <button onClick={() => { onClearOverride(r.id); setOverrideDraft(null); }}
                         style={{ background: "none", border: "none", fontSize: 10, color: T.text4, cursor: "pointer", fontFamily: "'DM Mono',monospace", padding: 0 }}>
-                        Usar global ↩
+                        {t("Usar global ↩")}
                       </button>
                     )}
                   </div>
@@ -124,7 +126,7 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
                     <input
                       value={overrideDraft ?? (ruloOverrides[r.id]?.desc ?? baseDesc ?? "")}
                       onChange={e => setOverrideDraft(e.target.value)}
-                      placeholder={baseDesc || "Sin descripción"}
+                      placeholder={baseDesc || t("Sin descripción")}
                       style={{ ...S.input, flex: 1, padding: "10px 12px", fontSize: 13 }}
                     />
                     <button
@@ -134,7 +136,7 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
                     </button>
                   </div>
                   {hasOverride && baseDesc && (
-                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginTop: 5 }}>Global: {baseDesc}</div>
+                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginTop: 5 }}>{t("Global:")} {baseDesc}</div>
                   )}
                 </div>
               ) : (
@@ -144,9 +146,9 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
               {r.note && <div style={{ fontSize: 12, color: "#D4A843", lineHeight: 1.4, padding: "8px 10px", background: dark ? "rgba(212,168,67,0.1)" : "#FFF8EC", borderLeft: "3px solid #D4A843", marginBottom: 14 }}>⚠ {r.note}</div>}
               <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                 {onEdit && <button onClick={() => { setSheetRulo(null); onEdit(r.id); }}
-                  style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, fontSize: 13, color: T.text2, cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>✏️ Editar</button>}
+                  style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, fontSize: 13, color: T.text2, cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>✏️ {t("Editar")}</button>}
                 {onDelete && <button onClick={() => { setSheetRulo(null); setConfirmId(r.id); setConfirmIsPerm(r._perm); }}
-                  style={{ flex: 1, padding: "13px", background: "rgba(201,74,42,0.08)", border: "1px solid rgba(201,74,42,0.3)", borderRadius: 4, fontSize: 13, color: "#C94A2A", cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>🗑 Borrar</button>}
+                  style={{ flex: 1, padding: "13px", background: "rgba(201,74,42,0.08)", border: "1px solid rgba(201,74,42,0.3)", borderRadius: 4, fontSize: 13, color: "#C94A2A", cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>🗑 {t("Borrar")}</button>}
               </div>
             </div>
           </div>
@@ -158,10 +160,10 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
           onClick={() => setConfirmId(null)}>
           <div style={{ background: T.card, borderRadius: 4, padding: 28, width: "100%", maxWidth: 320, boxShadow: "0 8px 40px rgba(0,0,0,0.3)", borderTop: "4px solid #C94A2A" }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20, fontFamily: "'DM Mono',monospace" }}>¿Borrar esta conexión?</div>
+            <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20, fontFamily: "'DM Mono',monospace" }}>{t("¿Borrar esta conexión?")}</div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
-              <button onClick={() => { onDelete(confirmId, confirmIsPerm); setConfirmId(null); }} style={{ flex: 1, padding: "13px", background: "#C94A2A", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Borrar</button>
+              <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: "13px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>{t("Cancelar")}</button>
+              <button onClick={() => { onDelete(confirmId, confirmIsPerm); setConfirmId(null); }} style={{ flex: 1, padding: "13px", background: "#C94A2A", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>{t("Borrar")}</button>
             </div>
           </div>
         </div>
@@ -171,6 +173,7 @@ function RulosView({ rulos, permRulos, ruloOverrides = {}, onAdd, onEdit, onDele
 }
 
 function RuloCard({ r, onEdit, onDelete }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT;
   const color = ruloColor(r.type);
   const bg = dark ? `${color}18` : `${color}0d`;
@@ -194,14 +197,14 @@ function RuloCard({ r, onEdit, onDelete }) {
         {(r.from || r.to) && (
           <div style={{ display: "flex", alignItems: "stretch", gap: 0, marginBottom: r.note ? 8 : 0 }}>
             <div style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "2px 0 0 2px", padding: "6px 10px" }}>
-              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>DE</div>
+              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>{t("DE")}</div>
               <div style={{ fontSize: 11, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.3 }}>{noInfo(r.from) || "—"}</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", background: bg, border: `1px solid ${border}`, borderLeft: "none", borderRight: "none", padding: "0 6px" }}>
               <span style={{ color, fontSize: 10 }}>→</span>
             </div>
             <div style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "0 2px 2px 0", padding: "6px 10px" }}>
-              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>PARA</div>
+              <div style={{ fontSize: 8, color, letterSpacing: "0.12em", fontFamily: "'DM Mono',monospace", marginBottom: 2 }}>{t("PARA")}</div>
               <div style={{ fontSize: 11, color: T.text, fontFamily: "'DM Mono',monospace", lineHeight: 1.3 }}>{noInfo(r.to) || "—"}</div>
             </div>
           </div>
@@ -217,6 +220,7 @@ function RuloCard({ r, onEdit, onDelete }) {
 }
 
 function RuloFormModal({ initial, prefillPos, onSave, onClose }) {
+  const { t } = useLang();
   const isEdit = !!initial;
   const [f, setF] = useState(initial ? {
     type: initial.type || "HMA OPTOCORE",
@@ -245,9 +249,9 @@ function RuloFormModal({ initial, prefillPos, onSave, onClose }) {
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>CONEXIÓN</div>
+            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>{t("CONEXIÓN")}</div>
             <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>
-              {isEdit ? "EDITAR RULO" : "NUEVO RULO"}
+              {isEdit ? t("EDITAR RULO") : t("NUEVO RULO")}
             </div>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: T.text4, fontSize: 20, cursor: "pointer", padding: "6px 8px" }}>✕</button>
@@ -255,19 +259,19 @@ function RuloFormModal({ initial, prefillPos, onSave, onClose }) {
 
         {/* type selector */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>TIPO DE CABLE</div>
+          <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>{t("TIPO DE CABLE")}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {RULO_TYPES.map(t => {
-              const tc = ruloColor(t);
-              const active = f.type === t;
+            {RULO_TYPES.map(rt => {
+              const tc = ruloColor(rt);
+              const active = f.type === rt;
               return (
-                <button key={t} onClick={() => set("type", t)} style={{
+                <button key={rt} onClick={() => set("type", rt)} style={{
                   padding: "5px 12px", borderRadius: 8, fontSize: 12, fontFamily: "monospace",
                   border: `1.5px solid ${active ? tc : T.border}`,
                   background: active ? `${tc}18` : T.card2,
                   color: active ? tc : T.text3,
                   cursor: "pointer", fontWeight: active ? 700 : 400,
-                }}>{t}</button>
+                }}>{rt}</button>
               );
             })}
           </div>
@@ -275,23 +279,23 @@ function RuloFormModal({ initial, prefillPos, onSave, onClose }) {
 
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <div style={{ flex: 0.4 }}>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>CANTIDAD</div>
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>{t("CANTIDAD")}</div>
             <input value={f.qty} onChange={e => set("qty", e.target.value)} placeholder="2×" style={S.input} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>DESCRIPCIÓN</div>
-            <input value={f.desc} onChange={e => set("desc", e.target.value)} placeholder="Ej: HMA OPTOCORE Festival Box" style={S.input} autoFocus />
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>{t("DESCRIPCIÓN")}</div>
+            <input value={f.desc} onChange={e => set("desc", e.target.value)} placeholder={t("Ej: HMA OPTOCORE Festival Box")} style={S.input} autoFocus />
           </div>
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>NOTA (opcional)</div>
-          <input value={f.note} onChange={e => set("note", e.target.value)} placeholder="Ej: El sábado mover a Cultura Jaén SL" style={S.input} />
+          <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 6 }}>{t("NOTA (opcional)")}</div>
+          <input value={f.note} onChange={e => set("note", e.target.value)} placeholder={t("Ej: El sábado mover a Cultura Jaén SL")} style={S.input} />
         </div>
 
         {/* posición en escenario */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>POSICIÓN EN ESCENARIO</div>
+          <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.1em", marginBottom: 8 }}>{t("POSICIÓN EN ESCENARIO")}</div>
           <div style={{ display: "flex", gap: 6 }}>
             {["SR", "SL"].map(pos => (
               <button key={pos} onClick={() => set("position", f.position === pos ? "" : pos)} style={{
@@ -308,13 +312,13 @@ function RuloFormModal({ initial, prefillPos, onSave, onClose }) {
         <label style={{ display: "flex", alignItems: "center", gap: 12, background: f.permanent ? "#fef3c7" : T.card2, border: `1px solid ${f.permanent ? "#fcd34d" : T.border}`, borderRadius: 12, padding: "12px 14px", cursor: "pointer", marginBottom: 20 }}>
           <input type="checkbox" checked={!!f.permanent} onChange={e => set("permanent", e.target.checked)} style={{ accentColor: "#d97706", width: 18, height: 18 }} />
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: f.permanent ? "#92400e" : T.text, fontFamily: "monospace" }}>📌 Rulo permanente</div>
-            <div style={{ fontSize: 11, color: f.permanent ? "#b45309" : T.text4, marginTop: 2 }}>Visible en todos los días del stage</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: f.permanent ? "#92400e" : T.text, fontFamily: "monospace" }}>📌 {t("Rulo permanente")}</div>
+            <div style={{ fontSize: 11, color: f.permanent ? "#b45309" : T.text4, marginTop: 2 }}>{t("Visible en todos los días del stage")}</div>
           </div>
         </label>
 
         <button onClick={confirm} disabled={!valid} style={{ ...S.bigBtn, marginTop: 0, opacity: valid ? 1 : 0.4 }}>
-          {isEdit ? "GUARDAR CAMBIOS" : "AÑADIR CONEXIÓN"}
+          {isEdit ? t("GUARDAR CAMBIOS") : t("AÑADIR CONEXIÓN")}
         </button>
       </div>
     </div>

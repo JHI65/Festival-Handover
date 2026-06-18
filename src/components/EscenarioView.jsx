@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang, localeOf } from "../lib/i18n";
 import { uid, sigColor, noInfo, festTimeToMin } from "../lib/utils";
 import { QuickTable } from "./MonView";
 
@@ -21,6 +22,7 @@ const PLOT_ICONS = [
 ];
 
 function EscenarioCompactArtistCard({ a, T, dark }) {
+  const { t } = useLang();
   const chipBg = T.card2;
   const chipBorder = T.border;
 
@@ -32,7 +34,7 @@ function EscenarioCompactArtistCard({ a, T, dark }) {
         </span>
         {a.escTecnico && (
           <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 9, color: T.text4, textTransform: "uppercase", letterSpacing: "0.06em" }}>técnico</div>
+            <div style={{ fontSize: 9, color: T.text4, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t("técnico")}</div>
             <div style={{ fontSize: 13, fontWeight: 500, fontFamily: "monospace", color: T.text2 }}>{noInfo(a.escTecnico)}</div>
           </div>
         )}
@@ -68,6 +70,7 @@ function EscenarioCompactArtistCard({ a, T, dark }) {
 }
 
 function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
+  const { t, lang } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [tab, setTab] = useState("bandas");
   const [dayIdx, setDayIdx] = useState(0);
@@ -129,9 +132,9 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
   const rangeStr = (p) => (p.from && p.to) ? `${p.from}–${p.to}` : (p.from || p.to || "");
 
   const CAT = {
-    icon:      { color: dark ? "#34d399" : "#16a34a", bg: dark ? "#064e3b" : "#dcfce7", border: dark ? "#10b981" : "#16a34a", glyph: "🎚️", label: "Instrumento" },
-    subbox:    { color: dark ? "#60a5fa" : "#2563eb", bg: dark ? "#172554" : "#dbeafe", border: dark ? "#3b82f6" : "#2563eb", glyph: "🔌", label: "Subbox" },
-    corriente: { color: dark ? "#fbbf24" : "#d97706", bg: dark ? "#422006" : "#fef3c7", border: dark ? "#D4A843" : "#d97706", glyph: "⚡", label: "Corriente" },
+    icon:      { color: dark ? "#34d399" : "#16a34a", bg: dark ? "#064e3b" : "#dcfce7", border: dark ? "#10b981" : "#16a34a", glyph: "🎚️", label: t("Instrumento") },
+    subbox:    { color: dark ? "#60a5fa" : "#2563eb", bg: dark ? "#172554" : "#dbeafe", border: dark ? "#3b82f6" : "#2563eb", glyph: "🔌", label: t("Subbox") },
+    corriente: { color: dark ? "#fbbf24" : "#d97706", bg: dark ? "#422006" : "#fef3c7", border: dark ? "#D4A843" : "#d97706", glyph: "⚡", label: t("Corriente") },
   };
 
   function renderPlotCell(item) {
@@ -163,14 +166,14 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
 
   const inputCols = [
     { key: "ch", placeholder: "CH", width: 44 },
-    { key: "source", placeholder: "Nombre / Fuente", flex: 2 },
-    { key: "type", placeholder: "Tipo", flex: 1, options: ["Mic", "DI", "Line", "SB", "MADI", "AES", "Otro"] },
+    { key: "source", placeholder: t("Nombre / Fuente"), flex: 2 },
+    { key: "type", placeholder: t("Tipo"), flex: 1, options: ["Mic", "DI", "Line", "SB", "MADI", "AES", t("Otro")] },
   ];
   const powerCols = [
-    { key: "grupo", placeholder: "Grupo", width: 60 },
-    { key: "tomas", placeholder: "Tomas", width: 54 },
+    { key: "grupo", placeholder: t("Grupo"), width: 60 },
+    { key: "tomas", placeholder: t("Tomas"), width: 54 },
     { key: "kw", placeholder: "kW", width: 44 },
-    { key: "notas", placeholder: "Notas", flex: 2 },
+    { key: "notas", placeholder: t("Notas"), flex: 2 },
   ];
 
   return (
@@ -188,16 +191,16 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
           <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: T.card, borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 480, margin: "0 auto" }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: T.border, margin: "0 auto 20px" }} />
-              <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", marginBottom: 6 }}>Eliminar posición de escenario</div>
+              <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em", marginBottom: 6 }}>{t("Eliminar posición de escenario")}</div>
               <div style={{ fontSize: 13, color: T.text3, fontFamily: "'DM Mono',monospace", marginBottom: 24 }}>
-                Se borrarán todos los inputs, grupos de corriente y el plano de {stage.name}. Esta acción no se puede deshacer.
+                {t("Se borrarán todos los inputs, grupos de corriente y el plano de {n}. Esta acción no se puede deshacer.", { n: stage.name })}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", color: T.text3, fontFamily: "'DM Mono',monospace" }}>
-                  Cancelar
+                  {t("Cancelar")}
                 </button>
                 <button onClick={onDelete} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", color: "#fff", fontFamily: "'DM Mono',monospace" }}>
-                  Eliminar
+                  {t("Eliminar")}
                 </button>
               </div>
             </div>
@@ -205,7 +208,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
         )}
         {/* tab pills */}
         <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3 }}>
-          {[["bandas", "BANDAS"], ["inputs", "INPUTS"], ["power", "CORRIENTE"], ["plot", "PLANO"]].map(([id, lbl]) => (
+          {[["bandas", t("BANDAS")], ["inputs", "INPUTS"], ["power", t("CORRIENTE")], ["plot", t("PLANO")]].map(([id, lbl]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               padding: "4px 10px", borderRadius: 8, fontSize: 11,
               fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
@@ -221,7 +224,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
       {tab === "bandas" && stage.days.length > 1 && (
         <div style={{ display: "flex", gap: 6, overflowX: "auto", padding: "6px 14px 8px", background: T.topBar, borderBottom: `1px solid ${T.border}`, alignItems: "center" }}>
           {stage.days.map((d, i) => {
-            const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "short" }) : null;
+            const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" }) : null;
             return (
               <button key={d.id} onClick={() => setDayIdx(i)} style={{
                 flexShrink: 0, padding: dateLabel ? "4px 12px" : "5px 12px", borderRadius: 20, fontSize: 12,
@@ -248,10 +251,10 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
           return (
             <div>
               {artists.length === 0 && (
-                <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "monospace" }}>Sin artistas en este día</div>
+                <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "monospace" }}>{t("Sin artistas en este día")}</div>
               )}
               {artists.length > 0 && (
-                <span style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Ficha compacta</span>
+                <span style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", display: "block", marginBottom: 6 }}>{t("Ficha compacta")}</span>
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {artists.map(a => (
@@ -288,7 +291,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
           <div>
             <div style={{ border: `1.5px solid ${T.border}`, borderRadius: 16, background: dark ? "#0b1220" : "#fbfdff", padding: 12, boxShadow: dark ? "none" : "inset 0 1px 4px rgba(0,0,0,0.04)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 22, marginBottom: 10, borderRadius: 7, background: T.card2, border: `1px solid ${T.border}`, color: T.text4, fontSize: 9, letterSpacing: "0.18em", fontFamily: "'Bebas Neue',sans-serif" }}>
-                FONDO · BACKLINE
+                {t("FONDO · BACKLINE")}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: `repeat(${PLOT_COLS}, 1fr)`, gap: 5 }}>
                 {Array.from({ length: PLOT_ROWS }, (_, row) =>
@@ -319,7 +322,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
               </div>
               <div style={{ height: 10, marginTop: 10, borderRadius: 6, background: dark ? "#334155" : "#0f172a" }} />
             </div>
-            <div style={{ textAlign: "center", fontSize: 9, color: T.text4, letterSpacing: "0.2em", marginTop: 6, marginBottom: 14, fontFamily: "'Bebas Neue',sans-serif" }}>▼ PÚBLICO ▼</div>
+            <div style={{ textAlign: "center", fontSize: 9, color: T.text4, letterSpacing: "0.2em", marginTop: 6, marginBottom: 14, fontFamily: "'Bebas Neue',sans-serif" }}>▼ {t("PÚBLICO")} ▼</div>
 
             <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 14 }}>
               {["icon", "subbox", "corriente"].map(k => (
@@ -342,30 +345,30 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
                     <div style={{ fontSize: 24 }}>{k === "icon" ? item.icon : cat.glyph}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 9, color: cat.color, letterSpacing: "0.1em", fontWeight: 700 }}>{cat.label.toUpperCase()}</div>
-                      <div style={{ fontSize: 11, color: T.text4 }}>Fila {item.row + 1} · Col {item.col + 1}</div>
+                      <div style={{ fontSize: 11, color: T.text4 }}>{t("Fila {r} · Col {c}", { r: item.row + 1, c: item.col + 1 })}</div>
                     </div>
                     <button onClick={() => { removeItem(selectedPlotId); setSelectedPlotId(null); }}
                       style={{ background: "#fee2e2", border: "1px solid #fecaca", borderRadius: 8, color: "#ef4444", padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>
-                      Borrar
+                      {t("Borrar")}
                     </button>
                   </div>
 
                   {k === "icon" && (
-                    <input value={item.label || ""} onChange={e => updateItem(item.id, { label: e.target.value })} placeholder="Etiqueta" style={{ ...S.input, fontSize: 13, marginTop: 10 }} />
+                    <input value={item.label || ""} onChange={e => updateItem(item.id, { label: e.target.value })} placeholder={t("Etiqueta")} style={{ ...S.input, fontSize: 13, marginTop: 10 }} />
                   )}
 
                   {k === "subbox" && (
                     <div style={{ marginTop: 10 }}>
-                      <input value={item.name || ""} onChange={e => updateItem(item.id, { name: e.target.value })} placeholder="Nombre (ej. SB1)" style={{ ...S.input, fontSize: 13, marginBottom: 8 }} />
+                      <input value={item.name || ""} onChange={e => updateItem(item.id, { name: e.target.value })} placeholder={t("Nombre (ej. SB1)")} style={{ ...S.input, fontSize: 13, marginBottom: 8 }} />
                       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                        <input value={item.from || ""} onChange={e => updateItem(item.id, { from: e.target.value })} placeholder="CH desde" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
-                        <input value={item.to || ""} onChange={e => updateItem(item.id, { to: e.target.value })} placeholder="CH hasta" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                        <input value={item.from || ""} onChange={e => updateItem(item.id, { from: e.target.value })} placeholder={t("CH desde")} inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                        <input value={item.to || ""} onChange={e => updateItem(item.id, { to: e.target.value })} placeholder={t("CH hasta")} inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
                       </div>
                       {(() => {
                         const ins = inputsInRange(item.from, item.to);
                         return (
                           <>
-                            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 6 }}>{ins.length} INPUT{ins.length !== 1 ? "S" : ""} EN RANGO</div>
+                            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 6 }}>{t("{n} INPUT(S) EN RANGO", { n: ins.length })}</div>
                             {ins.length > 0 ? (
                               <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                                 {ins.map(i => (
@@ -373,7 +376,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
                                 ))}
                               </div>
                             ) : (
-                              <div style={{ fontSize: 11, color: T.text4 }}>Sin inputs en este rango — defínelos en la pestaña INPUTS.</div>
+                              <div style={{ fontSize: 11, color: T.text4 }}>{t("Sin inputs en este rango — defínelos en la pestaña INPUTS.")}</div>
                             )}
                           </>
                         );
@@ -383,20 +386,20 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
 
                   {k === "corriente" && (
                     <div style={{ marginTop: 10 }}>
-                      <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 6 }}>GRUPO VINCULADO</div>
+                      <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 6 }}>{t("GRUPO VINCULADO")}</div>
                       <select value={item.refId || ""} onChange={e => updateItem(item.id, { refId: e.target.value })} style={{ ...S.input, fontSize: 13 }}>
-                        <option value="">— Sin vincular —</option>
-                        {(esc.power || []).map(g => <option key={g.id} value={g.id}>{g.grupo || "(sin nombre)"}{g.kw ? ` · ${g.kw}kW` : ""}</option>)}
+                        <option value="">{t("— Sin vincular —")}</option>
+                        {(esc.power || []).map(g => <option key={g.id} value={g.id}>{g.grupo || t("(sin nombre)")}{g.kw ? ` · ${g.kw}kW` : ""}</option>)}
                       </select>
                       {(() => {
                         const g = powerById(item.refId);
                         return g ? (
                           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                            {g.tomas && <span style={chip}>Tomas {g.tomas}</span>}
+                            {g.tomas && <span style={chip}>{t("Tomas {n}", { n: g.tomas })}</span>}
                             {g.kw && <span style={chip}>{g.kw} kW</span>}
                             {g.notas && <span style={chip}>{g.notas}</span>}
                           </div>
-                        ) : <div style={{ fontSize: 11, color: T.text4, marginTop: 8 }}>Vincula un grupo de la pestaña CORRIENTE.</div>;
+                        ) : <div style={{ fontSize: 11, color: T.text4, marginTop: 8 }}>{t("Vincula un grupo de la pestaña CORRIENTE.")}</div>;
                       })()}
                     </div>
                   )}
@@ -407,12 +410,12 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
             {pickerCell && (
               <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.12em" }}>AÑADIR AL PLANO</div>
+                  <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.12em" }}>{t("AÑADIR AL PLANO")}</div>
                   <button onClick={() => setPickerCell(null)} style={{ background: "none", border: "none", color: T.text4, fontSize: 20, cursor: "pointer", lineHeight: 1, padding: 0 }}>×</button>
                 </div>
 
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-                  {[["icon", "Instrumento"], ["subbox", "Subbox"], ["corriente", "Corriente"]].map(([id, lbl]) => {
+                  {[["icon", t("Instrumento")], ["subbox", t("Subbox")], ["corriente", t("Corriente")]].map(([id, lbl]) => {
                     const active = pickerTab === id; const c = CAT[id];
                     return (
                       <button key={id} onClick={() => setPickerTab(id)}
@@ -427,31 +430,31 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
                   <>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
                       {PLOT_ICONS.map(({ icon, label }) => (
-                        <button key={icon} onClick={() => { placeAt(pickerCell.row, pickerCell.col, { kind: "icon", icon, label: customLabel || label }); setPickerCell(null); }}
+                        <button key={icon} onClick={() => { placeAt(pickerCell.row, pickerCell.col, { kind: "icon", icon, label: customLabel || t(label) }); setPickerCell(null); }}
                           style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 4px", cursor: "pointer" }}>
                           <div style={{ fontSize: 22 }}>{icon}</div>
-                          <div style={{ fontSize: 9, color: T.text3 }}>{label}</div>
+                          <div style={{ fontSize: 9, color: T.text3 }}>{t(label)}</div>
                         </button>
                       ))}
                     </div>
-                    <input value={customLabel} onChange={e => setCustomLabel(e.target.value)} placeholder="Etiqueta personalizada (opcional)" style={{ ...S.input, fontSize: 12 }} />
+                    <input value={customLabel} onChange={e => setCustomLabel(e.target.value)} placeholder={t("Etiqueta personalizada (opcional)")} style={{ ...S.input, fontSize: 12 }} />
                   </>
                 )}
 
                 {pickerTab === "subbox" && (
                   <>
-                    <input value={sbDraft.name} onChange={e => setSbDraft(v => ({ ...v, name: e.target.value }))} placeholder="Nombre (ej. SB1)" style={{ ...S.input, fontSize: 13, marginBottom: 8 }} />
+                    <input value={sbDraft.name} onChange={e => setSbDraft(v => ({ ...v, name: e.target.value }))} placeholder={t("Nombre (ej. SB1)")} style={{ ...S.input, fontSize: 13, marginBottom: 8 }} />
                     <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                      <input value={sbDraft.from} onChange={e => setSbDraft(v => ({ ...v, from: e.target.value }))} placeholder="CH desde" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
-                      <input value={sbDraft.to} onChange={e => setSbDraft(v => ({ ...v, to: e.target.value }))} placeholder="CH hasta" inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                      <input value={sbDraft.from} onChange={e => setSbDraft(v => ({ ...v, from: e.target.value }))} placeholder={t("CH desde")} inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
+                      <input value={sbDraft.to} onChange={e => setSbDraft(v => ({ ...v, to: e.target.value }))} placeholder={t("CH hasta")} inputMode="numeric" style={{ ...S.input, fontSize: 13 }} />
                     </div>
                     {(sbDraft.from || sbDraft.to) && (() => {
                       const n = inputsInRange(sbDraft.from, sbDraft.to).length;
-                      return <div style={{ fontSize: 10, color: CAT.subbox.color, marginBottom: 10 }}>{n} input{n !== 1 ? "s" : ""} de la pestaña INPUTS en este rango</div>;
+                      return <div style={{ fontSize: 10, color: CAT.subbox.color, marginBottom: 10 }}>{t("{n} input(s) de la pestaña INPUTS en este rango", { n })}</div>;
                     })()}
                     <button onClick={() => { placeAt(pickerCell.row, pickerCell.col, { kind: "subbox", name: sbDraft.name.trim(), from: sbDraft.from.trim(), to: sbDraft.to.trim() }); setPickerCell(null); }}
                       style={{ width: "100%", padding: 14, borderRadius: 12, border: "none", cursor: "pointer", background: CAT.subbox.border, color: "#fff", fontSize: 14, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.08em" }}>
-                      Colocar subbox
+                      {t("Colocar subbox")}
                     </button>
                   </>
                 )}
@@ -459,7 +462,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
                 {pickerTab === "corriente" && (
                   (esc.power || []).length === 0 ? (
                     <div style={{ fontSize: 12, color: T.text4, textAlign: "center", padding: "16px 8px", lineHeight: 1.6 }}>
-                      No hay grupos de corriente.<br />Créalos primero en la pestaña <b style={{ color: CAT.corriente.color }}>CORRIENTE</b>.
+                      {t("No hay grupos de corriente.")}<br />{t("Créalos primero en la pestaña")} <b style={{ color: CAT.corriente.color }}>{t("CORRIENTE")}</b>.
                     </div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -468,8 +471,8 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
                           style={{ display: "flex", alignItems: "center", gap: 10, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", textAlign: "left" }}>
                           <span style={{ fontSize: 18 }}>⚡</span>
                           <span style={{ flex: 1 }}>
-                            <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: T.text }}>{g.grupo || "(sin nombre)"}</span>
-                            <span style={{ fontSize: 11, color: T.text4, fontFamily: "monospace" }}>{[g.tomas && `${g.tomas} tomas`, g.kw && `${g.kw}kW`].filter(Boolean).join(" · ") || "—"}</span>
+                            <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: T.text }}>{g.grupo || t("(sin nombre)")}</span>
+                            <span style={{ fontSize: 11, color: T.text4, fontFamily: "monospace" }}>{[g.tomas && t("{n} tomas", { n: g.tomas }), g.kw && `${g.kw}kW`].filter(Boolean).join(" · ") || "—"}</span>
                           </span>
                         </button>
                       ))}

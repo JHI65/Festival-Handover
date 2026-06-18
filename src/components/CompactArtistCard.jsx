@@ -1,9 +1,11 @@
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { sigColor, noInfo } from "../lib/utils";
 import { PALETTE } from "../lib/constants";
 
 function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
   const color = sigColor(a.signal);
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
 
   const cardBg = T.card;
@@ -38,12 +40,12 @@ function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
           <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexShrink: 0, lineHeight: 1 }}>
             {a.tecnico && (
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>técnico</div>
+                <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>{t("técnico")}</div>
                 <div style={{ fontSize: 13, fontFamily: "'DM Mono',monospace" }}>{noInfo(a.tecnico)}</div>
               </div>
             )}
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>mesa</div>
+              <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>{t("mesa")}</div>
               <div style={{ fontSize: 15, fontFamily: "'DM Mono',monospace" }}>{noInfo(a.console) || "—"}</div>
             </div>
           </div>
@@ -77,11 +79,11 @@ function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
         {/* footer: lx · mon */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: textSecondary, paddingTop: 10, borderTop: `1px solid ${borderC}` }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: a.toLx ? 1 : 0.45 }}>
-            💡 LX <strong style={{ color: cardText, fontFamily: "'DM Mono',monospace", fontWeight: 500 }}>{noInfo(a.toLx) || "No"}</strong>
+            💡 LX <strong style={{ color: cardText, fontFamily: "'DM Mono',monospace", fontWeight: 500 }}>{noInfo(a.toLx) || t("No")}</strong>
           </span>
           <span style={{ color: textTertiary }}>·</span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: a.toMon ? 1 : 0.45 }}>
-            🎧 Mon <strong style={{ color: cardText, fontFamily: "'DM Mono',monospace", fontWeight: 500 }}>{noInfo(a.toMon) || "No"}</strong>
+            🎧 Mon <strong style={{ color: cardText, fontFamily: "'DM Mono',monospace", fontWeight: 500 }}>{noInfo(a.toMon) || t("No")}</strong>
           </span>
           {a.corriente && (
             <>

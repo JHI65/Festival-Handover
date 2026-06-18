@@ -3,29 +3,30 @@ import { supabase } from "./supabase";
 import Style from "./components/Style";
 import Splash from "./components/Splash";
 import Main from "./components/Main";
+import { LangCtx, useLang, makeT, detectLang } from "./lib/i18n";
 
 /* ---------- login screen ---------- */
-const INSTALL_STEPS = {
+const installSteps = (t) => ({
   ios: [
-    <>"Compartir" <span style={{ color: "#D4A843" }}>⎙</span> en la barra inferior</>,
-    <>"<span style={{ color: "#D4A843" }}>Añadir a pantalla de inicio</span>"</>,
-    <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
+    <>"{t("Compartir")}" <span style={{ color: "#D4A843" }}>⎙</span> {t("en la barra inferior")}</>,
+    <>"<span style={{ color: "#D4A843" }}>{t("Añadir a pantalla de inicio")}</span>"</>,
+    <>{t("Pulsa")} "<span style={{ color: "#D4A843" }}>{t("Añadir")}</span>"</>,
   ],
   android: [
-    <>Menú <span style={{ color: "#D4A843" }}>⋮</span> arriba a la derecha</>,
-    <>"<span style={{ color: "#D4A843" }}>Añadir a pantalla de inicio</span>"</>,
-    <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
+    <>{t("Menú")} <span style={{ color: "#D4A843" }}>⋮</span> {t("arriba a la derecha")}</>,
+    <>"<span style={{ color: "#D4A843" }}>{t("Añadir a pantalla de inicio")}</span>"</>,
+    <>{t("Pulsa")} "<span style={{ color: "#D4A843" }}>{t("Instalar")}</span>"</>,
   ],
   mac: [
-    <>Menú "<span style={{ color: "#D4A843" }}>Archivo</span>" en la barra superior</>,
-    <>"<span style={{ color: "#D4A843" }}>Añadir al Dock...</span>"</>,
-    <>Pulsa "<span style={{ color: "#D4A843" }}>Añadir</span>"</>,
+    <>{t("Menú")} "<span style={{ color: "#D4A843" }}>{t("Archivo")}</span>" {t("en la barra superior")}</>,
+    <>"<span style={{ color: "#D4A843" }}>{t("Añadir al Dock...")}</span>"</>,
+    <>{t("Pulsa")} "<span style={{ color: "#D4A843" }}>{t("Añadir")}</span>"</>,
   ],
   desktop: [
-    <>Icono de instalación <span style={{ color: "#D4A843" }}>🖥️⬇</span> a la derecha de la barra de direcciones</>,
-    <>Pulsa "<span style={{ color: "#D4A843" }}>Instalar</span>"</>,
+    <>{t("Icono de instalación")} <span style={{ color: "#D4A843" }}>🖥️⬇</span> {t("a la derecha de la barra de direcciones")}</>,
+    <>{t("Pulsa")} "<span style={{ color: "#D4A843" }}>{t("Instalar")}</span>"</>,
   ],
-};
+});
 
 function isMobileOrTabletDevice() {
   const ua = navigator.userAgent;
@@ -62,6 +63,8 @@ function GoogleIcon() {
 }
 
 function LoginScreen() {
+  const { t } = useLang();
+  const STEPS = installSteps(t);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showInstall, setShowInstall] = useState(
@@ -123,7 +126,7 @@ function LoginScreen() {
           TUS <span style={{ color: "#D4A843" }}>FESTIVALES</span>
         </div>
         <div style={{ fontSize: 13, color: "#9A8772", marginBottom: 30, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.5 }}>
-          Gestiona y sincroniza tus handovers de sonido en tiempo real con todo tu equipo.
+          {t("Gestiona y sincroniza tus handovers de sonido en tiempo real con todo tu equipo.")}
         </div>
         <button onClick={loginWithGoogle} disabled={loading} className="lg-btn" style={{
           display: "flex", alignItems: "center", gap: 12,
@@ -135,7 +138,7 @@ function LoginScreen() {
           width: "100%", justifyContent: "center",
         }}>
           <GoogleIcon />
-          {loading ? "Conectando…" : "Continuar con Google"}
+          {loading ? t("Conectando…") : t("Continuar con Google")}
         </button>
         {error && (
           <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "rgba(201,74,42,0.12)", border: "1px solid rgba(201,74,42,0.3)", color: "#E58A6E", fontSize: 12, textAlign: "center", fontFamily: "'DM Mono',monospace" }}>{error}</div>
@@ -146,27 +149,27 @@ function LoginScreen() {
         <div onClick={() => setShowInstall(false)} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(10,7,5,0.30)", backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px", animation: "lg-fade .3s cubic-bezier(.2,.7,.3,1) both" }}>
           <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: "linear-gradient(160deg, #2E2318, #1E1610)", border: "1px solid rgba(245,239,224,0.14)", borderRadius: 28, padding: "30px 26px 26px", boxShadow: "0 24px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,239,224,0.08)", textAlign: "center" }}>
             <div style={{ fontSize: 44, marginBottom: 14, lineHeight: 1 }}>{isMobileOrTablet ? "📲" : "🖥️"}</div>
-            <div style={{ fontSize: 11, color: "#C94A2A", letterSpacing: "0.25em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>INSTALAR APP</div>
-            <div style={{ fontSize: 26, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 8 }}>Úsala como app nativa</div>
+            <div style={{ fontSize: 11, color: "#C94A2A", letterSpacing: "0.25em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>{t("INSTALAR APP")}</div>
+            <div style={{ fontSize: 26, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.04em", marginBottom: 8 }}>{t("Úsala como app nativa")}</div>
             <div style={{ fontSize: 13, color: "#9A8772", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
               {isMobileOrTablet
-                ? "Instálala desde el navegador y ábrela como una app más, directamente desde tu pantalla de inicio."
-                : "Instálala desde el navegador y ábrela en su propia ventana, sin pestañas ni barra de direcciones."}
+                ? t("Instálala desde el navegador y ábrela como una app más, directamente desde tu pantalla de inicio.")
+                : t("Instálala desde el navegador y ábrela en su propia ventana, sin pestañas ni barra de direcciones.")}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", marginBottom: 24 }}>
               {isMobileOrTablet ? (
                 <>
-                  <InstallSteps icon="🍎" title="iPhone / iPad — Safari" steps={INSTALL_STEPS.ios} />
-                  <InstallSteps icon="🤖" title="Android — Chrome" steps={INSTALL_STEPS.android} />
+                  <InstallSteps icon="🍎" title={t("iPhone / iPad — Safari")} steps={STEPS.ios} />
+                  <InstallSteps icon="🤖" title={t("Android — Chrome")} steps={STEPS.android} />
                 </>
               ) : (
                 <>
-                  <InstallSteps icon="🍎" title="Mac — Safari" steps={INSTALL_STEPS.mac} />
-                  <InstallSteps icon="💻" title="Windows / Mac — Chrome" steps={INSTALL_STEPS.desktop} />
+                  <InstallSteps icon="🍎" title={t("Mac — Safari")} steps={STEPS.mac} />
+                  <InstallSteps icon="💻" title={t("Windows / Mac — Chrome")} steps={STEPS.desktop} />
                 </>
               )}
             </div>
-            <button onClick={() => setShowInstall(false)} className="lg-btn" style={{ width: "100%", padding: "15px", borderRadius: 14, background: "#D4A843", border: "none", color: "#1A1410", fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.12em", boxShadow: "0 4px 18px rgba(212,168,67,0.3)" }}>¡ENTENDIDO!</button>
+            <button onClick={() => setShowInstall(false)} className="lg-btn" style={{ width: "100%", padding: "15px", borderRadius: 14, background: "#D4A843", border: "none", color: "#1A1410", fontFamily: "'DM Mono',monospace", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.12em", boxShadow: "0 4px 18px rgba(212,168,67,0.3)" }}>{t("¡ENTENDIDO!")}</button>
           </div>
         </div>
       )}
@@ -178,6 +181,9 @@ function LoginScreen() {
 export default function App() {
   const [session, setSession] = useState(undefined);
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [lang, setLangState] = useState(detectLang);
+  const setLang = (l) => { try { localStorage.setItem("lang", l); } catch { /* noop */ } setLangState(l); };
+  const t = makeT(lang);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -219,13 +225,13 @@ export default function App() {
 
   if (session === undefined) return <Splash />;
   return (
-    <>
+    <LangCtx.Provider value={{ lang, setLang, t }}>
       {!isOnline && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999, background: "#7C3A1A", color: "#F5EFE0", fontFamily: "'DM Mono',monospace", fontSize: 12, textAlign: "center", padding: "8px 16px", paddingTop: "calc(8px + env(safe-area-inset-top, 0px))", letterSpacing: "0.08em" }}>
-          SIN CONEXIÓN — mostrando últimos datos guardados
+          {t("SIN CONEXIÓN — mostrando últimos datos guardados")}
         </div>
       )}
       {!session ? <LoginScreen /> : <Main session={session} offlineBannerOffset={!isOnline} />}
-    </>
+    </LangCtx.Provider>
   );
 }

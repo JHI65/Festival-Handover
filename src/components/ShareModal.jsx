@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 
 function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
+  const { t } = useLang();
   const editorUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}`;
   const viewerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=viewer`;
   const ownerUrl = `${window.location.origin}/Festival-Handover/?join=${fest.id}&role=owner`;
@@ -18,9 +20,9 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
 
   function pickRole(role) {
     const url = role === "viewer" ? viewerUrl : role === "owner" ? ownerUrl : editorUrl;
-    const label = role === "viewer" ? "Visor" : role === "owner" ? "Owner" : "Editor";
+    const label = role === "viewer" ? t("Visor") : role === "owner" ? t("Owner") : t("Editor");
     if (pendingAction === "share" && navigator.share) {
-      navigator.share({ title: fest.name, text: `Te invito a ${fest.name} como ${label}`, url }).catch(() => {});
+      navigator.share({ title: fest.name, text: t("Te invito a {n} como {r}", { n: fest.name, r: label }), url }).catch(() => {});
       setStep(null); setPendingAction(null);
     } else {
       navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => { setCopied(false); setStep(null); setPendingAction(null); }, 2000); });
@@ -45,7 +47,7 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>COMPARTIR</div>
+            <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.15em" }}>{t("COMPARTIR")}</div>
             <div style={{ fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{fest.name}</div>
           </div>
           <button onClick={onClose} style={S.iconBtn}>✕</button>
@@ -55,16 +57,16 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
           /* ── Paso 2: elegir rol ── */
           <>
             <button onClick={() => { setStep(null); setPendingAction(null); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: T.text4, fontFamily: "monospace", fontSize: 11, marginBottom: 16, padding: 0 }}>
-              ‹ Volver
+              {t("‹ Volver")}
             </button>
             <div style={{ fontSize: 13, color: T.text3, fontFamily: "monospace", marginBottom: 14, textAlign: "center" }}>
-              ¿Con qué acceso?
+              {t("¿Con qué acceso?")}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 { key: "owner",  label: "OWNER",  icon: "👑", accent: "#d97706" },
                 { key: "editor", label: "EDITOR", icon: "✏️", accent: "#16a34a" },
-                { key: "viewer", label: "VISOR",  icon: "👁",  accent: "#6366f1" },
+                { key: "viewer", label: t("VISOR"),  icon: "👁",  accent: "#6366f1" },
               ].map(r => (
                 <button key={r.key} onClick={() => pickRole(r.key)} style={{
                   width: "100%", padding: "16px 18px", borderRadius: 14, border: `1.5px solid ${T.border}`,
@@ -92,7 +94,7 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
                   <polyline points="16 6 12 2 8 6"/>
                   <line x1="12" y1="2" x2="12" y2="15"/>
                 </svg>
-                COMPARTIR
+                {t("COMPARTIR")}
               </button>
             )}
             <button onClick={() => startAction("copy")} style={{
@@ -114,7 +116,7 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                 </svg>
               )}
-              {copied ? "COPIADO" : "COPIAR URL"}
+              {copied ? t("COPIADO") : t("COPIAR URL")}
             </button>
           </div>
         )}
@@ -127,29 +129,29 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
               background: "transparent", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
               fontFamily: "'DM Mono',monospace", fontSize: 11, fontWeight: 700, color: T.text4,
             }}>
-              <span>Gestionar miembros{members.length > 0 ? ` (${members.length})` : ""}</span>
+              <span>{t("Gestionar miembros")}{members.length > 0 ? ` (${members.length})` : ""}</span>
               <span style={{ display: "inline-block", transition: "transform 0.15s", transform: showMembers ? "rotate(90deg)" : "rotate(0deg)" }}>›</span>
             </button>
             {showMembers && (
               <div style={{ marginTop: 8 }}>
                 {members.length === 0 ? (
                   <div style={{ padding: "16px 14px", textAlign: "center", fontSize: 11, color: T.text4, fontFamily: "monospace" }}>
-                    Aún no hay miembros. Comparte un enlace para invitar.
+                    {t("Aún no hay miembros. Comparte un enlace para invitar.")}
                   </div>
                 ) : members.map(mid => {
-                  const email = fest.memberInfo?.[mid]?.email || `Usuario ${mid.slice(0, 6)}`;
+                  const email = fest.memberInfo?.[mid]?.email || t("Usuario {x}", { x: mid.slice(0, 6) });
                   const role = fest.roles?.[mid] || "editor";
                   return (
                     <div key={mid} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 11, color: T.text, fontFamily: "monospace", wordBreak: "break-all" }}>{email}</div>
-                          <div style={{ fontSize: 10, color: role === "viewer" ? "#6366f1" : role === "owner" ? "#d97706" : "#16a34a", fontFamily: "monospace", fontWeight: 700, marginTop: 2 }}>{role === "viewer" ? "VISOR" : role === "owner" ? "OWNER" : "EDITOR"}</div>
+                          <div style={{ fontSize: 10, color: role === "viewer" ? "#6366f1" : role === "owner" ? "#d97706" : "#16a34a", fontFamily: "monospace", fontWeight: 700, marginTop: 2 }}>{role === "viewer" ? t("VISOR") : role === "owner" ? "OWNER" : "EDITOR"}</div>
                         </div>
                         {confirmRemove === mid ? (
                           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                            <button onClick={() => removeMember(mid)} style={{ padding: "5px 8px", borderRadius: 6, border: "none", background: "#ef4444", color: "#fff", fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Expulsar</button>
-                            <button onClick={() => setConfirmRemove(null)} style={{ padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, background: "transparent", color: T.text3, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>Cancelar</button>
+                            <button onClick={() => removeMember(mid)} style={{ padding: "5px 8px", borderRadius: 6, border: "none", background: "#ef4444", color: "#fff", fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>{t("Expulsar")}</button>
+                            <button onClick={() => setConfirmRemove(null)} style={{ padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, background: "transparent", color: T.text3, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>{t("Cancelar")}</button>
                           </div>
                         ) : (
                           <button onClick={() => setConfirmRemove(mid)} style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", color: T.text4, fontSize: 14, cursor: "pointer", flexShrink: 0 }}>✕</button>
@@ -162,7 +164,7 @@ function ShareModal({ fest, isOwner, ownerId, onManageMembers, onClose }) {
                             border: role === r ? "none" : `1px solid ${T.border}`,
                             background: role === r ? (r === "viewer" ? "#6366f1" : r === "owner" ? "#d97706" : "#16a34a") : "transparent",
                             color: role === r ? "#fff" : T.text4,
-                          }}>{r === "viewer" ? "Visor" : r === "owner" ? "Owner" : "Editor"}</button>
+                          }}>{r === "viewer" ? t("Visor") : r === "owner" ? t("Owner") : t("Editor")}</button>
                         ))}
                       </div>
                     </div>

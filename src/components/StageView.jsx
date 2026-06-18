@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { uid, mkLog, withLog, getUserRole } from "../lib/utils";
 import ShareModal from "./ShareModal";
 import GeneralScheduleView from "./GeneralScheduleView";
@@ -30,6 +31,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
   const [newDayDate, setNewDayDate] = useState("");
   const [confirmPending, setConfirmPending] = useState(null);
   const dayLabelRefs = useRef([]);
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const askConfirm = (label, action) => setConfirmPending({ label, action });
 
@@ -65,7 +67,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
   function addDayToStage(stageId, label, date) {
     const st = (fest.stages || []).find(s => s.id === stageId);
     if (!st) return;
-    const newDay = { id: uid(), label: (label || `DÍA ${st.days.length + 1}`).toUpperCase(), artists: [], ...(date ? { date } : {}) };
+    const newDay = { id: uid(), label: (label || t("DÍA {n}", { n: st.days.length + 1 })).toUpperCase(), artists: [], ...(date ? { date } : {}) };
     const newStages = (fest.stages || []).map(s => s.id === stageId ? { ...s, days: [...s.days, newDay] } : s);
     onEditFest(withLog({ ...fest, stages: newStages }, mkLog(userEmail, "ADD_DAY", newDay.label)));
   }
@@ -89,7 +91,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
   function addStage() {
     if (!newName.trim()) return;
     const stageName = newName.trim().toUpperCase();
-    const newStage = { id: uid(), name: stageName, days: [{ id: uid(), label: "DÍA 1", artists: [] }] };
+    const newStage = { id: uid(), name: stageName, days: [{ id: uid(), label: t("DÍA 1"), artists: [] }] };
     onEditFest(withLog({ ...fest, stages: [...(fest.stages || []), newStage] }, mkLog(userEmail, "ADD_STAGE", stageName)));
     setNewName("");
     setShowAdd(false);
@@ -114,7 +116,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
         <div style={{ flex: 1, textAlign: "center", fontSize: 18, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>
           {activeStage ? activeStage.name : fest.name}
         </div>
-        <button onClick={() => setShowStageSelect(true)} title="Escenario asignado" style={{ ...S.syncBtn, marginRight: 6 }}>📍</button>
+        <button onClick={() => setShowStageSelect(true)} title={t("Escenario asignado")} style={{ ...S.syncBtn, marginRight: 6 }}>📍</button>
         <button onClick={() => setShowShare(true)} style={S.syncBtn}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" strokeWidth="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
@@ -124,7 +126,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
 
         {activeStage ? (
           <div>
-            <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 14 }}>POSICIONES</div>
+            <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 14 }}>{t("POSICIONES")}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {/* FOH */}
               {hasFoh && (
@@ -134,7 +136,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                   <div style={{ width: 36, height: 36, borderRadius: 4, background: "rgba(201,74,42,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎛️</div>
                   <div>
                     <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>FOH</div>
-                    <div style={{ fontSize: 11, color: "#B0A090", marginTop: 1, fontFamily: "'DM Mono',monospace" }}>{totalForStage(activeStage)} artistas · {activeStage.days.length} días</div>
+                    <div style={{ fontSize: 11, color: "#B0A090", marginTop: 1, fontFamily: "'DM Mono',monospace" }}>{t("{a} artistas · {d} días", { a: totalForStage(activeStage), d: activeStage.days.length })}</div>
                   </div>
                 </button>
               )}
@@ -153,7 +155,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                     </div>
                   </button>
                   {editMode && (
-                    <button onClick={() => askConfirm(`¿Eliminar posición de monitores "${mp.name}"?`, () => deleteMonPosition(mp.id))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+                    <button onClick={() => askConfirm(t('¿Eliminar posición de monitores "{n}"?', { n: mp.name }), () => deleteMonPosition(mp.id))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
                   )}
                 </div>
               ))}
@@ -172,14 +174,14 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                     </svg>
                   </div>
                   <div>
-                    <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>NUEVA POSICIÓN DE ESCENARIO</div>
+                    <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", color: "#F5EFE0", letterSpacing: "0.08em" }}>{t("NUEVA POSICIÓN DE ESCENARIO")}</div>
                     <div style={{ fontSize: 11, color: "#B0A090", marginTop: 1, fontFamily: "'DM Mono',monospace" }}>
-                      {(activeStage.escenario?.inputs || []).length} inputs · {(activeStage.escenario?.power || []).length} grupos corriente
+                      {t("{i} inputs · {p} grupos corriente", { i: (activeStage.escenario?.inputs || []).length, p: (activeStage.escenario?.power || []).length })}
                     </div>
                   </div>
                 </button>
                 {editMode && (
-                  <button onClick={() => askConfirm("¿Eliminar la posición de escenario?", () => deleteEscenario())} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+                  <button onClick={() => askConfirm(t("¿Eliminar la posición de escenario?"), () => deleteEscenario())} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "#ef4444", border: "none", borderRadius: 4, color: "#fff", fontSize: 14, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
                 )}
                 </div>
               )}
@@ -189,8 +191,8 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                     <button onClick={() => onOpenStage(activeStage.id)} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
                       <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎛️</div>
                       <div>
-                        <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR FOH</div>
-                        <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>Gestión de consola y artistas</div>
+                        <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>{t("AÑADIR FOH")}</div>
+                        <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>{t("Gestión de consola y artistas")}</div>
                       </div>
                     </button>
                   )}
@@ -205,16 +207,16 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                         </svg>
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR ESCENARIO</div>
-                        <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>Inputs, corriente y plano</div>
+                        <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>{t("AÑADIR ESCENARIO")}</div>
+                        <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>{t("Inputs, corriente y plano")}</div>
                       </div>
                     </button>
                   )}
                   <button onClick={addMonPosition} style={{ display: "flex", alignItems: "center", gap: 14, background: T.card, border: `1.5px dashed ${T.border}`, borderRadius: 4, padding: "14px 20px", cursor: "pointer", textAlign: "left", width: "100%" }}>
                     <div style={{ width: 32, height: 32, borderRadius: 4, background: T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎧</div>
                     <div>
-                      <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>AÑADIR MONITORES</div>
-                      <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>Nueva posición de monitores</div>
+                      <div style={{ fontSize: 13, fontFamily: "'Bebas Neue',sans-serif", color: T.text3, letterSpacing: "0.08em" }}>{t("AÑADIR MONITORES")}</div>
+                      <div style={{ fontSize: 11, color: T.text4, marginTop: 1, fontFamily: "'DM Mono',monospace" }}>{t("Nueva posición de monitores")}</div>
                     </div>
                   </button>
                 </div>
@@ -224,15 +226,15 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
           <>
             {/* Tab switcher: STAGES | HORARIOS */}
             <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3, marginBottom: 14 }}>
-              {[{ id: "stages", label: "STAGES" }, { id: "horarios", label: "HORARIOS" }].map(t => (
-                <button key={t.id} onClick={() => setViewTab(t.id)} style={{
+              {[{ id: "stages", label: t("STAGES") }, { id: "horarios", label: t("HORARIOS") }].map(vt => (
+                <button key={vt.id} onClick={() => setViewTab(vt.id)} style={{
                   flex: 1, padding: "5px 14px", borderRadius: 8, fontSize: 11,
                   fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
                   border: "none",
-                  background: viewTab === t.id ? (dark ? "#334155" : "#0f172a") : "transparent",
-                  color: viewTab === t.id ? "#fff" : T.text4,
+                  background: viewTab === vt.id ? (dark ? "#334155" : "#0f172a") : "transparent",
+                  color: viewTab === vt.id ? "#fff" : T.text4,
                   transition: "all 0.2s",
-                }}>{t.label}</button>
+                }}>{vt.label}</button>
               ))}
             </div>
 
@@ -245,7 +247,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                 background: editMode ? "#fef2f2" : T.card2, border: `1px solid ${editMode ? "#fecaca" : T.border}`,
                 borderRadius: 8, padding: "4px 8px", cursor: "pointer", fontSize: 14, color: editMode ? "#ef4444" : T.text3, lineHeight: 1,
               }}>⚙️</button>}
-              <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginLeft: 10 }}>STAGES</div>
+              <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginLeft: 10 }}>{t("STAGES")}</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {(fest.stages || []).map(st => {
@@ -271,7 +273,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                         }} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "5px 10px", fontSize: 13, color: T.text2, cursor: "pointer", flexShrink: 0 }}>✓</button>
                       </div>
 
-                      <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 8 }}>DÍAS</div>
+                      <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 8 }}>{t("DÍAS")}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                         {st.days.map((d, i) => (
                           <div key={d.id} style={{ background: T.card2, borderRadius: 10, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
@@ -297,9 +299,9 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                 style={{ fontSize: 11, background: "transparent", border: "none", outline: "none", color: T.text3, fontFamily: "monospace", width: "100%" }}
                               />
                             </div>
-                            <div style={{ fontSize: 10, color: T.text4, flexShrink: 0 }}>{d.artists.length} art.</div>
+                            <div style={{ fontSize: 10, color: T.text4, flexShrink: 0 }}>{t("{n} art.", { n: d.artists.length })}</div>
                             {st.days.length > 1 && (
-                              <button onClick={() => askConfirm(`¿Eliminar ${d.label || "este día"}? Se perderán todos sus artistas.`, () => deleteDayFromStage(st.id, d.id))}
+                              <button onClick={() => askConfirm(t("¿Eliminar {d}? Se perderán todos sus artistas.", { d: d.label || t("este día") }), () => deleteDayFromStage(st.id, d.id))}
                                 style={{ width: 24, height: 24, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>−</button>
                             )}
                           </div>
@@ -311,7 +313,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                           <input
                             value={newDayLabel}
                             onChange={e => setNewDayLabel(e.target.value)}
-                            placeholder={`DÍA ${st.days.length + 1}`}
+                            placeholder={t("DÍA {n}", { n: st.days.length + 1 })}
                             style={{ ...S.input, marginBottom: 6, fontSize: 13 }}
                             autoFocus
                           />
@@ -325,12 +327,12 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                             <button onClick={() => {
                               addDayToStage(st.id, newDayLabel.trim() || undefined, newDayDate || undefined);
                               setShowDayAdd(false); setNewDayLabel(""); setNewDayDate("");
-                            }} style={{ ...S.bigBtn, flex: 1, padding: "9px", marginTop: 0, fontSize: 12 }}>Añadir día</button>
-                            <button onClick={() => { setShowDayAdd(false); setNewDayLabel(""); setNewDayDate(""); }} style={{ ...S.navBtn, flex: 0.5, fontSize: 12 }}>Cancelar</button>
+                            }} style={{ ...S.bigBtn, flex: 1, padding: "9px", marginTop: 0, fontSize: 12 }}>{t("Añadir día")}</button>
+                            <button onClick={() => { setShowDayAdd(false); setNewDayLabel(""); setNewDayDate(""); }} style={{ ...S.navBtn, flex: 0.5, fontSize: 12 }}>{t("Cancelar")}</button>
                           </div>
                         </div>
                       ) : (
-                        <button onClick={() => setShowDayAdd(true)} style={{ ...S.addBtn, marginTop: 8, fontSize: 12, padding: "9px" }}>+ Añadir día</button>
+                        <button onClick={() => setShowDayAdd(true)} style={{ ...S.addBtn, marginTop: 8, fontSize: 12, padding: "9px" }}>{t("+ Añadir día")}</button>
                       )}
 
                       {/* POSICIONES */}
@@ -341,16 +343,16 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                         if (!stHasFoh && !stHasMon && !stHasEscenario) return null;
                         return (
                           <div style={{ marginTop: 16 }}>
-                            <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 8 }}>POSICIONES</div>
+                            <div style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", marginBottom: 8 }}>{t("POSICIONES")}</div>
                             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                               {stHasFoh && (
                                 <div style={{ background: T.card2, borderRadius: 10, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
                                   <div style={{ fontSize: 16, flexShrink: 0 }}>🎛️</div>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>FOH</div>
-                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{totalForStage(st)} artistas</div>
+                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{t("{n} artistas", { n: totalForStage(st) })}</div>
                                   </div>
-                                  <button onClick={() => askConfirm(`¿Eliminar todos los artistas de FOH en ${st.name}?`, () => {
+                                  <button onClick={() => askConfirm(t("¿Eliminar todos los artistas de FOH en {n}?", { n: st.name }), () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, days: s.days.map(d => ({ ...d, artists: [] })) }
                                       : s
@@ -377,7 +379,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                     />
                                     <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{(mp.inputs || []).length} inputs · {(mp.rfEntries || []).length} RF</div>
                                   </div>
-                                  <button onClick={() => askConfirm(`¿Eliminar la posición "${mp.name}"?`, () => {
+                                  <button onClick={() => askConfirm(t('¿Eliminar la posición "{n}"?', { n: mp.name }), () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, monPositions: (s.monPositions || []).filter(p => p.id !== mp.id) }
                                       : s
@@ -390,10 +392,10 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                                 <div style={{ background: T.card2, borderRadius: 10, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
                                   <div style={{ fontSize: 16, flexShrink: 0 }}>🎪</div>
                                   <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>ESCENARIO</div>
-                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{(st.escenario?.inputs || []).length} inputs · {(st.escenario?.power || []).length} grupos corriente</div>
+                                    <div style={{ fontSize: 12, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>{t("ESCENARIO")}</div>
+                                    <div style={{ fontSize: 10, color: T.text4, fontFamily: "monospace" }}>{t("{i} inputs · {p} grupos corriente", { i: (st.escenario?.inputs || []).length, p: (st.escenario?.power || []).length })}</div>
                                   </div>
-                                  <button onClick={() => askConfirm("¿Eliminar la posición de escenario?", () => {
+                                  <button onClick={() => askConfirm(t("¿Eliminar la posición de escenario?"), () => {
                                     const newStages = (fest.stages || []).map(s => s.id === st.id
                                       ? { ...s, escenario: undefined }
                                       : s
@@ -414,12 +416,12 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
                     onClick={() => { if (!editMode) setSelectedStage(st.id); }}
                     style={{ background: T.card, border: `1px solid ${editMode ? "#fecaca" : T.border}`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 4px rgba(0,0,0,0.05)", cursor: editMode ? "default" : "pointer" }}>
                     {editMode && (
-                      <button onClick={e => { e.stopPropagation(); askConfirm(`¿Eliminar el stage "${st.name}"? Se perderán todos sus días y artistas.`, () => deleteStage(st.id)); }}
+                      <button onClick={e => { e.stopPropagation(); askConfirm(t('¿Eliminar el stage "{n}"? Se perderán todos sus días y artistas.', { n: st.name }), () => deleteStage(st.id)); }}
                         style={{ width: 26, height: 26, borderRadius: "50%", border: "none", background: "#ef4444", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>−</button>
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 17, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.04em" }}>{st.name}</div>
-                      <div style={{ fontSize: 11, color: T.text4, marginTop: 2 }}>{st.days.length} días · {total} artistas</div>
+                      <div style={{ fontSize: 11, color: T.text4, marginTop: 2 }}>{t("{d} días · {a} artistas", { d: st.days.length, a: total })}</div>
                     </div>
                     {editMode && (
                       <button onClick={e => { e.stopPropagation(); setRenamingId(st.id); setRenameVal(st.name); setShowDayAdd(false); }}
@@ -435,14 +437,14 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
               <div style={{ marginTop: 12, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px" }}>
                 <input value={newName} onChange={e => setNewName(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && addStage()}
-                  placeholder="Nombre del stage" style={{ ...S.input, marginBottom: 10 }} autoFocus />
+                  placeholder={t("Nombre del stage")} style={{ ...S.input, marginBottom: 10 }} autoFocus />
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={addStage} disabled={!newName.trim()} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13, opacity: newName.trim() ? 1 : 0.4 }}>Añadir</button>
-                  <button onClick={() => { setShowAdd(false); setNewName(""); }} style={{ ...S.navBtn, flex: 0.5 }}>Cancelar</button>
+                  <button onClick={addStage} disabled={!newName.trim()} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13, opacity: newName.trim() ? 1 : 0.4 }}>{t("Añadir")}</button>
+                  <button onClick={() => { setShowAdd(false); setNewName(""); }} style={{ ...S.navBtn, flex: 0.5 }}>{t("Cancelar")}</button>
                 </div>
               </div>
             ) : (
-              <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, marginTop: 12 }}>+ Añadir stage</button>
+              <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, marginTop: 12 }}>{t("+ Añadir stage")}</button>
             ))}
             </>
             )}
@@ -466,8 +468,8 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
             <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
             <div style={{ fontSize: 14, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>{confirmPending.label}</div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setConfirmPending(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
-              <button onClick={() => { confirmPending.action(); setConfirmPending(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Sí, eliminar</button>
+              <button onClick={() => setConfirmPending(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>{t("Cancelar")}</button>
+              <button onClick={() => { confirmPending.action(); setConfirmPending(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>{t("Sí, eliminar")}</button>
             </div>
           </div>
         </div>

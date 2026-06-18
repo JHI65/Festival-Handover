@@ -1,6 +1,8 @@
 import { useTheme, LT, DK } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 
 function StageSelectModal({ stages, current, onSelect, onClose }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT;
 
   return (
@@ -10,10 +12,10 @@ function StageSelectModal({ stages, current, onSelect, onClose }) {
         onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>📍</div>
         <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>
-          ¿En qué escenario trabajas?
+          {t("¿En qué escenario trabajas?")}
         </div>
         <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 20, lineHeight: 1.5 }}>
-          Tus avisos de soundcheck se ajustarán a este escenario. Puedes cambiarlo cuando quieras.
+          {t("Tus avisos de soundcheck se ajustarán a este escenario. Puedes cambiarlo cuando quieras.")}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
           {stages.map(st => (
@@ -31,10 +33,10 @@ function StageSelectModal({ stages, current, onSelect, onClose }) {
             border: `1.5px solid ${current === "all" ? "#C94A2A" : T.border}`,
             background: current === "all" ? "rgba(201,74,42,0.1)" : "transparent",
             color: T.text3,
-          }}>Todos los escenarios</button>
+          }}>{t("Todos los escenarios")}</button>
         </div>
         <button onClick={onClose} style={{ width: "100%", padding: "12px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>
-          Cerrar
+          {t("Cerrar")}
         </button>
       </div>
     </div>

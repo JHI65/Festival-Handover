@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang, localeOf } from "../lib/i18n";
 import { uid, noInfo, sigColor, festTimeToMin } from "../lib/utils";
 import { RouteChip } from "./ChainBox";
 
@@ -143,6 +144,7 @@ function QuickTable({ label, items, cols, onAdd, onEdit, onDelete, T, S }) {
 }
 
 function MonCompactArtistCard({ a, monPos, T, dark, onSelect }) {
+  const { t } = useLang();
   const chipBg = T.card2;
   const chipBorder = T.border;
   const monConsole = monPos?.console;
@@ -165,13 +167,13 @@ function MonCompactArtistCard({ a, monPos, T, dark, onSelect }) {
           <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexShrink: 0, lineHeight: 1 }}>
             {a.tecnico && (
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 9, color: T.text4, textTransform: "uppercase", letterSpacing: "0.06em" }}>técnico</div>
+                <div style={{ fontSize: 9, color: T.text4, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t("técnico")}</div>
                 <div style={{ fontSize: 13, fontWeight: 500, fontFamily: "monospace", color: T.text2 }}>{noInfo(a.tecnico)}</div>
               </div>
             )}
             {monConsole && (
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 9, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em" }}>consola mon</div>
+                <div style={{ fontSize: 9, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em" }}>{t("consola mon")}</div>
                 <div style={{ fontSize: 15, fontWeight: 500, fontFamily: "monospace", color: T.text }}>{noInfo(monConsole)}</div>
               </div>
             )}
@@ -215,6 +217,7 @@ function MonCompactArtistCard({ a, monPos, T, dark, onSelect }) {
 }
 
 function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack }) {
+  const { t, lang } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [tab, setTab] = useState("bandas");
   const [selectedArtistId, setSelectedArtistId] = useState(null);
@@ -282,23 +285,23 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 12px 4px", borderBottom: `1px solid ${T.border}` }}>
         <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3 }}>
-          {["bandas", "inputs", "outputs", "rf", "horarios"].map(t => (
-            <button key={t} onClick={() => { setTab(t); setSelectedArtistId(null); }} style={{
+          {["bandas", "inputs", "outputs", "rf", "horarios"].map(tb => (
+            <button key={tb} onClick={() => { setTab(tb); setSelectedArtistId(null); }} style={{
               padding: "4px 8px", borderRadius: 8, fontSize: 11,
               fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
               border: "none",
-              background: tab === t ? (dark ? "#334155" : "#0f172a") : "transparent",
-              color: tab === t ? "#fff" : T.text4,
+              background: tab === tb ? (dark ? "#334155" : "#0f172a") : "transparent",
+              color: tab === tb ? "#fff" : T.text4,
               transition: "all 0.2s",
             }}>
-              {t === "bandas" ? "BANDAS" : t === "inputs" ? "INPUTS" : t === "outputs" ? "OUTPUTS" : t === "rf" ? "RF" : "HORARIOS"}
+              {tb === "bandas" ? t("BANDAS") : tb === "inputs" ? "INPUTS" : tb === "outputs" ? "OUTPUTS" : tb === "rf" ? "RF" : t("HORARIOS")}
             </button>
           ))}
         </div>
       </div>
       <div style={{ display: "flex", gap: 6, overflowX: "auto", padding: "6px 12px 8px", alignItems: "center" }}>
         {stage.days.map((d, i) => {
-          const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "short" }) : null;
+          const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" }) : null;
           return (
             <button key={d.id} onClick={() => { setDayIdx(i); setSelectedArtistId(null); }} style={{
               flexShrink: 0, padding: dateLabel ? "4px 12px" : "5px 12px", borderRadius: 20, fontSize: 12,
@@ -332,16 +335,16 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
           <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
             <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, color: T.text4 }}>🎧</span>
-              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Setup monitor</span>
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>{t("Setup monitor")}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5px", background: T.border }}>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: "#7c3aed", marginBottom: 4 }}>Consola MON</div>
-                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(monPos.console) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>Sin confirmar</span>}</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: "#7c3aed", marginBottom: 4 }}>{t("Consola MON")}</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(monPos.console) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>{t("Sin confirmar")}</span>}</div>
               </div>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Técnico</div>
-                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.tecnico) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>Sin confirmar</span>}</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Técnico")}</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.tecnico) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>{t("Sin confirmar")}</span>}</div>
               </div>
               {selectedArt.toMon && (
                 <div style={{ padding: "10px 12px", background: T.card2, gridColumn: "1 / -1" }}>
@@ -355,20 +358,20 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
           <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
             <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, color: T.text4 }}>🔌</span>
-              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Parcheo FOH</span>
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>{t("Parcheo FOH")}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5px", background: T.border }}>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Señal</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Señal")}</div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: sigColor(selectedArt.signal), lineHeight: 1.3 }}>{noInfo(selectedArt.signal) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>—</span>}</div>
               </div>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Mesa FOH</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Mesa FOH")}</div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.console) || <span style={{ fontStyle: "italic", color: T.text4, fontWeight: 400, fontSize: 13 }}>—</span>}</div>
               </div>
               {selectedArt.connection && (
                 <div style={{ padding: "10px 12px", background: T.card2, gridColumn: "1 / -1" }}>
-                  <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Conexión</div>
+                  <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Conexión")}</div>
                   <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(selectedArt.connection)}</div>
                 </div>
               )}
@@ -377,14 +380,14 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
 
           {selectedArt.toLx && (
             <div style={{ borderBottom: `0.5px solid ${T.border}`, padding: "0 12px 12px" }}>
-              <div style={{ padding: "10px 4px 8px", fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Rutas</div>
+              <div style={{ padding: "10px 4px 8px", fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>{t("Rutas")}</div>
               <RouteChip icon="💡" label="TO LX" value={noInfo(selectedArt.toLx)} color="#ea580c" />
             </div>
           )}
 
           {(selectedArt.comments || []).length > 0 && (
             <div style={{ borderBottom: `0.5px solid ${T.border}`, padding: "10px 16px 12px" }}>
-              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4, marginBottom: 8 }}>Notas previas</div>
+              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4, marginBottom: 8 }}>{t("Notas previas")}</div>
               {selectedArt.comments.map((c, i) => (
                 <div key={i} style={{ fontSize: 13, color: T.text2, lineHeight: 1.5, padding: "6px 10px", background: T.card2, borderLeft: `2px solid ${T.border}`, borderRadius: "0 6px 6px 0", marginBottom: 4 }}>{c}</div>
               ))}
@@ -393,7 +396,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
 
           {(selectedArt.extraSlots || []).filter(s => s.label).length > 0 && (
             <div style={{ padding: "10px 16px 12px" }}>
-              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4, marginBottom: 8 }}>Campos extra</div>
+              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4, marginBottom: 8 }}>{t("Campos extra")}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                 {(selectedArt.extraSlots || []).filter(s => s.label).map(s => (
                   <RouteChip key={s.id} icon="📋" label={s.label} value={s.value || "—"} color="#2563eb" />
@@ -416,10 +419,10 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
         {tab === "bandas" && (
           <div>
             {sortedArtists.length === 0 && (
-              <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "monospace" }}>Sin artistas en este día</div>
+              <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "monospace" }}>{t("Sin artistas en este día")}</div>
             )}
             {sortedArtists.length > 0 && (
-              <span style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Ficha compacta</span>
+              <span style={{ fontSize: 10, letterSpacing: "0.08em", color: T.text4, textTransform: "uppercase", display: "block", marginBottom: 6 }}>{t("Ficha compacta")}</span>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {sortedArtists.map(a => (
@@ -436,8 +439,8 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
             items={monPos.inputs || []}
             cols={[
               { key: "ch", placeholder: "CH", width: 52 },
-              { key: "source", placeholder: "Name", flex: 2 },
-              { key: "type", placeholder: "Mic / DI", flex: 1.2 },
+              { key: "source", placeholder: t("Name"), flex: 2 },
+              { key: "type", placeholder: t("Mic / DI"), flex: 1.2 },
             ]}
             onAdd={entry => { const e = { id: uid(), ch: entry.ch || "", source: entry.source || "", type: entry.type || "" }; saveMonPos({ ...monPos, inputs: [...(monPos.inputs || []), e] }); }}
             onEdit={(id, field, val) => saveMonPos({ ...monPos, inputs: (monPos.inputs || []).map(x => x.id === id ? { ...x, [field]: val } : x) })}
@@ -453,8 +456,8 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
             items={monPos.outputs || []}
             cols={[
               { key: "mix", placeholder: "MIX", width: 52 },
-              { key: "dest", placeholder: "Dest", flex: 2 },
-              { key: "type", placeholder: "Type", flex: 1, options: ["Wedge", "IEM", "Fill", "Sub"] },
+              { key: "dest", placeholder: t("Dest"), flex: 2 },
+              { key: "type", placeholder: t("Type"), flex: 1, options: ["Wedge", "IEM", "Fill", "Sub"] },
             ]}
             onAdd={entry => { const e = { id: uid(), mix: entry.mix || "", dest: entry.dest || "", type: entry.type || "Wedge" }; saveMonPos({ ...monPos, outputs: [...(monPos.outputs || []), e] }); }}
             onEdit={(id, field, val) => saveMonPos({ ...monPos, outputs: (monPos.outputs || []).map(x => x.id === id ? { ...x, [field]: val } : x) })}
@@ -466,7 +469,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
         {/* RF TAB */}
         {tab === "rf" && (
           <div>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 10 }}>RF — {(monPos.rfEntries || []).length} unidades</div>
+            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 10 }}>{t("RF — {n} unidades", { n: (monPos.rfEntries || []).length })}</div>
             {(monPos.rfEntries || []).length > 0 && (
               <div style={{ display: "flex", gap: 8, padding: "4px 10px", marginBottom: 4 }}>
                 <span style={{ ...labelStyle, width: 28 }}>CH</span>
@@ -484,12 +487,12 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
                     <input value={editRfVal.freq ?? rf.freq} onChange={e => setEditRfVal(v => ({ ...v, freq: e.target.value }))} placeholder="Freq" style={{ ...S.input, padding: "5px 8px", flex: 1, fontSize: 13 }} />
                     <input value={editRfVal.user ?? rf.user} onChange={e => setEditRfVal(v => ({ ...v, user: e.target.value }))} placeholder="User" style={{ ...S.input, padding: "5px 8px", flex: 2, fontSize: 13 }} />
                     <select value={editRfVal.type ?? rf.type} onChange={e => setEditRfVal(v => ({ ...v, type: e.target.value }))} style={{ ...S.input, padding: "5px 8px", width: 80, fontSize: 13 }}>
-                      {["IEM", "Radio"].map(t => <option key={t}>{t}</option>)}
+                      {["IEM", "Radio"].map(o => <option key={o}>{o}</option>)}
                     </select>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => saveRf(rf.id)} style={{ ...S.smBtn, flex: 1, padding: "6px", fontSize: 12 }}>✓ Guardar</button>
-                    <button onClick={() => setEditRfId(null)} style={{ ...S.smBtn, flex: 0.5, padding: "6px", fontSize: 12 }}>Cancelar</button>
+                    <button onClick={() => saveRf(rf.id)} style={{ ...S.smBtn, flex: 1, padding: "6px", fontSize: 12 }}>{t("✓ Guardar")}</button>
+                    <button onClick={() => setEditRfId(null)} style={{ ...S.smBtn, flex: 0.5, padding: "6px", fontSize: 12 }}>{t("Cancelar")}</button>
                   </div>
                 </div>
               ) : (
@@ -507,18 +510,18 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                   <input value={newRf.ch} onChange={e => setNewRf(v => ({ ...v, ch: e.target.value }))} placeholder="CH" style={{ ...S.input, padding: "7px 8px", width: 60, fontSize: 13 }} autoFocus />
                   <input value={newRf.freq} onChange={e => setNewRf(v => ({ ...v, freq: e.target.value }))} placeholder="Freq" style={{ ...S.input, padding: "7px 8px", flex: 1, fontSize: 13 }} />
-                  <input value={newRf.user} onChange={e => setNewRf(v => ({ ...v, user: e.target.value }))} placeholder="User / artista" style={{ ...S.input, padding: "7px 8px", flex: 2, fontSize: 13 }} />
+                  <input value={newRf.user} onChange={e => setNewRf(v => ({ ...v, user: e.target.value }))} placeholder={t("User / artista")} style={{ ...S.input, padding: "7px 8px", flex: 2, fontSize: 13 }} />
                   <select value={newRf.type} onChange={e => setNewRf(v => ({ ...v, type: e.target.value }))} style={{ ...S.input, padding: "7px 8px", width: 80, fontSize: 13 }}>
-                    {["IEM", "Radio"].map(t => <option key={t}>{t}</option>)}
+                    {["IEM", "Radio"].map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={addRf} style={{ ...S.bigBtn, flex: 1, padding: "10px", marginTop: 0, fontSize: 13 }}>Añadir</button>
-                  <button onClick={() => { setShowAddRf(false); setNewRf({ ch: "", freq: "", user: "", type: "IEM" }); }} style={{ ...S.navBtn, flex: 0.5 }}>Cancelar</button>
+                  <button onClick={addRf} style={{ ...S.bigBtn, flex: 1, padding: "10px", marginTop: 0, fontSize: 13 }}>{t("Añadir")}</button>
+                  <button onClick={() => { setShowAddRf(false); setNewRf({ ch: "", freq: "", user: "", type: "IEM" }); }} style={{ ...S.navBtn, flex: 0.5 }}>{t("Cancelar")}</button>
                 </div>
               </div>
             ) : (
-              <button onClick={() => setShowAddRf(true)} style={{ ...S.addBtn, marginTop: 4 }}>+ Añadir RF</button>
+              <button onClick={() => setShowAddRf(true)} style={{ ...S.addBtn, marginTop: 4 }}>{t("+ Añadir RF")}</button>
             )}
           </div>
         )}
@@ -527,10 +530,10 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
         {tab === "horarios" && (
           <div>
             <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 10 }}>
-              HORARIOS — {day ? day.label : ""} · {sortedArtists.length} artistas
+              {t("HORARIOS — {d} · {n} artistas", { d: day ? day.label : "", n: sortedArtists.length })}
             </div>
             {sortedArtists.length === 0 && (
-              <div style={{ color: T.text4, fontSize: 13, textAlign: "center", padding: "32px 0", fontFamily: "monospace" }}>No hay artistas en este día</div>
+              <div style={{ color: T.text4, fontSize: 13, textAlign: "center", padding: "32px 0", fontFamily: "monospace" }}>{t("No hay artistas en este día")}</div>
             )}
             {sortedArtists.map(a => (
               <div key={a.id} style={{ ...rowStyle, justifyContent: "space-between" }}>

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useTheme, LT, DK } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { festTimeToMin } from "../lib/utils";
 
 function GeneralScheduleView({ fest }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT;
   const [mode, setMode] = useState("show");
 
@@ -30,7 +32,7 @@ function GeneralScheduleView({ fest }) {
   const [selectedDay, setSelectedDay] = useState(() => dayLabels[0] || null);
 
   if (dayLabels.length === 0) {
-    return <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>Sin días configurados</div>;
+    return <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>{t("Sin días configurados")}</div>;
   }
 
   const activeDay = dayLabels.includes(selectedDay) ? selectedDay : dayLabels[0];
@@ -72,12 +74,12 @@ function GeneralScheduleView({ fest }) {
           const day = stage.days.find(d => d.label === dayLabel);
           if (!day) continue;
           for (const a of day.artists) {
-            const t = getTime(a);
-            if (!t) continue;
-            if (!timeMap[t]) timeMap[t] = {};
-            timeMap[t][stage.id] = a;
+            const tm = getTime(a);
+            if (!tm) continue;
+            if (!timeMap[tm]) timeMap[tm] = {};
+            timeMap[tm][stage.id] = a;
             const e = getEndTime(a);
-            if (e && !endTimeMap[t]) endTimeMap[t] = e;
+            if (e && !endTimeMap[tm]) endTimeMap[tm] = e;
           }
         }
 

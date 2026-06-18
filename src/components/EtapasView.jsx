@@ -1,8 +1,10 @@
 import { useState, useRef } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { uid } from "../lib/utils";
 
 function EtapasView({ etapas, onSave }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [editGrupoId, setEditGrupoId] = useState(null); // id del grupo en edición, o "new"
   const [grupoName, setGrupoName] = useState("");
@@ -54,7 +56,7 @@ function EtapasView({ etapas, onSave }) {
   }
 
   function duplicateGrupo(g) {
-    const copy = { ...g, id: uid(), name: g.name + " COPIA", rows: g.rows.map(r => ({ ...r, id: uid() })) };
+    const copy = { ...g, id: uid(), name: g.name + " " + t("COPIA"), rows: g.rows.map(r => ({ ...r, id: uid() })) };
     const idx = etapas.findIndex(x => x.id === g.id);
     const next = [...etapas];
     next.splice(idx + 1, 0, copy);
@@ -68,17 +70,17 @@ function EtapasView({ etapas, onSave }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
           <button onClick={() => setEditGrupoId(null)} style={{ ...S.backBtn, background: "#261E18", borderColor: "#3D2B1F", color: "#D8CEB8" }}>‹</button>
           <div style={{ flex: 1, fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, letterSpacing: "0.06em" }}>
-            {editGrupoId === "new" ? "NUEVO GRUPO" : "EDITAR GRUPO"}
+            {editGrupoId === "new" ? t("NUEVO GRUPO") : t("EDITAR GRUPO")}
           </div>
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>NOMBRE DEL GRUPO</div>
+          <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 6 }}>{t("NOMBRE DEL GRUPO")}</div>
           <input value={grupoName} onChange={e => setGrupoName(e.target.value.toUpperCase())}
             placeholder="PA L" style={{ ...S.input }} autoFocus />
         </div>
 
-        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 8 }}>FILAS · AMP — ID</div>
+        <div style={{ fontSize: 9, color: T.text4, letterSpacing: "0.14em", fontFamily: "'DM Mono',monospace", marginBottom: 8 }}>{t("FILAS · AMP — ID")}</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
           {grupoRows.map((row, i) => (
             <div key={row.id} style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -91,9 +93,9 @@ function EtapasView({ etapas, onSave }) {
             </div>
           ))}
         </div>
-        <button onClick={addRow} style={{ ...S.addBtn, marginBottom: 20 }}>+ Añadir fila</button>
+        <button onClick={addRow} style={{ ...S.addBtn, marginBottom: 20 }}>{t("+ Añadir fila")}</button>
         <button onClick={saveGrupo} disabled={!grupoName.trim()} style={{ ...S.bigBtn, opacity: grupoName.trim() ? 1 : 0.4 }}>
-          {editGrupoId === "new" ? "CREAR GRUPO" : "GUARDAR CAMBIOS"}
+          {editGrupoId === "new" ? t("CREAR GRUPO") : t("GUARDAR CAMBIOS")}
         </button>
       </div>
     );
@@ -103,7 +105,7 @@ function EtapasView({ etapas, onSave }) {
     <div style={{ padding: "16px 14px" }}>
       {etapas.length === 0 && (
         <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40, fontFamily: "'DM Mono',monospace" }}>
-          Sin grupos de etapas
+          {t("Sin grupos de etapas")}
         </div>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
@@ -115,13 +117,13 @@ function EtapasView({ etapas, onSave }) {
               <div style={{ display: "flex", alignItems: "center", padding: "10px 14px", background: T.card2, cursor: "pointer" }}
                 onClick={() => setExpandedId(isExpanded ? null : g.id)}>
                 <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 15, letterSpacing: "0.08em", color: T.text, flex: 1 }}>{g.name}</span>
-                <span style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginRight: 10 }}>{g.rows.length} filas</span>
+                <span style={{ fontSize: 10, color: T.text4, fontFamily: "'DM Mono',monospace", marginRight: 10 }}>{t("{n} filas", { n: g.rows.length })}</span>
                 <button onClick={e => { e.stopPropagation(); openEdit(g); }}
                   style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>✏️</button>
                 <button onClick={e => { e.stopPropagation(); duplicateGrupo(g); }}
-                  title="Duplicar grupo"
+                  title={t("Duplicar grupo")}
                   style={{ background: "none", border: "none", color: T.text4, fontSize: 13, cursor: "pointer", padding: "0 6px" }}>⎘</button>
-                <button onClick={e => { e.stopPropagation(); askConfirm(`¿Eliminar el grupo "${g.name}"?`, () => deleteGrupo(g.id)); }}
+                <button onClick={e => { e.stopPropagation(); askConfirm(t('¿Eliminar el grupo "{n}"?', { n: g.name }), () => deleteGrupo(g.id)); }}
                   style={{ background: "none", border: "none", color: "#C94A2A", fontSize: 14, cursor: "pointer", padding: "0 4px" }}>×</button>
                 <span style={{ color: T.text4, fontSize: 14, marginLeft: 4 }}>{isExpanded ? "▾" : "▸"}</span>
               </div>
@@ -150,7 +152,7 @@ function EtapasView({ etapas, onSave }) {
           );
         })}
       </div>
-      <button onClick={openNew} style={{ ...S.bigBtn, marginTop: 0 }}>+ AÑADIR GRUPO</button>
+      <button onClick={openNew} style={{ ...S.bigBtn, marginTop: 0 }}>{t("+ AÑADIR GRUPO")}</button>
       {confirmPending && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick={() => setConfirmPending(null)}>
@@ -159,8 +161,8 @@ function EtapasView({ etapas, onSave }) {
             <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
             <div style={{ fontSize: 14, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>{confirmPending.label}</div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setConfirmPending(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
-              <button onClick={() => { confirmPending.action(); setConfirmPending(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Sí, eliminar</button>
+              <button onClick={() => setConfirmPending(null)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>{t("Cancelar")}</button>
+              <button onClick={() => { confirmPending.action(); setConfirmPending(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>{t("Sí, eliminar")}</button>
             </div>
           </div>
         </div>

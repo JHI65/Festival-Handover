@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
+import { useLang } from "../lib/i18n";
 import { festTimeToMin } from "../lib/utils";
 
 function HorarioPill({ label, start, end, color, bg, border, T }) {
@@ -25,6 +26,7 @@ function HorarioPill({ label, start, end, color, bg, border, T }) {
 }
 
 function HorariosView({ artists, day, onSaveTime }) {
+  const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
   const [editId, setEditId] = useState(null);
   const [editScCall, setEditScCall] = useState("");
@@ -74,7 +76,7 @@ function HorariosView({ artists, day, onSaveTime }) {
     <div>
       {/* toggle SC / SHOW — estilo Mallorca nav */}
       <div style={{ display: "flex", background: "#1A1410", borderBottom: "1px solid #3D2B1F", marginBottom: 16 }}>
-        {[["sc", "SOUNDCHECK", scColor], ["show", "SHOW", showColor]].map(([val, lbl, col]) => (
+        {[["sc", t("SOUNDCHECK"), scColor], ["show", "SHOW", showColor]].map(([val, lbl, col]) => (
           <button key={val} onClick={() => setHorariosTab(val)} style={{
             flex: 1, padding: "12px 0", border: "none", cursor: "pointer", background: "none",
             fontFamily: "'Bebas Neue',sans-serif", fontSize: 13, letterSpacing: "0.1em",
@@ -86,7 +88,7 @@ function HorariosView({ artists, day, onSaveTime }) {
       </div>
 
       {artists.length === 0 && (
-        <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>Sin artistas en este día</div>
+        <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>{t("Sin artistas en este día")}</div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -94,7 +96,7 @@ function HorariosView({ artists, day, onSaveTime }) {
           const isEditing = editId === a.id;
           const hasAnytime = a.scStart || a.scEnd || a.showStart || a.showEnd;
           const activePill = horariosTab === "sc"
-            ? { label: "SOUNDCHECK", start: a.scStart, end: a.scEnd, color: scColor, bg: scBg, border: scBorder }
+            ? { label: t("SOUNDCHECK"), start: a.scStart, end: a.scEnd, color: scColor, bg: scBg, border: scBorder }
             : { label: "SHOW", start: a.showStart, end: a.showEnd, color: showColor, bg: showBg, border: showBorder };
 
           return (
@@ -116,27 +118,27 @@ function HorariosView({ artists, day, onSaveTime }) {
                   </div>
                   <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SC INICIO</div>
+                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>{t("SC INICIO")}</div>
                       <input type="time" value={editScStart} onChange={e => setEditScStart(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SC FIN</div>
+                      <div style={{ fontSize: 9, color: scColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>{t("SC FIN")}</div>
                       <input type="time" value={editScEnd} onChange={e => setEditScEnd(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SH INICIO</div>
+                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>{t("SH INICIO")}</div>
                       <input type="time" value={editShowStart} onChange={e => setEditShowStart(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>SH FIN</div>
+                      <div style={{ fontSize: 9, color: showColor, letterSpacing: "0.12em", marginBottom: 5, fontFamily: "'DM Mono',monospace" }}>{t("SH FIN")}</div>
                       <input type="time" value={editShowEnd} onChange={e => setEditShowEnd(e.target.value)} style={{ ...S.input, padding: "10px 12px" }} />
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => confirmEdit(a.id)} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13 }}>Guardar</button>
-                    <button onClick={() => setEditId(null)} style={{ ...S.smBtn, flex: 0.5 }}>Cancelar</button>
+                    <button onClick={() => confirmEdit(a.id)} style={{ ...S.bigBtn, flex: 1, padding: "11px", marginTop: 0, fontSize: 13 }}>{t("Guardar")}</button>
+                    <button onClick={() => setEditId(null)} style={{ ...S.smBtn, flex: 0.5 }}>{t("Cancelar")}</button>
                   </div>
                 </div>
               ) : (

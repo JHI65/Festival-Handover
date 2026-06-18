@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { uid, sigColor, noInfo, festTimeToMin, mkLog, withLog } from "../lib/utils";
+import { useLang, localeOf } from "../lib/i18n";
 import { PALETTE } from "../lib/constants";
 import { printHandoverPDF } from "../lib/pdf";
 import AddArtistScreen from "./AddArtistScreen";
@@ -36,6 +37,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
   const [newDayDate, setNewDayDate] = useState("");
 
   const { dark } = useTheme();
+  const { t, lang } = useLang();
   const T = dark ? DK : LT;
   const S = makeS(T);
 
@@ -212,17 +214,17 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
       {/* row 2: BANDAS / RULOS / HORARIOS + sync */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px 8px" }}>
         <div style={{ display: "flex", gap: 0 }}>
-          {["bandas", "rulos", "horarios", "etapas", "notas"].map(t => (
-            <button key={t} onClick={() => { setTab(t); setSelectedId(null); setShowAdd(false); }} style={{
+          {["bandas", "rulos", "horarios", "etapas", "notas"].map(tb => (
+            <button key={tb} onClick={() => { setTab(tb); setSelectedId(null); setShowAdd(false); }} style={{
               padding: "6px 12px", fontSize: 12,
               fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.08em", cursor: "pointer",
               border: "none", background: "none",
-              color: tab === t ? "#F5EFE0" : "#7A6652",
-              borderBottom: tab === t ? "2px solid #D4A843" : "2px solid transparent",
-            }}>{t === "bandas" ? "BANDAS" : t === "rulos" ? "RULOS" : t === "horarios" ? "HORARIOS" : t === "etapas" ? "ETAPAS" : "NOTAS"}</button>
+              color: tab === tb ? "#F5EFE0" : "#7A6652",
+              borderBottom: tab === tb ? "2px solid #D4A843" : "2px solid transparent",
+            }}>{tb === "bandas" ? t("BANDAS") : tb === "rulos" ? t("RULOS") : tb === "horarios" ? t("HORARIOS") : tb === "etapas" ? t("ETAPAS") : t("NOTAS")}</button>
           ))}
         </div>
-        <button onClick={onRefresh} style={{ ...S.syncBtn }}>↻ {lastSync ? lastSync.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }) : ""}</button>
+        <button onClick={onRefresh} style={{ ...S.syncBtn }}>↻ {lastSync ? lastSync.toLocaleTimeString(localeOf(lang), { hour: "2-digit", minute: "2-digit" }) : ""}</button>
       </div>
       {/* row 3: day tabs */}
       <div style={{ display: "flex", overflowX: "auto", borderTop: "1px solid #3D2B1F" }}>
@@ -230,7 +232,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           const dn = d.artists.filter(a => checks[`${fest.id}__${d.id}__${a.id}__sc`] && checks[`${fest.id}__${d.id}__${a.id}__show`]).length;
           const active = i === dayIdx;
           const dayColor = PALETTE[i % PALETTE.length];
-          const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "short" }) : null;
+          const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" }) : null;
           return (
             <button key={d.id} onClick={() => { setDayIdx(i); setSelectedId(null); setShowAdd(false); }} style={{
               flexShrink: 0, padding: "10px 20px", cursor: "pointer",
@@ -250,7 +252,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             <input
               value={newDayLabel}
               onChange={e => setNewDayLabel(e.target.value)}
-              placeholder={`DÍA ${stage.days.length + 1}`}
+              placeholder={t("DÍA {n}", { n: stage.days.length + 1 })}
               style={{ width: 70, fontSize: 11, fontFamily: "'Bebas Neue',sans-serif", background: "transparent", border: "none", outline: "none", color: "#F5EFE0", letterSpacing: "0.06em" }}
               autoFocus
             />
@@ -320,9 +322,9 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
                       boxShadow: "0 4px 16px rgba(0,0,0,0.12)", border: "1px solid #e2e8f0",
                       zIndex: 30, minWidth: 140, overflow: "hidden",
                     }}>
-                      {isOwner && <><button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ Editar</button><div style={{ height: 1, background: "#f1f5f9" }} /></>}
-                      <button onClick={() => { setArtGearOpen(false); printHandoverPDF([art], { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id }); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>🖨 Exportar PDF</button>
-                      {isOwner && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 Borrar</button></>}
+                      {isOwner && <><button onClick={() => { setArtGearOpen(false); setEditId(art.id); setSelectedId(null); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>✏️ {t("Editar")}</button><div style={{ height: 1, background: "#f1f5f9" }} /></>}
+                      <button onClick={() => { setArtGearOpen(false); printHandoverPDF([art], { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id }, t, lang); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#334155", cursor: "pointer", fontFamily: "monospace" }}>🖨 {t("Exportar PDF")}</button>
+                      {isOwner && <><div style={{ height: 1, background: "#f1f5f9" }} /><button onClick={() => { setArtGearOpen(false); setConfirmDeleteArt(true); }} style={{ display: "block", width: "100%", padding: "12px 16px", background: "none", border: "none", textAlign: "left", fontSize: 13, color: "#ef4444", cursor: "pointer", fontFamily: "monospace" }}>🗑 {t("Borrar")}</button></>}
                     </div>
                   )}
                 </div>
@@ -362,28 +364,28 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
             <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, color: T.text4 }}>🖥</span>
-              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Setup técnico</span>
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>{t("Setup técnico")}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5px", background: T.border }}>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Mesa</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Mesa")}</div>
                 {art.console
                   ? <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(art.console)}</div>
-                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>Sin confirmar</div>}
+                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>{t("Sin confirmar")}</div>}
               </div>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Técnico</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Técnico")}</div>
                 {art.tecnico
                   ? <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(art.tecnico)}</div>
-                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>Sin confirmar</div>}
+                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>{t("Sin confirmar")}</div>}
               </div>
               <div style={{ padding: "10px 12px", background: T.card2, gridColumn: "1 / -1" }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Preset</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Preset")}</div>
                 {art.preset
                   ? <div style={{ fontSize: 14, fontWeight: 500, color: art.presetOk ? "#16a34a" : T.text, lineHeight: 1.3 }}>
                       {noInfo(art.preset)}{art.presetOk && <span style={{ marginLeft: 6, fontSize: 11 }}>✓</span>}
                     </div>
-                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>Sin confirmar</div>}
+                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>{t("Sin confirmar")}</div>}
               </div>
             </div>
           </div>
@@ -392,20 +394,20 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
             <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, color: T.text4 }}>🔌</span>
-              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Conexiones</span>
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>{t("Conexiones")}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5px", background: T.border }}>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Señal</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Señal")}</div>
                 {art.signal
                   ? <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(art.signal)}</div>
-                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>sin confirmar</div>}
+                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>{t("sin confirmar")}</div>}
               </div>
               <div style={{ padding: "10px 12px", background: T.card2 }}>
-                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>Conexión</div>
+                <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: T.text4, marginBottom: 4 }}>{t("Conexión")}</div>
                 {art.connection
                   ? <div style={{ fontSize: 14, fontWeight: 500, color: T.text, lineHeight: 1.3 }}>{noInfo(art.connection)}</div>
-                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>sin confirmar</div>}
+                  : <div style={{ fontSize: 13, fontWeight: 400, color: T.text4, fontStyle: "italic" }}>{t("sin confirmar")}</div>}
               </div>
             </div>
           </div>
@@ -415,7 +417,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             <div style={{ borderBottom: `0.5px solid ${T.border}` }}>
               <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 12, color: T.text4 }}>⚡</span>
-                <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>Corriente</span>
+                <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: T.text4 }}>{t("Corriente")}</span>
               </div>
               <div style={{ padding: "0 12px 12px" }}>
                 <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5, padding: "8px 10px", background: T.card2, borderRadius: 8, whiteSpace: "pre-wrap" }}>{art.corriente}</div>
@@ -427,7 +429,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           {(art.toLx || art.toMon) && (
             <div style={{ borderBottom: "0.5px solid #e2e8f0" }}>
               <div style={{ padding: "10px 16px 8px", display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#94a3b8" }}>Rutas</span>
+                <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#94a3b8" }}>{t("Rutas")}</span>
               </div>
               <div style={{ padding: "0 12px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
                 {art.toLx && <RouteChip icon="💡" label="TO LX" value={noInfo(art.toLx)} color="#ea580c" />}
@@ -439,7 +441,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           {/* Extra slots estáticos del artista */}
           {(art.extraSlots || []).filter(s => s.label).length > 0 && (
             <div style={{ borderBottom: "0.5px solid #e2e8f0", padding: "0 12px 12px" }}>
-              <div style={{ padding: "10px 4px 8px", fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#94a3b8" }}>Campos extra (artista)</div>
+              <div style={{ padding: "10px 4px 8px", fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#94a3b8" }}>{t("Campos extra (artista)")}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                 {(art.extraSlots || []).filter(s => s.label).map(s => (
                   <RouteChip key={s.id} icon="📋" label={s.label} value={s.value || "—"} color="#2563eb" />
@@ -451,7 +453,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           {/* Notas previas del artista */}
           {(art.comments || []).length > 0 && (
             <div style={{ borderBottom: "0.5px solid #e2e8f0", padding: "10px 16px 12px" }}>
-              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#94a3b8", marginBottom: 8 }}>Notas previas</div>
+              <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#94a3b8", marginBottom: 8 }}>{t("Notas previas")}</div>
               {art.comments.map((c, i) => (
                 <div key={i} style={{ fontSize: 13, color: "#475569", lineHeight: 1.5, padding: "6px 10px", background: "#f8fafc", borderLeft: "2px solid #cbd5e1", borderRadius: "0 6px 6px 0", marginBottom: 4 }}>{c}</div>
               ))}
@@ -471,13 +473,13 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           <div style={{ background: T.card, borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🗑️</div>
-            <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>¿Borrar artista?</div>
+            <div style={{ fontSize: 16, fontFamily: "'Bebas Neue',sans-serif", color: T.text, textAlign: "center", letterSpacing: "0.04em", marginBottom: 8 }}>{t("¿Borrar artista?")}</div>
             <div style={{ fontSize: 13, color: T.text3, textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
-              Vas a borrar <strong style={{ color: T.text }}>{art.artist}</strong>. Esta acción no se puede deshacer.
+              {t("Vas a borrar")} <strong style={{ color: T.text }}>{art.artist}</strong>{t(". Esta acción no se puede deshacer.")}
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setConfirmDeleteArt(false)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>Cancelar</button>
-              <button onClick={() => { deleteArtist(art.id); setConfirmDeleteArt(false); setSelectedId(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>Sí, borrar</button>
+              <button onClick={() => setConfirmDeleteArt(false)} style={{ flex: 1, padding: "14px", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: T.text2 }}>{t("Cancelar")}</button>
+              <button onClick={() => { deleteArtist(art.id); setConfirmDeleteArt(false); setSelectedId(null); }} style={{ flex: 1, padding: "14px", background: "#ef4444", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono',monospace", color: "#fff" }}>{t("Sí, borrar")}</button>
             </div>
           </div>
         </div>
@@ -549,14 +551,14 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           <div style={{ padding: "24px 20px 12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "2.8rem", letterSpacing: "0.04em", color: PALETTE[dayIdx % PALETTE.length], lineHeight: 1 }}>{day?.label || ""}</span>
-              {day?.date && <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem", color: T.text4, letterSpacing: "0.1em" }}>{new Date(day.date + "T12:00").toLocaleDateString("es", { day: "numeric", month: "long" })} · {stage.name}</span>}
+              {day?.date && <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem", color: T.text4, letterSpacing: "0.1em" }}>{new Date(day.date + "T12:00").toLocaleDateString(localeOf(lang), { day: "numeric", month: "long" })} · {stage.name}</span>}
               {artists.length > 0 && (
-                <button onClick={() => printHandoverPDF(artists, { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id })} title="Exportar PDF del día" style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 20, opacity: 0.5, lineHeight: 1, padding: "2px 4px" }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0.5}>🖨</button>
+                <button onClick={() => printHandoverPDF(artists, { festName: fest.name, stageName: stage.name, dayLabel: day.label, dayDate: day.date, notes, checks, slots, festId: fest.id, dayId: day.id }, t, lang)} title={t("Exportar PDF del día")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 20, opacity: 0.5, lineHeight: 1, padding: "2px 4px" }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0.5}>🖨</button>
               )}
             </div>
           </div>
           {artists.length === 0 && (
-            <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>Sin artistas en este día</div>
+            <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>{t("Sin artistas en este día")}</div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "0 14px" }}>
             {artists.map((a, i) => (
@@ -571,10 +573,10 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
             ))}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            {isOwner && <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, flex: 1, marginTop: 0 }}>+ Añadir artista</button>}
+            {isOwner && <button onClick={() => setShowAdd(true)} style={{ ...S.addBtn, flex: 1, marginTop: 0 }}>{t("+ Añadir artista")}</button>}
             {isOwner && artists.length > 0 && stage.days.length > 1 && (
               <button onClick={() => { setShowCopy(true); setCopySelected({}); setCopyTargetDays({}); }} style={{ ...S.addBtn, flex: 1, marginTop: 0, color: "#7c3aed", borderColor: "#ddd6fe", background: "#f5f3ff" }}>
-                Copiar al día →
+                {t("Copiar al día →")}
               </button>
             )}
           </div>
@@ -587,10 +589,10 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%", maxWidth: 480, boxShadow: "0 -4px 32px rgba(0,0,0,0.18)", maxHeight: "80dvh", overflowY: "auto" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ width: 36, height: 4, background: "#e2e8f0", borderRadius: 2, margin: "0 auto 20px" }} />
-            <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", color: "#0f172a", marginBottom: 4 }}>Copiar artistas</div>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 16 }}>Selecciona los artistas a copiar y los días destino.</div>
+            <div style={{ fontSize: 15, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", color: "#0f172a", marginBottom: 4 }}>{t("Copiar artistas")}</div>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 16 }}>{t("Selecciona los artistas a copiar y los días destino.")}</div>
 
-            <div style={{ fontSize: 9, color: "#7c3aed", letterSpacing: "0.15em", fontWeight: 700, marginBottom: 8 }}>ARTISTAS ({day.label})</div>
+            <div style={{ fontSize: 9, color: "#7c3aed", letterSpacing: "0.15em", fontWeight: 700, marginBottom: 8 }}>{t("ARTISTAS")} ({day.label})</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
               {artists.map(a => (
                 <label key={a.id} style={{ display: "flex", alignItems: "center", gap: 10, background: copySelected[a.id] ? "#f5f3ff" : "#f8fafc", border: `1px solid ${copySelected[a.id] ? "#c4b5fd" : "#e2e8f0"}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer" }}>
@@ -601,7 +603,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
               ))}
             </div>
 
-            <div style={{ fontSize: 9, color: "#7c3aed", letterSpacing: "0.15em", fontWeight: 700, marginBottom: 8 }}>DÍAS DESTINO</div>
+            <div style={{ fontSize: 9, color: "#7c3aed", letterSpacing: "0.15em", fontWeight: 700, marginBottom: 8 }}>{t("DÍAS DESTINO")}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 24 }}>
               {stage.days.map((d, i) => {
                 if (i === dayIdx) return null;
@@ -620,7 +622,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
               onClick={copyArtistsTodays}
               disabled={!Object.values(copySelected).some(Boolean) || !Object.values(copyTargetDays).some(Boolean)}
               style={{ width: "100%", padding: "14px", background: "#7c3aed", color: "#fff", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "monospace", opacity: (Object.values(copySelected).some(Boolean) && Object.values(copyTargetDays).some(Boolean)) ? 1 : 0.4 }}>
-              Copiar
+              {t("Copiar")}
             </button>
           </div>
         </div>
