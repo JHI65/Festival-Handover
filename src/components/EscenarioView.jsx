@@ -174,7 +174,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ ...S.topBar, flexWrap: "wrap", rowGap: 8, padding: "10px 12px 8px" }}>
         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
           <button onClick={onBack} style={S.backBtn}>‹</button>

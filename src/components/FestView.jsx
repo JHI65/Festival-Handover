@@ -264,7 +264,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
   if (editId) {
     const editArt = artists.find(a => a.id === editId);
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
         <TopBar onBackBtn={() => setEditId(null)} />
         <div style={{ flex: 1, padding: "12px 14px 24px", background: "#f8fafc", overflowY: "auto" }}>
           <AddArtistScreen initial={editArt} onAdd={saveEditArtist} onBack={() => setEditId(null)} />
@@ -275,7 +275,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
 
   /* ---- add screen ---- */
   if (showAdd) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar onBackBtn={() => setShowAdd(false)} />
       <div style={{ flex: 1, padding: "12px 14px 24px", background: "#f8fafc", overflowY: "auto" }}>
         <AddArtistScreen onAdd={addArtistToDay} onBack={() => setShowAdd(false)} />
@@ -285,7 +285,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
 
   /* ---- detail screen ---- */
   if (art) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar onBackBtn={() => setSelectedId(null)} />
       <div style={{ flex: 1, padding: "12px 14px", background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
         <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 16, overflow: "hidden" }}>
@@ -473,7 +473,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
 
   /* ---- list screen ---- */
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar onBackBtn={onBack} />
       {tab === "rulos" ? (
         <div style={{ flex: 1, padding: "12px 14px", background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>

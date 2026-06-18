@@ -107,7 +107,7 @@ function StageView({ fest, userEmail, userId, userRole, onBack, onEditFest, onMa
   const hasEscenario = activeStage ? ((activeStage.escenario?.inputs?.length || 0) > 0 || (activeStage.escenario?.power?.length || 0) > 0) : false;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       {/* top bar */}
       <div style={{ ...S.topBar, padding: "10px 12px 10px" }}>
         <button onClick={selectedStage ? () => setSelectedStage(null) : onBack} style={S.backBtn}>‹</button>

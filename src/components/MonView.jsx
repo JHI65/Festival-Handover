@@ -319,7 +319,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
   /* detail screen */
   const selectedArt = selectedArtistId ? (day?.artists || []).find(a => a.id === selectedArtistId) : null;
   if (selectedArt) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <MonTopBar onBackBtn={() => setSelectedArtistId(null)} />
       <div style={{ flex: 1, padding: "12px 14px", background: T.bg, overflowY: "auto", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>
         <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 16, overflow: "hidden" }}>
@@ -407,7 +407,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <MonTopBar onBackBtn={onBack} />
 
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px", background: T.bg, paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))" }}>

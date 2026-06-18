@@ -21,7 +21,7 @@ function Home({ fests, user, userId, onOpen, onNew, onDelete, onEdit, onSaveAsTe
   const templates = (fests || []).filter(f => f.isTemplate && getUserRole(f, userId) === "owner");
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", padding: "20px 20px 24px", overflow: "hidden", background: T.bg }}
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", padding: "20px 20px max(24px, env(safe-area-inset-bottom, 24px))", overflow: "hidden", background: T.bg }}
       onClick={() => { menuOpen && setMenuOpen(false); }}>
 
       {/* header */}
