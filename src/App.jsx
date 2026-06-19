@@ -39,8 +39,8 @@ const installSteps = (t) => ({
     <>{t("Pulsa")} "<span style={{ color: "#D4A843" }}>{t("Instalar")}</span>"</>,
   ],
   mac: [
-    <>{t("Menú")} "<span style={{ color: "#D4A843" }}>{t("Archivo")}</span>" {t("en la barra superior")}</>,
-    <>"<span style={{ color: "#D4A843" }}>{t("Añadir al Dock...")}</span>"</>,
+    <>{t("Icono")} <span style={{ color: "#D4A843" }}>⬆</span> "<span style={{ color: "#D4A843" }}>{t("Compartir")}</span>" {t("en la barra superior")}</>,
+    <>"<span style={{ color: "#D4A843" }}>{t("Añadir al Dock")}</span>"</>,
     <>{t("Pulsa")} "<span style={{ color: "#D4A843" }}>{t("Añadir")}</span>"</>,
   ],
   desktop: [
