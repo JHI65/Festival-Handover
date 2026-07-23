@@ -440,14 +440,15 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
   }
 
   async function updateNotes(n) {
-    const changedKeys = Object.keys(n).filter(k => JSON.stringify(n[k]) !== JSON.stringify(notesRef.current[k]));
+    const oldNotes = notesRef.current;
+    const changedKeys = Object.keys(n).filter(k => JSON.stringify(n[k]) !== JSON.stringify(oldNotes[k]));
     setNotes(n);
     if (!navigator.onLine) { sharedDirtyRef.current = true; return; }
     try {
       const fids = new Set([...Object.keys(n), ...Object.keys(notes)].map(pickFestId));
       for (const fid of fids) if (fid) {
         const fChangedKeys = changedKeys.filter(k => pickFestId(k) === fid);
-        await saveFestShared(fid, n, checks, slots, fChangedKeys, []);
+        await saveFestShared(fid, n, checks, slots, fChangedKeys, [], oldNotes);
       }
     } catch (err) {
       console.warn("updateNotes falló, se reintentará al reconectar:", err?.message || err);

@@ -151,7 +151,20 @@ export function mergeSlotArrays(remote, local) {
   return [...(local || []), ...(remote || []).filter(s => !locIds.has(s.id))];
 }
 
-export async function saveFestShared(festId, localNotes, localChecks, localSlots, changedNoteKeys = [], changedSlotKeys = []) {
+// Reconcilia un array de notas al guardar: newLocal (lo que el usuario acaba
+// de guardar: puede tener notas añadidas, editadas o borradas respecto a
+// oldLocal) siempre gana para las notas que ya conocía; las notas remotas
+// con ts desconocido para oldLocal son adiciones de otro técnico y se
+// conservan. Así los borrados y ediciones propios ya no se deshacen al
+// unir con el estado remoto.
+export function reconcileNoteArray(remote, oldLocal, newLocal) {
+  const knownTs = new Set((oldLocal || []).map(n => n.ts));
+  const newLocalTs = new Set((newLocal || []).map(n => n.ts));
+  const extra = (remote || []).filter(n => !knownTs.has(n.ts) && !newLocalTs.has(n.ts));
+  return [...(newLocal || []), ...extra].sort((a, b) => a.ts - b.ts);
+}
+
+export async function saveFestShared(festId, localNotes, localChecks, localSlots, changedNoteKeys = [], changedSlotKeys = [], oldLocalNotes = {}) {
   const { data, error: selErr } = await supabase
     .from("festivals")
     .select("notes, checks, slots")
@@ -167,10 +180,11 @@ export async function saveFestShared(festId, localNotes, localChecks, localSlots
   const lC = filterByFest(localChecks, festId);
   const lS = filterByFest(localSlots, festId);
 
-  // Notes: para keys que el usuario acaba de cambiar, hacer union por ts
+  // Notes: para keys que el usuario acaba de cambiar, reconciliar respetando
+  // sus borrados/ediciones y conservando adiciones remotas de otros técnicos
   const mergedN = { ...rN, ...lN };
   for (const key of changedNoteKeys) {
-    if (lN[key] !== undefined) mergedN[key] = mergeNoteArrays(rN[key], lN[key]);
+    if (lN[key] !== undefined) mergedN[key] = reconcileNoteArray(rN[key], oldLocalNotes[key], lN[key]);
   }
 
   // Checks: local gana (sabemos exactamente qué toggle se hizo)
