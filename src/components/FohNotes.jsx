@@ -17,7 +17,7 @@ function FohNotes({ notes, onAdd, onDel }) {
       <div style={{ fontSize: 9, color: noteLabel, letterSpacing: "0.15em", marginBottom: 7, fontWeight: 700 }}>{t("NOTAS FOH (turno)")}</div>
       {notes.map((n, i) => (
         <div key={i} style={{ display: "flex", gap: 6, alignItems: "flex-start", marginBottom: 5 }}>
-          <div style={{ flex: 1, fontSize: 12, color: noteText, lineHeight: 1.5, padding: "7px 10px", background: noteBg, borderLeft: `2px solid ${noteBorder}`, borderRadius: "0 6px 6px 0" }}>{n.text}</div>
+          <div style={{ flex: 1, fontSize: 12, color: noteText, lineHeight: 1.5, padding: "7px 10px", background: noteBg, borderLeft: `2px solid ${noteBorder}`, borderRadius: "0 6px 6px 0", whiteSpace: "pre-wrap" }}>{n.text}</div>
           {onDel && <button onClick={() => onDel(i)} style={S.iconBtn}>×</button>}
         </div>
       ))}
