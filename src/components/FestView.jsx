@@ -196,6 +196,10 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
     setNotes({ ...notes, [ckey]: [...myNotes, { text: text.trim(), ts: Date.now() }] });
   }
   function delNote(i) { setNotes({ ...notes, [ckey]: myNotes.filter((_, idx) => idx !== i) }); }
+  function editNote(i, text) {
+    if (!text.trim()) return;
+    setNotes({ ...notes, [ckey]: myNotes.map((n, idx) => idx === i ? { ...n, text: text.trim() } : n) });
+  }
   function addSlot(label, value) {
     if (!label.trim()) return;
     setSlots({ ...slots, [ckey]: [...mySlots, { id: uid(), label: label.trim(), value: value.trim() }] });
@@ -461,7 +465,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
           )}
 
           <ExtraSlots slots={mySlots} onAdd={canEdit ? addSlot : null} onDel={canEdit ? delSlot : null} onEdit={canEdit ? editSlot : null} />
-          <FohNotes notes={myNotes} onAdd={canEdit ? addNote : null} onDel={canEdit ? delNote : null} />
+          <FohNotes notes={myNotes} onAdd={canEdit ? addNote : null} onDel={canEdit ? delNote : null} onEdit={canEdit ? editNote : null} />
         </div>
       </div>
       {/* cierre menú gear al tocar fuera */}
