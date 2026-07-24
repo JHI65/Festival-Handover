@@ -37,33 +37,33 @@ function CompactArtistCard({ a, fest, day, checks, colorIdx, onSelect }) {
 
       {/* header: name + tecnico/mesa */}
       <div style={{ padding: "16px 18px 12px 18px", borderBottom: `1px solid ${borderC}`, background: T.card2 }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 5, marginBottom: 8 }}>
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 4,
-            fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
-            background: scDone ? "#E1F5EE" : chipBg,
-            color: scDone ? "#085041" : textTertiary,
-            border: `0.5px solid ${scDone ? "#1D9E7555" : chipBorder}`,
-          }}>
-            {scDone && <span style={{ width: 4, height: 4, background: "#1D9E75", borderRadius: "50%", display: "inline-block" }} />}
-            SC
-          </span>
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 4,
-            fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
-            background: showDone ? "#E6F1FB" : chipBg,
-            color: showDone ? "#0C447C" : textTertiary,
-            border: `0.5px solid ${showDone ? "#2563eb55" : chipBorder}`,
-          }}>
-            {showDone && <span style={{ width: 4, height: 4, background: "#2563eb", borderRadius: "50%", display: "inline-block" }} />}
-            SHOW
-          </span>
-        </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
           <span style={{ fontSize: 22, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.03em", lineHeight: 1, color: cardText }}>
             {a.artist || "—"}
           </span>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexShrink: 0, lineHeight: 1 }}>
+            <div style={{ display: "flex", gap: 5 }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
+                background: scDone ? "#E1F5EE" : chipBg,
+                color: scDone ? "#085041" : textTertiary,
+                border: `0.5px solid ${scDone ? "#1D9E7555" : chipBorder}`,
+              }}>
+                {scDone && <span style={{ width: 4, height: 4, background: "#1D9E75", borderRadius: "50%", display: "inline-block" }} />}
+                SC
+              </span>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
+                background: showDone ? "#E6F1FB" : chipBg,
+                color: showDone ? "#0C447C" : textTertiary,
+                border: `0.5px solid ${showDone ? "#2563eb55" : chipBorder}`,
+              }}>
+                {showDone && <span style={{ width: 4, height: 4, background: "#2563eb", borderRadius: "50%", display: "inline-block" }} />}
+                SHOW
+              </span>
+            </div>
             {a.tecnico && (
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 8, color: textTertiary, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Mono',monospace" }}>{t("técnico")}</div>
