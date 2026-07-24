@@ -3,7 +3,7 @@ import { useLang } from "../lib/i18n";
 import { sigColor, noInfo } from "../lib/utils";
 import { PALETTE } from "../lib/constants";
 
-function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
+function CompactArtistCard({ a, fest, day, checks, colorIdx, onSelect }) {
   const color = sigColor(a.signal);
   const { t } = useLang();
   const { dark } = useTheme(); const T = dark ? DK : LT; const S = makeS(T);
@@ -16,6 +16,10 @@ function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
   const textTertiary = T.text4;
   const textSecondary = T.text3;
   const accentLeft = PALETTE[(colorIdx ?? 0) % PALETTE.length];
+
+  const ckey = fest && day ? `${fest.id}__${day.id}__${a.id}` : null;
+  const scDone = ckey ? !!checks?.[`${ckey}__sc`] : false;
+  const showDone = ckey ? !!checks?.[`${ckey}__show`] : false;
 
   return (
     <div
@@ -33,6 +37,28 @@ function CompactArtistCard({ a, fest, day, colorIdx, onSelect }) {
 
       {/* header: name + tecnico/mesa */}
       <div style={{ padding: "16px 18px 12px 18px", borderBottom: `1px solid ${borderC}`, background: T.card2 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 5, marginBottom: 8 }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
+            background: scDone ? "#E1F5EE" : chipBg,
+            color: scDone ? "#085041" : textTertiary,
+            border: `0.5px solid ${scDone ? "#1D9E7555" : chipBorder}`,
+          }}>
+            {scDone && <span style={{ width: 4, height: 4, background: "#1D9E75", borderRadius: "50%", display: "inline-block" }} />}
+            SC
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
+            background: showDone ? "#E6F1FB" : chipBg,
+            color: showDone ? "#0C447C" : textTertiary,
+            border: `0.5px solid ${showDone ? "#2563eb55" : chipBorder}`,
+          }}>
+            {showDone && <span style={{ width: 4, height: 4, background: "#2563eb", borderRadius: "50%", display: "inline-block" }} />}
+            SHOW
+          </span>
+        </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
           <span style={{ fontSize: 22, fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.03em", lineHeight: 1, color: cardText }}>
             {a.artist || "—"}

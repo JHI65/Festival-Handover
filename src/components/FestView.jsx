@@ -574,6 +574,7 @@ function FestView({ fest, stage, userEmail, userRole, dayIdx, setDayIdx, notes, 
                 a={a}
                 fest={fest}
                 day={day}
+                checks={checks}
                 colorIdx={i}
                 onSelect={setSelectedId}
               />
