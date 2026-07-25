@@ -44,7 +44,9 @@ function HorariosView({ artists, day, onSaveTime, canEdit = true }) {
   const showBg     = dark ? "rgba(201,74,42,0.15)" : "rgba(201,74,42,0.08)";
   const showBorder = dark ? "rgba(201,74,42,0.4)" : "rgba(201,74,42,0.25)";
 
-  const sorted = [...artists].sort((a, b) => {
+  const visible = horariosTab === "sc" ? artists.filter(a => a.scStart || a.scEnd) : artists;
+
+  const sorted = [...visible].sort((a, b) => {
     const ta = horariosTab === "sc" ? festTimeToMin(a.scStart || a.showStart) : festTimeToMin(a.showStart || a.scStart);
     const tb = horariosTab === "sc" ? festTimeToMin(b.scStart || b.showStart) : festTimeToMin(b.showStart || b.scStart);
     return ta - tb;
@@ -87,8 +89,10 @@ function HorariosView({ artists, day, onSaveTime, canEdit = true }) {
         ))}
       </div>
 
-      {artists.length === 0 && (
-        <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>{t("Sin artistas en este día")}</div>
+      {visible.length === 0 && (
+        <div style={{ textAlign: "center", color: T.text4, fontSize: 13, marginTop: 40 }}>
+          {artists.length === 0 ? t("Sin artistas en este día") : t("Ningún artista tiene soundcheck asignado")}
+        </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
