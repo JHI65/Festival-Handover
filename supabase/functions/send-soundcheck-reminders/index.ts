@@ -1,6 +1,10 @@
 // Cron job (cada minuto vía pg_cron) que envía hasta 3 avisos push por
 // artista — Load In (-30 min), Soundcheck (-15 min) y Show (-15 min) —
 // solo a los miembros asignados a ese stage. Ver REMINDER_TYPES abajo.
+// Además, en el minuto exacto de showStart, marca automáticamente el tick
+// SHOW del artista en la columna `checks` (misma key que usa toggleCheck en
+// el cliente: `${festId}__${dayId}__${artId}__show`), sin esperar a que un
+// técnico lo pulse a mano.
 // Deploy: supabase functions deploy send-soundcheck-reminders --no-verify-jwt
 // Secrets requeridos (supabase secrets set ...):
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (ya disponibles por defecto en runtime)
@@ -78,6 +82,7 @@ Deno.serve(async (req) => {
 
   let sent = 0;
   const dueReminders: { fest: any; stage: any; day: any; artist: any; key: string; title: string; refTime: string }[] = [];
+  const autoTickKeys: { festId: string; key: string }[] = [];
 
   for (const fest of festivals || []) {
     const stages = fest.days?._stages || [];
@@ -94,8 +99,33 @@ Deno.serve(async (req) => {
             const key = `${fest.id}__${stage.id}__${day.id}__${artist.id}__${rt.type}`;
             dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key, title: rt.title, refTime });
           }
+
+          const showMin = minutesOfDay(artist.showStart);
+          if (showMin !== null && showMin === nowMin) {
+            const checkKey = `${fest.id}__${day.id}__${artist.id}__show`;
+            if (!fest.checks?.[checkKey]) autoTickKeys.push({ festId: fest.id, key: checkKey });
+          }
         }
       }
+    }
+  }
+
+  // Auto-tick del check SHOW: agrupado por festival para hacer un solo UPDATE
+  // por fila aunque varios artistas de ese festival empiecen en el mismo minuto.
+  let autoTicked = 0;
+  if (autoTickKeys.length) {
+    const byFest = new Map<string, Set<string>>();
+    for (const { festId, key } of autoTickKeys) {
+      if (!byFest.has(festId)) byFest.set(festId, new Set());
+      byFest.get(festId)!.add(key);
+    }
+    for (const [festId, keys] of byFest) {
+      const fest = (festivals || []).find((f: any) => f.id === festId);
+      const updatedChecks = { ...(fest?.checks || {}) };
+      for (const k of keys) updatedChecks[k] = true;
+      const { error: tickErr } = await supabase.from("festivals").update({ checks: updatedChecks }).eq("id", festId);
+      if (tickErr) console.error("auto-tick SHOW falló", festId, tickErr.message);
+      else autoTicked += keys.size;
     }
   }
 
@@ -142,7 +172,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ checked: dueReminders.length, sent }), {
+  return new Response(JSON.stringify({ checked: dueReminders.length, sent, autoTicked }), {
     headers: { "Content-Type": "application/json" },
   });
 });
