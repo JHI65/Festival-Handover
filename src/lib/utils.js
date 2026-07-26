@@ -51,6 +51,33 @@ export function withLog(fest, entry) {
   return { ...fest, log: [...(fest.log || []).slice(-999), entry] };
 }
 
+// Posiciones "abiertas" (con datos) dentro de un stage: FOH, cada posición de
+// monitores y escenario. Usado para saltar directo a la sección del técnico.
+export function stagePositions(stage) {
+  if (!stage) return [];
+  const positions = [];
+  const totalArtists = (stage.days || []).reduce((a, d) => a + d.artists.length, 0);
+  if (totalArtists > 0) positions.push({ kind: "foh", stageId: stage.id, label: "FOH" });
+  (stage.monPositions || []).forEach(mp => positions.push({ kind: "mon", stageId: stage.id, monId: mp.id, label: mp.name }));
+  const hasEscenario = (stage.escenario?.inputs?.length || 0) > 0 || (stage.escenario?.power?.length || 0) > 0;
+  if (hasEscenario) positions.push({ kind: "escenario", stageId: stage.id, label: "ESCENARIO" });
+  return positions;
+}
+
+export function festPositions(fest) {
+  return (fest?.stages || []).flatMap(stagePositions);
+}
+
+export function isPositionValid(fest, pos) {
+  if (!pos) return false;
+  const stage = (fest?.stages || []).find(s => s.id === pos.stageId);
+  if (!stage) return false;
+  if (pos.kind === "foh") return (stage.days || []).reduce((a, d) => a + d.artists.length, 0) > 0;
+  if (pos.kind === "mon") return (stage.monPositions || []).some(p => p.id === pos.monId);
+  if (pos.kind === "escenario") return (stage.escenario?.inputs?.length || 0) > 0 || (stage.escenario?.power?.length || 0) > 0;
+  return false;
+}
+
 export function sigColor(s) {
   const t = (s || "").toUpperCase();
   if (t.includes("AES")) return "#2563eb";

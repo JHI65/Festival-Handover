@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { ThemeCtx, LT, DK, makeS } from "../lib/theme";
-import { uid, getUserRole, UNDO_LIMIT } from "../lib/utils";
+import { uid, getUserRole, UNDO_LIMIT, festPositions, isPositionValid } from "../lib/utils";
 import { useLang } from "../lib/i18n";
 import { SEED } from "../lib/constants";
 import { saveOfflineCache, loadOfflineCache } from "../lib/offline";
@@ -19,6 +19,7 @@ import StageView from "./StageView";
 import FestView from "./FestView";
 import MonView from "./MonView";
 import EscenarioView from "./EscenarioView";
+import PositionSelectModal from "./PositionSelectModal";
 import NotificationSettings from "./NotificationSettings";
 
 function Main({ session, offlineBannerOffset, onOpenLegal }) {
@@ -46,6 +47,7 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
   const [inviteToast, setInviteToast] = useState(null);
   const conflictTimerRef = useRef(null);
   const [screen, setScreen] = useState("home");
+  const [positionPromptFestId, setPositionPromptFestId] = useState(null);
   const [lastSync, setLastSync] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
@@ -429,6 +431,37 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
     }
   }
 
+  // Navega directamente a una posición (FOH / mon / escenario) sin pasar por "stages".
+  function navigateToPosition(pos) {
+    setStageId(pos.stageId);
+    setDayIdx(0);
+    if (pos.kind === "foh") setScreen("view");
+    else if (pos.kind === "mon") { setMonId(pos.monId); setScreen("mon"); }
+    else if (pos.kind === "escenario") setScreen("escenario");
+  }
+
+  // Guarda la posición elegida por el usuario para este festival y navega a ella.
+  // Se llama tanto desde el modal de bienvenida como al pinchar una posición
+  // manualmente en StageView, así un cambio de posición se recuerda para la próxima vez.
+  function choosePosition(fest, pos) {
+    const updatedInfo = { ...fest.memberInfo, [userId]: { ...fest.memberInfo?.[userId], assignedPosition: pos } };
+    updateFest({ ...fest, memberInfo: updatedInfo });
+    navigateToPosition(pos);
+    setPositionPromptFestId(null);
+  }
+
+  function openFest(id) {
+    setFestId(id);
+    const f = festsRef.current.find(x => x.id === id);
+    const assigned = f?.memberInfo?.[userId]?.assignedPosition;
+    if (assigned && isPositionValid(f, assigned)) {
+      navigateToPosition(assigned);
+      return;
+    }
+    setScreen("stages");
+    if (festPositions(f).length > 0) setPositionPromptFestId(id);
+  }
+
   async function manageMembers(updated) {
     setFests(festsRef.current.map(f => f.id === updated.id ? updated : f));
     try {
@@ -519,7 +552,7 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
             fests={fests}
             user={session.user}
             userId={userId}
-            onOpen={(id) => { setFestId(id); setScreen("stages"); }}
+            onOpen={openFest}
             onNew={() => setScreen("builder")}
             onDelete={removeFest}
             onEdit={updateFest}
@@ -538,9 +571,9 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
             onBack={() => setScreen("home")}
             onEditFest={updateFest}
             onManageMembers={manageMembers}
-            onOpenStage={(sid) => { setStageId(sid); setDayIdx(0); setScreen("view"); }}
-            onOpenMon={(sid, mid) => { setStageId(sid); setMonId(mid); setDayIdx(0); setScreen("mon"); }}
-            onOpenEscenario={(sid) => { setStageId(sid); setScreen("escenario"); }}
+            onOpenStage={(sid) => choosePosition(fest, { kind: "foh", stageId: sid })}
+            onOpenMon={(sid, mid) => choosePosition(fest, { kind: "mon", stageId: sid, monId: mid })}
+            onOpenEscenario={(sid) => choosePosition(fest, { kind: "escenario", stageId: sid })}
           />
         )}
         {screen === "builder" && (
@@ -591,6 +624,13 @@ function Main({ session, offlineBannerOffset, onOpenLegal }) {
               updateFest({ ...fest, stages: newStages });
               setScreen("stages");
             }}
+          />
+        )}
+        {positionPromptFestId && positionPromptFestId === festId && fest && (
+          <PositionSelectModal
+            fest={fest}
+            onSelect={(pos) => choosePosition(fest, pos)}
+            onClose={() => setPositionPromptFestId(null)}
           />
         )}
         {showNotifPrompt && <NotificationSettings userId={userId} onClose={() => setShowNotifPrompt(false)} />}
