@@ -25,22 +25,35 @@ webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-// Minuto real del día (0-1439), sin el ajuste "+24h" que usa el cliente para
-// ordenar horarios de madrugada — aquí necesitamos comparar contra la hora
-// real del reloj (nowMin, siempre 0-1439), así que ese ajuste rompería la
-// comparación para Load In / Soundcheck de madrugada (00:00-05:59).
+// Minuto real del día (0-1439) de una hora "HH:MM".
 function minutesOfDay(t?: string | null) {
   if (!t) return null;
   const [h, m] = t.split(":").map(Number);
   return h * 60 + (m || 0);
 }
 
-// Minuto objetivo del aviso (offset min antes), con wraparound correcto si
-// la hora de referencia está cerca de medianoche (ej. 00:10 - 30 -> 23:40).
-function reminderMinuteFor(t: string | null | undefined, offset: number) {
+// Suma/resta días a una fecha "YYYY-MM-DD" en aritmética de calendario pura
+// (sin zona horaria).
+function shiftDate(dateStr: string, delta: number) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  return dt.toISOString().slice(0, 10);
+}
+
+// Replica festTimeToMin del cliente (src/lib/utils.js: `h < 6 ? h+24 : h`):
+// las horas antes de las 06:00 son madrugada y pertenecen, en calendario
+// real, al día siguiente a `day.date`. Devuelve la fecha y minuto reales en
+// los que debe dispararse el aviso (offset minutos antes de `t`), con
+// wraparound de fecha si restar el offset cruza medianoche hacia atrás.
+function targetInstant(dayDate: string, t: string | null | undefined, offset: number) {
   const mins = minutesOfDay(t);
   if (mins === null) return null;
-  return ((mins - offset) % 1440 + 1440) % 1440;
+  const madrugada = mins < 360;
+  let min = mins - offset;
+  let dayShift = madrugada ? 1 : 0;
+  if (min < 0) { min += 1440; dayShift -= 1; }
+  return { dateStr: shiftDate(dayDate, dayShift), min };
 }
 
 // Un artista puede disparar hasta 3 avisos independientes.
@@ -89,21 +102,23 @@ Deno.serve(async (req) => {
     const memberInfo = fest.days?._memberInfo || {};
     for (const stage of stages) {
       for (const day of stage.days || []) {
-        if (day.date !== todayStr) continue;
+        if (!day.date) continue;
         for (const artist of day.artists || []) {
           for (const rt of REMINDER_TYPES) {
             const refTime = artist[rt.field];
             if (!refTime) continue;
-            const reminderMin = reminderMinuteFor(refTime, rt.offset);
-            if (reminderMin === null || reminderMin !== nowMin) continue;
+            const target = targetInstant(day.date, refTime, rt.offset);
+            if (!target || target.dateStr !== todayStr || target.min !== nowMin) continue;
             const key = `${fest.id}__${stage.id}__${day.id}__${artist.id}__${rt.type}`;
             dueReminders.push({ fest: { ...fest, memberInfo }, stage, day, artist, key, title: rt.title, refTime });
           }
 
-          const showMin = minutesOfDay(artist.showStart);
-          if (showMin !== null && showMin === nowMin) {
-            const checkKey = `${fest.id}__${day.id}__${artist.id}__show`;
-            if (!fest.checks?.[checkKey]) autoTickKeys.push({ festId: fest.id, key: checkKey });
+          if (artist.showStart) {
+            const target = targetInstant(day.date, artist.showStart, 0);
+            if (target && target.dateStr === todayStr && target.min === nowMin) {
+              const checkKey = `${fest.id}__${day.id}__${artist.id}__show`;
+              if (!fest.checks?.[checkKey]) autoTickKeys.push({ festId: fest.id, key: checkKey });
+            }
           }
         }
       }
