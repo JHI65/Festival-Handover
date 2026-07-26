@@ -3,6 +3,7 @@ import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { useLang, localeOf } from "../lib/i18n";
 import { uid, noInfo, sigColor, festTimeToMin } from "../lib/utils";
 import { RouteChip } from "./ChainBox";
+import HorariosView from "./HorariosView";
 
 function QuickTable({ label, items, cols, onAdd, onEdit, onDelete, T, S }) {
   const autoCol = cols.find(c => !c.options);
@@ -238,6 +239,14 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
   function saveMonPos(updated) {
     const newStages = (fest.stages || []).map(s => s.id === stage.id
       ? { ...s, monPositions: (s.monPositions || []).map(p => p.id === monPos.id ? updated : p) }
+      : s
+    );
+    onEditFest({ ...fest, stages: newStages });
+  }
+
+  function saveArtistTime(artId, fields) {
+    const newStages = (fest.stages || []).map(s => s.id === stage.id
+      ? { ...s, days: s.days.map((d, i) => i === dayIdx ? { ...d, artists: d.artists.map(a => a.id === artId ? { ...a, ...fields } : a) } : d) }
       : s
     );
     onEditFest({ ...fest, stages: newStages });
@@ -528,25 +537,7 @@ function MonView({ fest, stage, monPos, dayIdx, setDayIdx, onEditFest, onBack })
 
         {/* HORARIOS TAB */}
         {tab === "horarios" && (
-          <div>
-            <div style={{ fontSize: 10, color: T.text4, letterSpacing: "0.08em", marginBottom: 10 }}>
-              {t("HORARIOS — {d} · {n} artistas", { d: day ? day.label : "", n: sortedArtists.length })}
-            </div>
-            {sortedArtists.length === 0 && (
-              <div style={{ color: T.text4, fontSize: 13, textAlign: "center", padding: "32px 0", fontFamily: "monospace" }}>{t("No hay artistas en este día")}</div>
-            )}
-            {sortedArtists.map(a => (
-              <div key={a.id} style={{ ...rowStyle, justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
-                  {a.showStart && (
-                    <span style={{ fontSize: 13, fontWeight: 700, color: dark ? "#818cf8" : "#4f46e5", fontFamily: "monospace", flexShrink: 0 }}>{a.showStart}</span>
-                  )}
-                  <span style={{ color: T.text, fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.artist}</span>
-                </div>
-                {a.console && <span style={{ color: T.text3, fontSize: 11, flexShrink: 0, marginLeft: 8 }}>{a.console}</span>}
-              </div>
-            ))}
-          </div>
+          <HorariosView artists={sortedArtists} day={day} onSaveTime={saveArtistTime} />
         )}
 
       </div>

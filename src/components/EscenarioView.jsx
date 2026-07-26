@@ -3,6 +3,7 @@ import { useTheme, LT, DK, makeS } from "../lib/theme";
 import { useLang, localeOf } from "../lib/i18n";
 import { uid, sigColor, noInfo, festTimeToMin } from "../lib/utils";
 import { QuickTable } from "./MonView";
+import HorariosView from "./HorariosView";
 
 const PLOT_COLS = 7;
 const PLOT_ROWS = 5;
@@ -86,6 +87,14 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
   function saveEsc(updated) {
     const newStages = (fest.stages || []).map(s =>
       s.id === stage.id ? { ...s, escenario: updated } : s
+    );
+    onEditFest({ ...fest, stages: newStages });
+  }
+
+  function saveArtistTime(artId, fields) {
+    const newStages = (fest.stages || []).map(s => s.id === stage.id
+      ? { ...s, days: s.days.map((d, i) => i === dayIdx ? { ...d, artists: d.artists.map(a => a.id === artId ? { ...a, ...fields } : a) } : d) }
+      : s
     );
     onEditFest({ ...fest, stages: newStages });
   }
@@ -208,7 +217,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
         )}
         {/* tab pills */}
         <div style={{ display: "flex", gap: 4, background: T.card2, borderRadius: 10, padding: 3 }}>
-          {[["bandas", t("BANDAS")], ["inputs", "INPUTS"], ["power", t("CORRIENTE")], ["plot", t("PLANO")]].map(([id, lbl]) => (
+          {[["bandas", t("BANDAS")], ["inputs", "INPUTS"], ["power", t("CORRIENTE")], ["plot", t("PLANO")], ["horarios", t("HORARIOS")]].map(([id, lbl]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               padding: "4px 10px", borderRadius: 8, fontSize: 11,
               fontFamily: "'Bebas Neue',sans-serif", letterSpacing: "0.06em", cursor: "pointer",
@@ -221,7 +230,7 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
         </div>
       </div>
 
-      {tab === "bandas" && stage.days.length > 1 && (
+      {(tab === "bandas" || tab === "horarios") && stage.days.length > 1 && (
         <div style={{ display: "flex", gap: 6, overflowX: "auto", padding: "6px 14px 8px", background: T.topBar, borderBottom: `1px solid ${T.border}`, alignItems: "center" }}>
           {stage.days.map((d, i) => {
             const dateLabel = d.date ? new Date(d.date + "T12:00").toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" }) : null;
@@ -263,6 +272,12 @@ function EscenarioView({ fest, stage, onEditFest, onBack, onDelete }) {
               </div>
             </div>
           );
+        })()}
+
+        {tab === "horarios" && (() => {
+          const day = stage.days[dayIdx] || stage.days[0];
+          const artists = day ? [...(day.artists || [])].sort((a, b) => festTimeToMin(a.showStart) - festTimeToMin(b.showStart)) : [];
+          return <HorariosView artists={artists} day={day} onSaveTime={saveArtistTime} />;
         })()}
 
         {tab === "inputs" && (
